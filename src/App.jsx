@@ -1,13 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import Navbar from "./components/Navbar";
 
-export default function App() {
+import Hero from "./sections/Hero";
+import About from "./sections/About";
+import Skills from "./sections/Skills";
+import Projects from "./sections/Projects";
+import Journey from "./sections/Journey";
+import Awards from "./sections/Awards";
+import Contact from "./sections/Contact";
+
+function App() {
   return (
-    <div className="text-green-500 text-4xl font-bold">
-      Tailwind is fixed 🚀
-    </div>
+    <main className="min-h-screen">
+      <Navbar />
+
+      <Hero />
+      <About />
+      <Skills />
+      <Projects />
+      <Journey />
+      <Awards />
+      <Contact />
+    </main>
   );
 }
+
+export default App;

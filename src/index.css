@@ -2,14 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional: global reset improvements */
-html, body {
-  margin: 0;
-  padding: 0;
+html {
   scroll-behavior: smooth;
 }
 
-/* Optional: better default font */
 body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+:root {
+  --bg: #f8f6ff;
+  --surface: #e0c3fc;
+  --card: #dabbfc;
+  --border: #cbb2fe;
+  --accent: #bbadff;
+  --text: #1a0129;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11001c;
+    --surface: #1a0129;
+    --card: #220135;
+    --border: #3a025b;
+    --accent: #520380;
+    --text: #ffffff;
+  }
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.heading-font {
+  font-family: "Outfit", sans-serif;
 }
