@@ -1,4 +1,6 @@
 import Navbar from "./components/Navbar";
+import AnimatedBackground from "./components/AnimatedBackground";
+import ScrollProgress from "./components/ScrollProgress";
 
 import Hero from "./sections/Hero";
 import About from "./sections/About";
@@ -10,17 +12,24 @@ import Contact from "./sections/Contact";
 
 function App() {
   return (
-    <main className="min-h-screen">
-      <Navbar />
+    <div className="relative min-h-screen overflow-x-clip">
+      <AnimatedBackground />
+      <ScrollProgress />
 
-      <Hero />
-      <About />
-      <Skills />
-      <Projects />
-      <Journey />
-      <Awards />
-      <Contact />
-    </main>
+      <div className="relative z-10">
+        <Navbar />
+
+        <main>
+          <Hero />
+          <About />
+          <Skills />
+          <Projects />
+          <Journey />
+          <Awards />
+          <Contact />
+        </main>
+      </div>
+    </div>
   );
 }
 

@@ -22,6 +22,7 @@ function Navbar() {
           ? "backdrop-blur-xl bg-black/20 border-b border-white/10"
           : "bg-transparent"
       }`}
+      style={{display: "flex"}}
     >
       <div className="w-full h-20 px-8 lg:px-16 flex items-center justify-between">
         <h1 className="heading-font text-2xl font-bold">
