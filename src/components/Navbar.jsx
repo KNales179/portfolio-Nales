@@ -83,7 +83,7 @@ function Navbar() {
           className="group flex shrink-0 items-center gap-3"
         >
           <img
-            src="/IBell.png"
+            src={`${import.meta.env.BASE_URL}IBell.png`}
             alt="I-Bell logo"
             className="h-11 w-11 rounded-xl object-cover shadow-md shadow-purple-950/20 transition duration-300 group-hover:scale-105"
           />

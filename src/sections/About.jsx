@@ -4,25 +4,26 @@ import {
   Lightbulb,
   Rocket,
 } from "lucide-react";
+import SectionTitle from "../components/SectionTitle";
 
 const strengths = [
   {
     icon: BrainCircuit,
     title: "Logical Thinking",
     description:
-      "I focus on system logic, workflows, and solving real operational problems.",
+      "I focus on workflows, system logic, and solving problems in a structured way.",
   },
   {
     icon: Lightbulb,
     title: "Feature Planning",
     description:
-      "I translate real-world requirements into practical application features.",
+      "I turn real user needs into practical features that make the system useful and easier to manage.",
   },
   {
     icon: Rocket,
-    title: "Independent Learning",
+    title: "Continuous Learning",
     description:
-      "I independently learned technologies beyond the university curriculum.",
+      "I learn new tools and technologies when a project requires them, instead of limiting myself to what I already know.",
   },
 ];
 
@@ -33,46 +34,11 @@ function About() {
       className="relative flex min-h-screen items-center py-28 md:py-36"
     >
       <div className="mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-16">
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 50,
-            filter: "blur(8px)",
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.8,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-        >
-          <p className="mb-4 flex items-center gap-3 font-medium text-purple-400">
-            <span className="h-px w-10 bg-purple-400" />
-            About Me
-          </p>
-
-          <h2 className="heading-font mb-8 max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
-            Building real systems through logic,
-            planning, and continuous learning.
-          </h2>
-
-          <p className="max-w-4xl text-lg leading-8 opacity-75">
-            I am a Mobile and Full Stack Developer with
-            experience building transportation and records
-            management systems. I independently learned React
-            Native, Node.js, Express, API integration, and
-            MongoDB beyond the university curriculum to create
-            real-world solutions including TODA-GO and the
-            Tricycle Integration Record System.
-          </p>
-        </motion.div>
+        <SectionTitle
+          label="About Me"
+          title="Building practical systems through logic, planning, and continuous learning."
+          description="I am a Mobile and Full Stack Developer who enjoys building practical systems based on real-world problems. I started with basic programming and gradually learned mobile development, backend APIs, databases, authentication, and cloud-based tools through hands-on projects. My completed works include TODA-GO and the Tricycle Integration Record System, but I am not limited to one type of system—I am willing to learn and adapt based on what each project requires."
+        />
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {strengths.map((strength, index) => {
@@ -100,7 +66,7 @@ function About() {
                 whileHover={{
                   y: -8,
                 }}
-                className="rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-7 backdrop-blur-lg transition-shadow duration-300 hover:shadow-2xl hover:shadow-purple-950/10"
+                className="rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-7 backdrop-blur-lg transition-shadow duration-100 hover:shadow-2xl hover:shadow-purple-950/10"
               >
                 <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-400">
                   <Icon size={24} />

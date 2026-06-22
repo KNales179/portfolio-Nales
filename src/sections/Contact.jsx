@@ -18,8 +18,14 @@ const contacts = [
     external: true,
   },
   {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/your-profile",
+    icon: ExternalLink,
+    external: true,
+  },
+  {
     label: "Resume",
-    href: "/resume.pdf",
+    href: `${import.meta.env.BASE_URL}resume.pdf`,
     icon: Download,
     download: true,
   },
@@ -76,7 +82,8 @@ function Contact() {
 
             <p className="mx-auto mb-10 max-w-xl leading-7 opacity-70">
               Open to junior developer opportunities,
-              collaborations, and professional connections.
+              collaborations, freelance projects, and professional
+              connections.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -132,8 +139,8 @@ function Contact() {
         </motion.div>
 
         <p className="mt-8 text-sm opacity-50">
-          © {new Date().getFullYear()} I-Bell (Ivhel).
-          Built with React, Tailwind CSS, and curiosity.
+          © {new Date().getFullYear()} IBell by Ivhel.
+          Built with React, Tailwind CSS, and continuous learning.
         </p>
       </div>
     </section>

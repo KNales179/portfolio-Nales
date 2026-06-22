@@ -1,29 +1,36 @@
 import { motion } from "framer-motion";
+import SectionTitle from "../components/SectionTitle";
 
 const milestones = [
   {
-    year: "2023",
-    title: "Started Advanced Web Development",
+    year: "2022",
+    title: "Started Basic Coding",
     description:
-      "Expanded beyond classroom projects and explored modern web-development technologies.",
+      "Started college with no coding background and learned the fundamentals of programming through Python, including basic syntax, inputs, buttons, text display, and the classic “Hello World” program.",
+  },
+  {
+    year: "2023",
+    title: "Started Advanced Coding",
+    description:
+      "Moved from basic programming into more structured application development, learning how to build simple systems, understand logic flow, and create more functional user interfaces.",
   },
   {
     year: "2024",
-    title: "Learned Backend Development",
+    title: "Learned APIs, Backend, and Databases",
     description:
-      "Studied APIs, databases, authentication, frontend-backend integration, and full-stack architecture.",
+      "Expanded into backend development, API integration, authentication, database handling, and connecting frontend systems with server-side logic.",
   },
   {
     year: "2025",
     title: "Developed TODA-GO",
     description:
-      "Built a transportation platform with passenger and driver mobile apps, backend services, and a web-based admin dashboard.",
+      "Built TODA-GO, a tricycle ride-hailing platform with passenger and driver mobile apps, backend services, location-based features, and a web-based admin dashboard.",
   },
   {
     year: "2026",
     title: "Completed Major Systems",
     description:
-      "Completed TODA-GO and the Tricycle Integration Record System, presented the project, and graduated from the BSIT program.",
+      "Completed TODA-GO and the Tricycle Integration Record System, presented the projects, participated in research activities, and graduated from the BSIT program.",
   },
 ];
 
@@ -34,34 +41,13 @@ function Journey() {
       className="relative py-28 md:py-36"
     >
       <div className="mx-auto max-w-5xl px-6 md:px-10">
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 40,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.3,
-          }}
-          transition={{
-            duration: 0.7,
-          }}
-        >
-          <p className="mb-4 flex items-center gap-3 font-medium text-purple-400">
-            <span className="h-px w-10 bg-purple-400" />
-            Development Journey
-          </p>
+        <SectionTitle
+          label="Development Journey"
+          title="Growth Timeline"
+          description="A simple timeline of how I started from basic programming and grew into building complete systems."
+        />
 
-          <h2 className="heading-font mb-16 text-4xl font-bold md:text-6xl">
-            Growth Timeline
-          </h2>
-        </motion.div>
-
-        <div className="relative">
+        <div className="relative mt-16">
           <motion.div
             className="absolute bottom-0 left-[11px] top-0 w-px origin-top bg-gradient-to-b from-purple-400 via-purple-700 to-transparent md:left-1/2"
             initial={{
@@ -101,9 +87,7 @@ function Journey() {
                   delay: index * 0.1,
                 }}
                 className={`relative grid md:grid-cols-2 ${
-                  index % 2 === 0
-                    ? ""
-                    : "md:text-right"
+                  index % 2 === 0 ? "" : "md:text-right"
                 }`}
               >
                 <div

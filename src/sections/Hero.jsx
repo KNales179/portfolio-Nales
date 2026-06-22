@@ -117,7 +117,7 @@ function Hero() {
                 "linear-gradient(90deg, var(--text), #c084fc)",
             }}
           >
-            Beh
+            Ivhel
           </h1>
 
           <h2 className="heading-font mb-6 max-w-2xl text-3xl font-semibold leading-tight md:text-5xl">
@@ -125,9 +125,11 @@ function Hero() {
           </h2>
 
           <p className="mb-9 max-w-xl text-base leading-8 opacity-75 md:text-lg">
-            I develop mobile and full-stack systems based on real-world needs, from mobile apps 
-            and APIs to admin dashboards and data-driven platforms. I am continuously learning 
-            new technologies to build better solutions for different types of projects.
+            I develop mobile and full-stack systems based on
+            real-world needs, from mobile apps and APIs to admin
+            dashboards and data-driven platforms. I continuously
+            learn new technologies to build better solutions for
+            different types of projects.
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -145,7 +147,7 @@ function Hero() {
             </button>
 
             <a
-              href="/resume.pdf"
+              href={`${import.meta.env.BASE_URL}resume.pdf`}
               download
               className="group flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 px-6 py-3 font-semibold backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-purple-400/60"
             >
@@ -164,7 +166,7 @@ function Hero() {
                 2+
               </p>
               <p className="text-sm opacity-60">
-                Major systems
+                Major Systems Built
               </p>
             </div>
 
@@ -173,16 +175,16 @@ function Hero() {
                 4+
               </p>
               <p className="text-sm opacity-60">
-                Recognitions
+                Awards & Recognitions
               </p>
             </div>
 
             <div>
               <p className="heading-font text-3xl font-bold">
-                1
+                Social Impact
               </p>
               <p className="text-sm opacity-60">
-                Award-winning capstone
+                Capstone Award
               </p>
             </div>
           </div>
@@ -214,8 +216,8 @@ function Hero() {
             <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-400/15 bg-purple-500/5 backdrop-blur-sm md:h-[420px] md:w-[420px]" />
 
             <img
-              src="/beh.png"
-              alt="Beh"
+              src={`${import.meta.env.BASE_URL}beh.png`}
+              alt="Ivhel"
               className="relative z-10 mx-auto h-full w-full object-contain object-center drop-shadow-2xl"
               style={{
                 WebkitMaskImage:
