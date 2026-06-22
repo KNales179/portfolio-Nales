@@ -125,9 +125,9 @@ function Hero() {
           </h2>
 
           <p className="mb-9 max-w-xl text-base leading-8 opacity-75 md:text-lg">
-            I build mobile applications, backend systems,
-            and administrative platforms focused on
-            transportation and records management solutions.
+            I develop mobile and full-stack systems based on real-world needs, from mobile apps 
+            and APIs to admin dashboards and data-driven platforms. I am continuously learning 
+            new technologies to build better solutions for different types of projects.
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -188,28 +188,59 @@ function Hero() {
           </div>
         </motion.div>
 
-        <motion.div
-          className="pointer-events-none absolute bottom-0 right-0 z-10 hidden h-[85vh] w-[65%] items-end justify-end md:flex"
-          initial={{ opacity: 0, x: 80 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{
-            duration: 1,
-            delay: 0.15,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-        >
-          <div className="absolute bottom-[-15%] right-[10%] size-[600px] rounded-full bg-purple-600/20 blur-[140px]" />
-
-          <img
-            src="/beh.png"
-            alt="Beh"
-            className="relative z-10 h-full w-full object-contain object-bottom drop-shadow-2xl"
-            onError={(event) => {
-              console.error("Failed to load /beh.png");
-              event.currentTarget.style.display = "none";
+        <div className="pointer-events-none absolute inset-x-0 top-[30%] z-10 flex h-[80vh] -translate-y-1/2 items-center justify-center opacity-20 md:inset-auto md:right-[2%] md:top-1/2 md:h-[78vh] md:w-[48%] md:opacity-100">
+          <motion.div
+            className="relative h-full w-full"
+            style={{
+              y: photoY,
+              opacity: photoOpacity,
             }}
-          />
-        </motion.div>
+            initial={{
+              opacity: 0,
+              x: 80,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 1,
+              delay: 0.15,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <div className="absolute left-1/2 top-1/2 size-[330px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/20 blur-[100px] md:size-[520px] md:blur-[140px]" />
+
+            <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-400/15 bg-purple-500/5 backdrop-blur-sm md:h-[420px] md:w-[420px]" />
+
+            <img
+              src="/beh.png"
+              alt="Beh"
+              className="relative z-10 mx-auto h-full w-full object-contain object-center drop-shadow-2xl"
+              style={{
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, transparent 0%, black 12%, black 78%, transparent 100%)",
+                maskImage:
+                  "linear-gradient(to bottom, transparent 0%, black 12%, black 78%, transparent 100%)",
+              }}
+            />
+
+            <motion.div
+              className="absolute bottom-[8%] left-1/2 z-20 h-10 w-[55%] -translate-x-1/2 rounded-[100%] bg-purple-500/25 blur-2xl md:bottom-[3%] md:w-[65%]"
+              animate={{
+                scaleX: [1, 1.08, 1],
+                opacity: [0.25, 0.45, 0.25],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            <div className="absolute bottom-[10%] left-1/2 z-20 h-px w-[50%] -translate-x-1/2 bg-gradient-to-r from-transparent via-purple-300/50 to-transparent md:bottom-[5%] md:w-[58%]" />
+          </motion.div>
+        </div>
 
         <motion.button
           type="button"
