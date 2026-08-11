@@ -1,47 +1,46 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const navigationLinks = [
-  { label: "Home", id: "home" },
-  { label: "About", id: "about" },
-  { label: "Skills", id: "skills" },
-  { label: "Projects", id: "projects" },
-  { label: "Journey", id: "journey" },
-  { label: "Awards", id: "awards" },
-  { label: "Contact", id: "contact" },
+  {
+    label: "Home",
+    path: "/",
+  },
+  {
+    label: "Projects",
+    path: "/projects",
+  },
+  {
+    label: "Certificates",
+    path: "/certificates",
+  },
+  {
+    label: "About Me",
+    path: "/about",
+  },
+  {
+    label: "Contact",
+    path: "/contact",
+  },
 ];
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
+  const navigate = useNavigate();
+
+  /*
+    Detect whether the page has been scrolled.
+    This is only used for the navbar appearance,
+    not for section navigation anymore.
+  */
+  useState(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
-
-      const currentPosition = window.scrollY + 160;
-
-      for (const link of navigationLinks) {
-        const section = document.getElementById(link.id);
-
-        if (!section) continue;
-
-        const sectionTop = section.offsetTop;
-        const sectionBottom = sectionTop + section.offsetHeight;
-
-        if (
-          currentPosition >= sectionTop &&
-          currentPosition < sectionBottom
-        ) {
-          setActiveSection(link.id);
-          break;
-        }
-      }
     };
-
-    handleScroll();
 
     window.addEventListener("scroll", handleScroll, {
       passive: true,
@@ -50,22 +49,20 @@ function Navbar() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  });
 
-  const handleNavigation = (sectionId) => {
-    const section = document.getElementById(sectionId);
-
-    if (!section) return;
-
-    setActiveSection(sectionId);
+  const handleNavigation = (path) => {
     setMenuOpen(false);
 
-    setTimeout(() => {
-      section.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 80);
+    navigate(path);
+
+    /*
+      Start every new page at the top.
+    */
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -77,9 +74,13 @@ function Navbar() {
       }`}
     >
       <div className="mx-auto flex h-20 w-full max-w-[1440px] items-center justify-between px-5 md:px-10 lg:px-16">
+
+        {/* =========================
+            BRAND
+        ========================== */}
         <button
           type="button"
-          onClick={() => handleNavigation("home")}
+          onClick={() => handleNavigation("/")}
           className="group flex shrink-0 items-center gap-3"
         >
           <img
@@ -99,35 +100,48 @@ function Navbar() {
           </div>
         </button>
 
+        {/* =========================
+            DESKTOP NAVIGATION
+        ========================== */}
         <nav className="hidden items-center gap-2 md:flex">
-          {navigationLinks.map((link) => {
-            const isActive = activeSection === link.id;
-
-            return (
-              <button
-                key={link.id}
-                type="button"
-                onClick={() => handleNavigation(link.id)}
-                className={`group relative rounded-xl px-4 py-2 text-sm font-medium transition duration-300 ${
+          {navigationLinks.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              onClick={() => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
+              className={({ isActive }) =>
+                `group relative rounded-xl px-4 py-2 text-sm font-medium transition duration-300 ${
                   isActive
                     ? "bg-purple-500/15 text-purple-500 dark:text-purple-300"
                     : "text-[var(--text)]/70 hover:bg-[var(--surface)]/70 hover:text-[var(--text)]"
-                }`}
-              >
-                {link.label}
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {link.label}
 
-                <span
-                  className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-purple-500 transition-all duration-300 ${
-                    isActive
-                      ? "w-6 opacity-100"
-                      : "w-0 opacity-0 group-hover:w-6 group-hover:opacity-100"
-                  }`}
-                />
-              </button>
-            );
-          })}
+                  <span
+                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-purple-500 transition-all duration-300 ${
+                      isActive
+                        ? "w-6 opacity-100"
+                        : "w-0 opacity-0 group-hover:w-6 group-hover:opacity-100"
+                    }`}
+                  />
+                </>
+              )}
+            </NavLink>
+          ))}
         </nav>
 
+        {/* =========================
+            MOBILE MENU BUTTON
+        ========================== */}
         <button
           type="button"
           onClick={() => setMenuOpen((current) => !current)}
@@ -138,20 +152,48 @@ function Navbar() {
             {menuOpen ? (
               <motion.span
                 key="close"
-                initial={{ rotate: -90, opacity: 0, scale: 0.7 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                exit={{ rotate: 90, opacity: 0, scale: 0.7 }}
-                transition={{ duration: 0.2 }}
+                initial={{
+                  rotate: -90,
+                  opacity: 0,
+                  scale: 0.7,
+                }}
+                animate={{
+                  rotate: 0,
+                  opacity: 1,
+                  scale: 1,
+                }}
+                exit={{
+                  rotate: 90,
+                  opacity: 0,
+                  scale: 0.7,
+                }}
+                transition={{
+                  duration: 0.2,
+                }}
               >
                 <X size={22} />
               </motion.span>
             ) : (
               <motion.span
                 key="menu"
-                initial={{ rotate: 90, opacity: 0, scale: 0.7 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                exit={{ rotate: -90, opacity: 0, scale: 0.7 }}
-                transition={{ duration: 0.2 }}
+                initial={{
+                  rotate: 90,
+                  opacity: 0,
+                  scale: 0.7,
+                }}
+                animate={{
+                  rotate: 0,
+                  opacity: 1,
+                  scale: 1,
+                }}
+                exit={{
+                  rotate: -90,
+                  opacity: 0,
+                  scale: 0.7,
+                }}
+                transition={{
+                  duration: 0.2,
+                }}
               >
                 <Menu size={22} />
               </motion.span>
@@ -160,6 +202,9 @@ function Navbar() {
         </button>
       </div>
 
+      {/* =========================
+          MOBILE NAVIGATION
+      ========================== */}
       <AnimatePresence>
         {menuOpen && (
           <motion.nav
@@ -185,40 +230,48 @@ function Navbar() {
             className="overflow-hidden border-t border-[var(--border)] bg-[var(--surface)]/95 px-5 py-4 backdrop-blur-xl md:hidden"
           >
             <div className="flex flex-col gap-2">
-              {navigationLinks.map((link, index) => {
-                const isActive = activeSection === link.id;
+              {navigationLinks.map((link, index) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => {
+                    setMenuOpen(false);
 
-                return (
-                  <motion.button
-                    key={link.id}
-                    type="button"
-                    onClick={() => handleNavigation(link.id)}
-                    initial={{
-                      opacity: 0,
-                      x: -18,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                    }}
-                    exit={{
-                      opacity: 0,
-                      x: -18,
-                    }}
-                    transition={{
-                      duration: 0.28,
-                      delay: index * 0.045,
-                    }}
-                    className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
-                      isActive
-                        ? "bg-purple-500/15 text-purple-500"
-                        : "text-[var(--text)]/75 hover:bg-purple-500/10"
-                    }`}
-                  >
-                    {link.label}
-                  </motion.button>
-                );
-              })}
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  {({ isActive }) => (
+                    <motion.div
+                      initial={{
+                        opacity: 0,
+                        x: -18,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        x: -18,
+                      }}
+                      transition={{
+                        duration: 0.28,
+                        delay: index * 0.045,
+                      }}
+                      className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                        isActive
+                          ? "bg-purple-500/15 text-purple-500"
+                          : "text-[var(--text)]/75 hover:bg-purple-500/10"
+                      }`}
+                    >
+                      {link.label}
+                    </motion.div>
+                  )}
+                </NavLink>
+              ))}
             </div>
           </motion.nav>
         )}

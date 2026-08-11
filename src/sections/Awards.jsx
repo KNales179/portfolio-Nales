@@ -4,6 +4,7 @@ import {
   Microscope,
   TrendingUp,
 } from "lucide-react";
+
 import SectionTitle from "../components/SectionTitle";
 import AwardCard from "../components/AwardCard";
 
@@ -40,31 +41,26 @@ const awards = [
 
 function Awards() {
   return (
-    <section
-      id="awards"
-      className="relative py-28 md:py-36"
-    >
-      <div className="mx-auto max-w-7xl px-6 md:px-10 lg:px-16">
-        <SectionTitle
-          label="Recognition"
-          title="Awards & Achievements"
-          description="Recognition earned through project development, academic growth, departmental service, and research participation."
-        />
+    <div>
+      <SectionTitle
+        label="Recognition"
+        title="Awards & Achievements"
+        description="Recognition earned through project development, academic growth, departmental service, and research participation."
+      />
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
-          {awards.map((award, index) => (
-            <AwardCard
-              key={award.title}
-              icon={award.icon}
-              title={award.title}
-              category={award.category}
-              description={award.description}
-              index={index}
-            />
-          ))}
-        </div>
+      <div className="mt-12 grid gap-5 md:grid-cols-2">
+        {awards.map((award, index) => (
+          <AwardCard
+            key={award.title}
+            icon={award.icon}
+            title={award.title}
+            category={award.category}
+            description={award.description}
+            index={index}
+          />
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 

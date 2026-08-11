@@ -4,6 +4,7 @@ import {
   Lightbulb,
   Rocket,
 } from "lucide-react";
+
 import SectionTitle from "../components/SectionTitle";
 
 const strengths = [
@@ -29,62 +30,63 @@ const strengths = [
 
 function About() {
   return (
-    <section
-      id="about"
-      className="relative flex min-h-screen items-center py-28 md:py-36"
-    >
-      <div className="mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-16">
-        <SectionTitle
-          label="About Me"
-          title="Building practical systems through logic, planning, and continuous learning."
-          description="I am a Mobile and Full Stack Developer who enjoys building practical systems based on real-world problems. I started with basic programming and gradually learned mobile development, backend APIs, databases, authentication, and cloud-based tools through hands-on projects. My completed works include TODA-GO and the Tricycle Integration Record System, but I am not limited to one type of system—I am willing to learn and adapt based on what each project requires."
-        />
+    <div>
+      <SectionTitle
+        label="About Me"
+        title="Building practical systems through logic, planning, and continuous learning."
+        description="I’m a Full Stack Developer who enjoys both building and experimenting 
+        with technology. I love creating interactive interfaces and experiences on the frontend, 
+        but I’m especially interested in what happens behind them—the logic, data, APIs, and 
+        systems that make everything work. For me, a good application isn’t just about how it 
+        looks; I care just as much about what happens underneath and whether the whole thing 
+        actually works the way it should."
+      />
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {strengths.map((strength, index) => {
-            const Icon = strength.icon;
+      <div className="mt-12 grid gap-5 md:grid-cols-3">
+        {strengths.map((strength, index) => {
+          const Icon = strength.icon;
 
-            return (
-              <motion.div
-                key={strength.title}
-                initial={{
-                  opacity: 0,
-                  y: 40,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                  amount: 0.3,
-                }}
-                transition={{
-                  duration: 0.65,
-                  delay: index * 0.1,
-                }}
-                whileHover={{
-                  y: -8,
-                }}
-                className="rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-7 backdrop-blur-lg transition-shadow duration-100 hover:shadow-2xl hover:shadow-purple-950/10"
-              >
-                <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-400">
-                  <Icon size={24} />
-                </div>
+          return (
+            <motion.article
+              key={strength.title}
+              initial={{
+                opacity: 0,
+                y: 30,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.08,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              whileHover={{
+                y: -5,
+              }}
+              className="group rounded-2xl border border-[var(--border)] bg-[var(--card)]/70 p-6 backdrop-blur-xl transition-all duration-300 hover:border-purple-400/30 hover:shadow-xl hover:shadow-purple-950/10"
+            >
+              <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 transition-transform duration-300 group-hover:scale-105">
+                <Icon size={21} strokeWidth={1.8} />
+              </div>
 
-                <h3 className="heading-font mb-3 text-xl font-semibold">
-                  {strength.title}
-                </h3>
+              <h3 className="heading-font text-xl font-semibold">
+                {strength.title}
+              </h3>
 
-                <p className="leading-7 opacity-70">
-                  {strength.description}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+                {strength.description}
+              </p>
+            </motion.article>
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
 }
 

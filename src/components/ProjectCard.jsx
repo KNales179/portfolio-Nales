@@ -63,7 +63,7 @@ function ProjectCard({ project, index = 0, onViewCaseStudy }) {
           </p>
 
           <div className="mb-8 grid gap-3 sm:grid-cols-2">
-            {project.features.map((feature) => {
+            {project.features?.map((feature) => {
               const Icon = feature.icon;
 
               return (

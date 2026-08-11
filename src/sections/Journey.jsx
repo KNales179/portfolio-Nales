@@ -1,4 +1,6 @@
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
 
 const milestones = [
@@ -34,104 +36,445 @@ const milestones = [
   },
 ];
 
+/*
+  Position of milestones on the map.
+
+  These values correspond to the SVG viewBox.
+*/
+const points = [
+  { x: 80, y: 150 },
+  { x: 280, y: 75 },
+  { x: 500, y: 175 },
+  { x: 720, y: 80 },
+  { x: 920, y: 150 },
+];
+
+/*
+  The actual curved journey path.
+*/
+const PATH =
+  "M 80 150 " +
+  "C 145 150, 180 75, 280 75 " +
+  "C 380 75, 400 175, 500 175 " +
+  "C 600 175, 620 80, 720 80 " +
+  "C 820 80, 840 150, 920 150";
+
 function Journey() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  /*
+    Progress represents the dot's position along
+    the entire journey.
+
+    0   = 2022
+    0.25 = between 2022/2023
+    ...
+    1   = 2026
+  */
+  const [progress, setProgress] = useState(0);
+
+  const progressRef = useRef(0);
+  const lastTimeRef = useRef(null);
+
+  /*
+    Automatically move the dot.
+  */
+  useEffect(() => {
+    let animationFrame;
+
+    const speed = 0.055;
+
+    const animate = (time) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = time;
+      }
+
+      const delta =
+        (time - lastTimeRef.current) / 1000;
+
+      lastTimeRef.current = time;
+
+      if (!isPaused) {
+        let nextProgress =
+          progressRef.current + delta * speed;
+
+        /*
+          Loop back to the beginning.
+        */
+        if (nextProgress >= 1) {
+          nextProgress = 0;
+        }
+
+        progressRef.current = nextProgress;
+        setProgress(nextProgress);
+
+        /*
+          Determine which milestone the dot
+          currently belongs to.
+        */
+        const milestoneIndex = Math.min(
+          Math.floor(nextProgress * milestones.length),
+          milestones.length - 1,
+        );
+
+        setActiveIndex(milestoneIndex);
+      }
+
+      animationFrame =
+        requestAnimationFrame(animate);
+    };
+
+    animationFrame =
+      requestAnimationFrame(animate);
+
+    return () =>
+      cancelAnimationFrame(animationFrame);
+  }, [isPaused]);
+
+  /*
+    Clicking a milestone moves the dot to it.
+  */
+  const selectMilestone = (index) => {
+    const targetProgress =
+      index / (milestones.length - 1);
+
+    /*
+      Keep the dot moving immediately toward
+      the selected milestone.
+    */
+    progressRef.current = targetProgress;
+    setProgress(targetProgress);
+    setActiveIndex(index);
+  };
+
+  /*
+    Convert progress into a percentage along
+    the visual map.
+
+    This is intentionally simple for the UI.
+  */
+  const getDotPosition = () => {
+    /*
+      Approximate the curved path using the
+      milestone positions.
+
+      This keeps the dot visually aligned
+      with the map.
+    */
+    const scaled =
+      progress * (points.length - 1);
+
+    const segment = Math.min(
+      Math.floor(scaled),
+      points.length - 2,
+    );
+
+    const localProgress =
+      scaled - segment;
+
+    const start = points[segment];
+    const end = points[segment + 1];
+
+    return {
+      x:
+        start.x +
+        (end.x - start.x) * localProgress,
+
+      y:
+        start.y +
+        (end.y - start.y) * localProgress,
+    };
+  };
+
+  const dot = getDotPosition();
+
+  const activeMilestone =
+    milestones[activeIndex];
+
   return (
     <section
       id="journey"
-      className="relative py-28 md:py-36"
+      className="relative overflow-hidden px-6 py-20 md:px-10 lg:px-16"
     >
-      <div className="mx-auto max-w-5xl px-6 md:px-10">
+      <div className="mx-auto max-w-[1200px]">
+
         <SectionTitle
           label="Development Journey"
-          title="Growth Timeline"
-          description="A simple timeline of how I started from basic programming and grew into building complete systems."
+          title="My Path So Far"
+          description="From writing my first lines of code to building complete systems."
         />
 
-        <div className="relative mt-16">
-          <motion.div
-            className="absolute bottom-0 left-[11px] top-0 w-px origin-top bg-gradient-to-b from-purple-400 via-purple-700 to-transparent md:left-1/2"
-            initial={{
-              scaleY: 0,
-            }}
-            whileInView={{
-              scaleY: 1,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.15,
-            }}
-            transition={{
-              duration: 1.4,
-              ease: "easeOut",
-            }}
+        {/* JOURNEY CONTAINER */}
+        <div
+          className="relative mt-12 overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-md"
+          onMouseEnter={() => {
+            setIsPaused(true);
+            lastTimeRef.current = null;
+          }}
+          onMouseLeave={() => {
+            setIsPaused(false);
+            lastTimeRef.current = null;
+          }}
+        >
+
+          {/* Ambient glow */}
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 size-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)]/5 blur-[120px]"
+            aria-hidden="true"
           />
 
-          <div className="space-y-12">
-            {milestones.map((item, index) => (
-              <motion.div
-                key={item.year}
+          {/* MAP */}
+          <div className="relative h-[330px] w-full md:h-[380px]">
+
+            {/* SVG MAP */}
+            <svg
+              viewBox="0 0 1000 250"
+              preserveAspectRatio="none"
+              className="absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            >
+
+              {/* Glow path */}
+              <path
+                d={PATH}
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="10"
+                strokeOpacity="0.06"
+                strokeLinecap="round"
+              />
+
+              {/* Main path */}
+              <motion.path
+                d={PATH}
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="2"
+                strokeOpacity="0.45"
+                strokeLinecap="round"
+                strokeDasharray="6 9"
                 initial={{
-                  opacity: 0,
-                  x: index % 2 === 0 ? -45 : 45,
+                  pathLength: 0,
                 }}
                 whileInView={{
-                  opacity: 1,
-                  x: 0,
+                  pathLength: 1,
                 }}
                 viewport={{
                   once: true,
-                  amount: 0.3,
                 }}
                 transition={{
-                  duration: 0.7,
-                  delay: index * 0.1,
+                  duration: 2,
+                  ease: "easeInOut",
                 }}
-                className={`relative grid md:grid-cols-2 ${
-                  index % 2 === 0 ? "" : "md:text-right"
-                }`}
-              >
-                <div
-                  className={`pl-12 md:pl-0 ${
-                    index % 2 === 0
-                      ? "md:pr-14"
-                      : "md:order-2 md:pl-14"
-                  }`}
-                >
-                  <motion.div
-                    whileHover={{
-                      y: -6,
-                    }}
-                    className="rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-7 backdrop-blur-lg"
-                  >
-                    <p className="mb-2 text-sm font-bold tracking-widest text-purple-400">
-                      {item.year}
-                    </p>
+              />
+            </svg>
 
-                    <h3 className="heading-font mb-3 text-2xl font-bold">
-                      {item.title}
-                    </h3>
+            {/* MOVING DOT */}
+            <motion.div
+              className="pointer-events-none absolute z-20"
+              animate={{
+                left: `${dot.x / 10}%`,
+                top: `${(dot.y / 250) * 100}%`,
+              }}
+              transition={{
+                duration: 0.15,
+                ease: "linear",
+              }}
+              style={{
+                transform:
+                  "translate(-50%, -50%)",
+              }}
+            >
+              {/* Outer glow */}
+              <motion.div
+                className="absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)]/20 blur-md"
+                animate={{
+                  scale: isPaused
+                    ? 1
+                    : [1, 1.35, 1],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                }}
+              />
 
-                    <p className="leading-7 opacity-70">
-                      {item.description}
-                    </p>
-                  </motion.div>
-                </div>
+              {/* Dot */}
+              <div className="relative size-3 rounded-full bg-[var(--accent)] shadow-[0_0_18px_var(--accent)]" />
+            </motion.div>
 
+            {/* MILESTONES */}
+            {milestones.map((item, index) => {
+              const point = points[index];
+
+              const isActive =
+                index === activeIndex;
+
+              /*
+                Put some years above and some below
+                the path for a map-like appearance.
+              */
+              const yearAbove =
+                index % 2 === 0;
+
+              return (
                 <motion.div
-                  className="absolute left-0 top-8 size-6 rounded-full border-4 border-[var(--bg)] bg-purple-500 shadow-lg shadow-purple-500/30 md:left-1/2 md:-translate-x-1/2"
+                  key={item.year}
+                  className="absolute z-10"
+                  style={{
+                    left: `${point.x / 10}%`,
+                    top: `${(point.y / 250) * 100}%`,
+                    transform:
+                      "translate(-50%, -50%)",
+                  }}
+                  initial={{
+                    opacity: 0,
+                    scale: 0,
+                  }}
                   whileInView={{
-                    scale: [0, 1.3, 1],
+                    opacity: 1,
+                    scale: 1,
                   }}
                   viewport={{
                     once: true,
                   }}
                   transition={{
-                    delay: index * 0.1 + 0.2,
-                    duration: 0.5,
+                    delay:
+                      0.4 + index * 0.15,
+                    duration: 0.45,
                   }}
-                />
+                >
+
+                  {/* Year */}
+                  <motion.div
+                    animate={{
+                      opacity: isActive
+                        ? 1
+                        : 0.45,
+                      y: isActive
+                        ? yearAbove
+                          ? -2
+                          : 2
+                        : 0,
+                    }}
+                    className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold tracking-[0.2em] ${
+                      yearAbove
+                        ? "bottom-9"
+                        : "top-9"
+                    }`}
+                  >
+                    <span
+                      className={
+                        isActive
+                          ? "text-[var(--accent)]"
+                          : "text-[var(--muted)]"
+                      }
+                    >
+                      {item.year}
+                    </span>
+                  </motion.div>
+
+                  {/* Milestone button */}
+                  <motion.button
+                    type="button"
+                    onClick={() =>
+                      selectMilestone(index)
+                    }
+                    whileHover={{
+                      scale: 1.2,
+                    }}
+                    whileTap={{
+                      scale: 0.9,
+                    }}
+                    className={`relative flex size-10 items-center justify-center rounded-full border transition-all duration-300 ${
+                      isActive
+                        ? "border-[var(--accent)] bg-[var(--accent)]/20 shadow-[0_0_25px_var(--accent-soft)]"
+                        : "border-[var(--border)] bg-[var(--surface)]/90 hover:border-[var(--accent)]"
+                    }`}
+                    aria-label={`View ${item.year} milestone`}
+                  >
+                    <MapPin
+                      size={16}
+                      className={
+                        isActive
+                          ? "text-[var(--accent)]"
+                          : "text-[var(--muted)]"
+                      }
+                    />
+
+                    {/* Active pulse */}
+                    {isActive && (
+                      <motion.span
+                        className="absolute inset-0 rounded-full border border-[var(--accent)]"
+                        animate={{
+                          scale: [1, 1.7],
+                          opacity: [0.6, 0],
+                        }}
+                        transition={{
+                          duration: 1.4,
+                          repeat: Infinity,
+                        }}
+                      />
+                    )}
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* DETAILS */}
+          <div className="border-t border-[var(--border)]">
+
+            <AnimatePresence
+              mode="wait"
+            >
+              <motion.div
+                key={activeMilestone.year}
+                initial={{
+                  opacity: 0,
+                  y: 8,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  y: -8,
+                }}
+                transition={{
+                  duration: 0.35,
+                }}
+                className="px-6 py-6 md:px-10"
+              >
+                <div className="flex items-start gap-4">
+
+                  {/* Number */}
+                  <div className="hidden shrink-0 text-xs font-bold tracking-[0.2em] text-[var(--accent)] sm:block">
+                    {String(
+                      activeIndex + 1,
+                    ).padStart(2, "0")}
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold tracking-[0.2em] text-[var(--accent)]">
+                      {activeMilestone.year}
+                    </p>
+
+                    <h3 className="heading-font mt-1 text-xl font-bold md:text-2xl">
+                      {activeMilestone.title}
+                    </h3>
+
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                      {
+                        activeMilestone.description
+                      }
+                    </p>
+                  </div>
+                </div>
               </motion.div>
-            ))}
+            </AnimatePresence>
           </div>
         </div>
       </div>

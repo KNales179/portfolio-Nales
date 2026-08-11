@@ -21,176 +21,241 @@ function Hero() {
   const photoY = useTransform(
     scrollYProgress,
     [0, 1],
-    [0, 140],
+    [0, 90]
   );
 
   const textY = useTransform(
     scrollYProgress,
     [0, 1],
-    [0, 60],
+    [0, 35]
   );
 
   const photoOpacity = useTransform(
     scrollYProgress,
-    [0, 0.85],
-    [1, 0.15],
+    [0, 0.8],
+    [1, 0.2]
   );
 
   const goToProjects = () => {
     document
       .getElementById("projects")
-      ?.scrollIntoView({ behavior: "smooth" });
+      ?.scrollIntoView({
+        behavior: "smooth",
+      });
+  };
+
+  const goToAbout = () => {
+    document
+      .getElementById("about")
+      ?.scrollIntoView({
+        behavior: "smooth",
+      });
   };
 
   return (
     <section
       ref={sectionRef}
       id="home"
-      className="relative flex min-h-screen items-center overflow-hidden pt-20"
+      aria-labelledby="hero-heading"
+      className="relative z-10 flex min-h-screen items-center overflow-hidden pt-20"
     >
-      <motion.div
-        className="absolute left-[8%] top-[20%] size-32 rounded-full border border-purple-400/10"
-        animate={{
-          y: [0, -18, 0],
-          rotate: [0, 8, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+            {/* =========================================
+          SUBTLE IT / SYSTEM PARTICLES
+      ========================================= */}
 
-      <motion.div
-        className="absolute right-[8%] top-[25%] size-16 rounded-2xl border border-purple-400/10"
-        animate={{
-          y: [0, 20, 0],
-          rotate: [0, -12, 0],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
+        aria-hidden="true"
+      >
+        {/* UI / Code block */}
+        <motion.div
+          className="absolute left-[8%] top-[18%] size-5 rounded-[4px] border border-[var(--accent)]/20"
+          animate={{
+            y: [0, 35, 0],
+            rotate: [0, 12, 0],
+            opacity: [0.15, 0.3, 0.15],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Small system node */}
+        <motion.div
+          className="absolute left-[18%] top-[72%] size-2 rounded-full bg-[var(--accent)]/20"
+          animate={{
+            y: [0, -25, 0],
+            opacity: [0.15, 0.4, 0.15],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Floating transparent square */}
+        <motion.div
+          className="absolute right-[10%] top-[20%] size-8 rounded-md border border-[var(--accent)]/15"
+          animate={{
+            y: [0, 45, 0],
+            rotate: [0, -15, 0],
+            opacity: [0.1, 0.25, 0.1],
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Tiny data node */}
+        <motion.div
+          className="absolute right-[25%] top-[78%] size-1.5 rounded-full bg-[var(--accent)]/30"
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.1, 0.35, 0.1],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Small diamond / system marker */}
+        <motion.div
+          className="absolute right-[5%] top-[58%] size-3 rotate-45 border border-[var(--accent)]/15"
+          animate={{
+            y: [0, 28, 0],
+            rotate: [45, 55, 45],
+            opacity: [0.08, 0.22, 0.08],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
 
       <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1440px] items-center px-6 md:px-10 lg:px-16">
+
+        {/* =========================================
+            HERO CONTENT
+        ========================================= */}
+
         <motion.div
-          className="relative z-20 max-w-3xl py-20"
+          className="relative z-20 w-full max-w-[850px] py-10"
           style={{ y: textY }}
           initial={{
             opacity: 0,
-            y: 45,
+            y: 30,
           }}
           animate={{
             opacity: 1,
             y: 0,
           }}
           transition={{
-            duration: 0.85,
+            duration: 0.75,
             ease: [0.22, 1, 0.36, 1],
           }}
         >
+
+          {/* Introduction */}
+
           <motion.p
-            className="mb-5 flex items-center gap-3 text-base font-medium text-purple-400 md:text-lg"
+            className="mb-5 flex items-center gap-3 text-sm font-medium tracking-wide text-[var(--accent)] md:text-base"
             initial={{
               opacity: 0,
-              x: -20,
+              x: -12,
             }}
             animate={{
               opacity: 1,
               x: 0,
             }}
             transition={{
-              delay: 0.15,
-              duration: 0.6,
+              delay: 0.1,
+              duration: 0.5,
             }}
           >
-            <span className="h-px w-10 bg-purple-400" />
-            Hello, I&apos;m
+            <span
+              className="h-px w-8 bg-[var(--accent)]"
+              aria-hidden="true"
+            />
+
+            Hello, I'm
           </motion.p>
 
+          {/* Name */}
+
           <h1
-            className="heading-font mb-5 bg-clip-text text-6xl font-bold leading-none text-transparent md:text-8xl lg:text-9xl"
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, var(--text), #c084fc)",
-            }}
+            id="hero-heading"
+            className="heading-font mb-5 text-6xl font-bold leading-[0.95] tracking-[-0.04em] md:text-8xl lg:text-6xl"
           >
             Ivhel
           </h1>
 
-          <h2 className="heading-font mb-6 max-w-2xl text-3xl font-semibold leading-tight md:text-5xl">
+          {/* Role */}
+
+          <h2 className="heading-font mb-6 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.025em] md:text-4xl">
             Mobile & Full Stack Developer
           </h2>
 
-          <p className="mb-9 max-w-xl text-base leading-8 opacity-75 md:text-lg">
-            I develop mobile and full-stack systems based on
-            real-world needs, from mobile apps and APIs to admin
-            dashboards and data-driven platforms. I continuously
-            learn new technologies to build better solutions for
-            different types of projects.
+          {/* Description */}
+
+          <p className="mb-9 max-w-[820px] text-base leading-8 text-[var(--muted)] md:text-lg">
+            I’m a developer who enjoys turning ideas into practical digital
+            experiences. I’m always learning, experimenting with new technologies,
+            and looking for better ways to build, solve problems, and create.
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          {/* =========================================
+              ACTIONS
+          ========================================= */}
+
+          <div className="flex flex-wrap gap-3">
+
             <button
               type="button"
               onClick={goToProjects}
-              className="group flex items-center gap-2 rounded-xl bg-purple-700 px-6 py-3 font-semibold text-white shadow-lg shadow-purple-950/20 transition duration-300 hover:-translate-y-1 hover:bg-purple-600 hover:shadow-purple-700/20"
+              className="group inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-3 font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               View Projects
 
               <ArrowRight
                 size={18}
-                className="transition-transform duration-300 group-hover:translate-x-1"
+                aria-hidden="true"
+                className="transition-transform duration-200 group-hover:translate-x-1"
               />
             </button>
 
             <a
               href={`${import.meta.env.BASE_URL}resume.pdf`}
               download
-              className="group flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 px-6 py-3 font-semibold backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-purple-400/60"
+              className="group inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-5 py-3 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
-              Resume
+              Download Resume
 
               <Download
                 size={18}
-                className="transition-transform duration-300 group-hover:translate-y-0.5"
+                aria-hidden="true"
+                className="transition-transform duration-200 group-hover:translate-y-0.5"
               />
             </a>
+
           </div>
 
-          <div className="mt-12 flex flex-wrap gap-8 border-t border-[var(--border)] pt-7">
-            <div>
-              <p className="heading-font text-3xl font-bold">
-                2+
-              </p>
-              <p className="text-sm opacity-60">
-                Major Systems Built
-              </p>
-            </div>
-
-            <div>
-              <p className="heading-font text-3xl font-bold">
-                4+
-              </p>
-              <p className="text-sm opacity-60">
-                Awards & Recognitions
-              </p>
-            </div>
-
-            <div>
-              <p className="heading-font text-3xl font-bold">
-                Social Impact
-              </p>
-              <p className="text-sm opacity-60">
-                Capstone Award
-              </p>
-            </div>
-          </div>
         </motion.div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-[30%] z-10 flex h-[80vh] -translate-y-1/2 items-center justify-center opacity-20 md:inset-auto md:right-[2%] md:top-1/2 md:h-[78vh] md:w-[48%] md:opacity-100">
+        {/* =========================================
+            PORTRAIT
+        ========================================= */}
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-[58vh] items-end justify-center opacity-[0.16] md:inset-auto md:right-[4%] md:top-1/2 md:h-[78vh] md:w-[35%] md:-translate-y-1/2 md:opacity-100">
+
           <motion.div
             className="relative h-full w-full"
             style={{
@@ -199,71 +264,68 @@ function Hero() {
             }}
             initial={{
               opacity: 0,
-              x: 80,
+              x: 50,
             }}
             animate={{
               opacity: 1,
               x: 0,
             }}
             transition={{
-              duration: 1,
+              duration: 0.85,
               delay: 0.15,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <div className="absolute left-1/2 top-1/2 size-[330px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/20 blur-[100px] md:size-[520px] md:blur-[140px]" />
 
-            <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-400/15 bg-purple-500/5 backdrop-blur-sm md:h-[420px] md:w-[420px]" />
+            {/* Subtle circular anchor */}
+
+            <div
+              className="absolute left-1/2 top-1/2 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--border)] md:h-[440px] md:w-[440px]"
+              aria-hidden="true"
+            />
+
+            {/* Portrait */}
 
             <img
               src={`${import.meta.env.BASE_URL}beh.png`}
-              alt="Ivhel"
-              className="relative z-10 mx-auto h-full w-full object-contain object-center drop-shadow-2xl"
+              alt="Ivhel, Mobile and Full Stack Developer"
+              className="relative z-10 mx-auto h-full w-full -translate-y-[10%] object-contain object-center drop-shadow-2xl md:-translate-y-[10%]"
               style={{
                 WebkitMaskImage:
-                  "linear-gradient(to bottom, transparent 0%, black 12%, black 78%, transparent 100%)",
+                  "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
                 maskImage:
-                  "linear-gradient(to bottom, transparent 0%, black 12%, black 78%, transparent 100%)",
+                  "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
               }}
             />
 
-            <motion.div
-              className="absolute bottom-[8%] left-1/2 z-20 h-10 w-[55%] -translate-x-1/2 rounded-[100%] bg-purple-500/25 blur-2xl md:bottom-[3%] md:w-[65%]"
-              animate={{
-                scaleX: [1, 1.08, 1],
-                opacity: [0.25, 0.45, 0.25],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            <div className="absolute bottom-[10%] left-1/2 z-20 h-px w-[50%] -translate-x-1/2 bg-gradient-to-r from-transparent via-purple-300/50 to-transparent md:bottom-[5%] md:w-[58%]" />
           </motion.div>
+
         </div>
+
+        {/* =========================================
+            SCROLL INDICATOR
+        ========================================= */}
 
         <motion.button
           type="button"
           aria-label="Scroll to About section"
-          onClick={() => {
-            document
-              .getElementById("about")
-              ?.scrollIntoView({ behavior: "smooth" });
-          }}
-          className="absolute bottom-8 left-1/2 z-30 flex size-12 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]/50 backdrop-blur-md"
+          onClick={goToAbout}
+          className="absolute bottom-7 left-1/2 z-30 flex size-11 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition-colors duration-200 hover:border-[var(--accent)]/40 hover:text-[var(--text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           animate={{
-            y: [0, 8, 0],
+            y: [0, 5, 0],
           }}
           transition={{
-            duration: 2,
+            duration: 2.5,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         >
-          <ArrowDown size={20} />
+          <ArrowDown
+            size={18}
+            aria-hidden="true"
+          />
         </motion.button>
+
       </div>
     </section>
   );

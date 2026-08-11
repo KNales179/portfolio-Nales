@@ -1,111 +1,267 @@
+import { motion } from "framer-motion";
 import {
-  Cloud,
   Code2,
   Database,
-  Server,
-  ShieldCheck,
+  Layers,
   Wrench,
 } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
-import SkillCard from "../components/SkillCard";
 
-const skills = [
+const skillGroups = [
   {
-    title: "Frontend",
+    number: "01",
+    name: "Languages",
     icon: Code2,
-    items: [
+    skills: [
+      "TypeScript",
+      "JavaScript",
+      "SQL",
+      "Python",
+    ],
+  },
+  {
+    number: "02",
+    name: "Frameworks",
+    icon: Layers,
+    skills: [
       "React",
       "React Native",
-      "JavaScript",
-      "TypeScript",
-      "Tailwind CSS",
-    ],
-  },
-  {
-    title: "Backend",
-    icon: Server,
-    items: [
       "Node.js",
-      "Express.js",
-      "REST APIs",
-      "API Integration",
-      "Socket.IO",
+      "Express",
+      "Vite",
+      "Expo",
+      "NativeWind",
+      "Django",
     ],
   },
   {
-    title: "Database",
+    number: "03",
+    name: "Databases",
     icon: Database,
-    items: [
+    skills: [
       "MongoDB",
-      "Mongoose",
       "MySQL",
-      "Database Design",
+      "MongoDB Atlas",
+      "AsyncStorage",
+      "SQLite",
+      "PostgreSQL",
     ],
   },
   {
-    title: "Security",
-    icon: ShieldCheck,
-    items: [
-      "JWT Authentication",
-      "Role-Based Authorization",
-      "Password Hashing",
-      "Input Validation",
-      "Activity Logs",
-      "Transaction Logs",
-    ],
-  },
-  {
-    title: "Tools & Cloud",
-    icon: Cloud,
-    items: [
+    number: "04",
+    name: "Tools",
+    icon: Wrench,
+    skills: [
+      "Figma",
       "Git",
       "GitHub",
-      "Postman",
-      "VS Code",
-      "Render",
-      "MongoDB Atlas",
-      "Expo",
+      "Tailwind CSS",
+      "MapLibre",
+      "GraphHopper",
+      "OpenStreetMap",
       "Cloudinary",
-    ],
-  },
-  {
-    title: "Learning Focus",
-    icon: Wrench,
-    items: [
-      "System Design",
-      "Mobile App Development",
-      "Backend Architecture",
-      "UI Improvement",
-      "Problem Solving",
+      "Render",
     ],
   },
 ];
+
+function SkillRow({ group, index }) {
+  /*
+   * Duplicate the skills so the second copy follows
+   * the first one seamlessly.
+   */
+  const repeatedSkills = [
+    ...group.skills,
+    ...group.skills,
+    ...group.skills,
+  ];
+
+  return (
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.3,
+      }}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.08,
+      }}
+      className="group relative flex h-16 items-center overflow-hidden border-b border-[var(--border)] last:border-b-0"
+    >
+      {/* Category */}
+      <div className="relative z-20 flex w-[145px] shrink-0 items-center gap-3 bg-[var(--surface)] pr-5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)]">
+          <group.icon
+            size={16}
+            strokeWidth={1.8}
+            className="text-[var(--accent)]"
+          />
+        </div>
+
+        <div>
+          <p className="text-[9px] tracking-[0.16em] text-[var(--accent)]">
+            {group.number}
+          </p>
+
+          <p className="heading-font text-sm font-semibold whitespace-nowrap">
+            {group.name}
+          </p>
+        </div>
+      </div>
+
+      {/* Moving skills */}
+      <div
+        className="relative min-w-0 flex-1 overflow-hidden"
+        onMouseEnter={(event) => {
+          event.currentTarget
+            .querySelector(".skill-track")
+            ?.classList.add("paused");
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget
+            .querySelector(".skill-track")
+            ?.classList.remove("paused");
+        }}
+      >
+        {/* Left fade */}
+        <div
+          className="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 bg-gradient-to-r from-[var(--surface)] to-transparent"
+          aria-hidden="true"
+        />
+
+        {/* Right fade */}
+        <div
+          className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[var(--surface)] to-transparent"
+          aria-hidden="true"
+        />
+
+        <div
+          className="skill-track flex w-max items-center gap-3"
+          style={{
+            animation: `skill-marquee ${
+              18 + index * 3
+            }s linear infinite`,
+            animationDirection:
+              index % 2 === 0 ? "normal" : "reverse",
+          }}
+        >
+          {repeatedSkills.map((skill, skillIndex) => (
+            <button
+              key={`${skill}-${skillIndex}`}
+              type="button"
+              className="skill-pill group/pill shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-medium text-[var(--muted)] transition-all duration-200 hover:border-[var(--accent)]/40 hover:bg-[var(--accent-soft)] hover:text-[var(--text)]"
+              onClick={() => {
+                const element =
+                  document.getElementById(
+                    `skill-${group.number}-${skill
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")}`,
+                  );
+
+                element?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+              }}
+            >
+              {skill}
+            </button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function Skills() {
   return (
     <section
       id="skills"
-      className="relative py-28 md:py-36"
+      className="relative overflow-hidden px-6 py-24 md:px-10 lg:px-16"
     >
-      <div className="mx-auto max-w-7xl px-6 md:px-10 lg:px-16">
+      <div className="mx-auto max-w-[1200px]">
+
+        {/* Heading */}
         <SectionTitle
           label="Skills"
-          title="Technologies & Tools"
-          description="Technologies I use to plan, build, secure, and improve full-stack applications."
+          title="What I Work With"
+          description="Technologies and tools I've learned and used while building applications and systems."
         />
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {skills.map((skill, index) => (
-            <SkillCard
-              key={skill.title}
-              title={skill.title}
-              icon={skill.icon}
-              items={skill.items}
+        {/* Skill ticker */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 0.6,
+          }}
+          className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md"
+        >
+          {skillGroups.map((group, index) => (
+            <SkillRow
+              key={group.name}
+              group={group}
               index={index}
             />
           ))}
-        </div>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{
+            opacity: 0,
+          }}
+          whileInView={{
+            opacity: 1,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            delay: 0.4,
+            duration: 0.5,
+          }}
+          className="mt-8 flex items-center justify-center gap-3 text-xs tracking-[0.2em] text-[var(--muted)]"
+        >
+          <span className="size-1.5 rounded-full bg-[var(--accent)]" />
+          ALWAYS LEARNING
+          <span className="size-1.5 rounded-full bg-[var(--accent)]" />
+        </motion.div>
       </div>
+
+      {/* Marquee animation */}
+      <style>{`
+        @keyframes skill-marquee {
+          from {
+            transform: translateX(0);
+          }
+
+          to {
+            transform: translateX(-33.333%);
+          }
+        }
+
+        .skill-track.paused {
+          animation-play-state: paused !important;
+        }
+      `}</style>
     </section>
   );
 }

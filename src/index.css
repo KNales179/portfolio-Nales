@@ -3,52 +3,52 @@
 :root {
   color-scheme: light;
 
-  --bg: #f8f6ff;
-  --surface: #eee8ff;
-  --card: rgba(255, 255, 255, 0.72);
-  --border: rgba(124, 58, 237, 0.22);
+  --bg: #f8f7fb;
+  --surface: #ffffff;
+  --surface-soft: #f1eef8;
+  --card: rgba(255, 255, 255, 0.82);
+
+  --border: rgba(88, 28, 135, 0.16);
+
   --accent: #7c3aed;
-  --text: #1a0129;
+  --accent-soft: rgba(124, 58, 237, 0.08);
 
-  --beam-main-1: rgba(187, 173, 255, 0.15);
-  --beam-main-2: rgba(124, 58, 237, 0.48);
-  --beam-main-3: rgba(218, 187, 252, 0.65);
+  --text: #17121f;
+  --muted: rgba(23, 18, 31, 0.68);
 
-  --beam-secondary-1: rgba(203, 178, 254, 0.18);
-  --beam-secondary-2: rgba(124, 58, 237, 0.35);
-
-  --glow-left: rgba(187, 173, 255, 0.75);
-  --glow-right: rgba(124, 58, 237, 0.4);
-
-  --grid-line: rgba(26, 1, 41, 0.06);
+  --shadow: rgba(88, 28, 135, 0.08);
+  --grid-line: rgba(88, 28, 135, 0.055);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --bg: #11001c;
-    --surface: #1a0129;
-    --card: rgba(34, 1, 53, 0.78);
-    --border: rgba(192, 132, 252, 0.18);
-    --accent: #520380;
-    --text: #ffffff;
+    --bg: #25212e;
+    --surface: #17131d;
+    --surface-soft: #1f1929;
+    --card: rgba(23, 19, 29, 0.82);
 
-    --beam-main-1: rgba(82, 3, 128, 0.2);
-    --beam-main-2: rgba(147, 51, 234, 0.95);
-    --beam-main-3: rgba(187, 173, 255, 0.55);
+    --border: rgba(216, 180, 254, 0.13);
 
-    --beam-secondary-1: rgba(58, 2, 91, 0.2);
-    --beam-secondary-2: rgba(147, 51, 234, 0.75);
+    --accent: #a855f7;
+    --accent-soft: rgba(168, 85, 247, 0.09);
 
-    --glow-left: rgba(82, 3, 128, 0.8);
-    --glow-right: rgba(147, 51, 234, 0.55);
+    --text: #f8f7fb;
+    --muted: rgba(248, 247, 251, 0.66);
 
-    --grid-line: rgba(255, 255, 255, 0.05);
+    --shadow: rgba(0, 0, 0, 0.22);
+    --grid-line: rgba(255, 255, 255, 0.045);
   }
 }
 
-* {
+/* ========================================
+   BASE
+======================================== */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -62,14 +62,22 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
-  background-color: var(--bg);
+
+  background: var(--bg);
   color: var(--text);
+
   font-family: "Inter", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
 a {
   font: inherit;
+}
+
+button {
+  color: inherit;
 }
 
 a {
@@ -81,255 +89,124 @@ a {
   font-family: "Outfit", sans-serif;
 }
 
-/* =========================
-   Animated Portfolio Background
-   ========================= */
+/* ========================================
+   BACKGROUND
+======================================== */
 
 .portfolio-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
+
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 18% 16%,
-      rgba(187, 173, 255, 0.55),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 72% 20%,
-      rgba(218, 187, 252, 0.5),
-      transparent 32%
-    ),
-    linear-gradient(
-      135deg,
-      #f8f6ff 0%,
-      #eee8ff 35%,
-      #e0c3fc 68%,
-      #f8f6ff 100%
-    );
+
+  background: var(--bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  .portfolio-bg {
-    background:
-      radial-gradient(
-        circle at 18% 16%,
-        rgba(82, 3, 128, 0.45),
-        transparent 30%
-      ),
-      radial-gradient(
-        circle at 72% 20%,
-        rgba(147, 51, 234, 0.35),
-        transparent 32%
-      ),
-      linear-gradient(
-        135deg,
-        #030006 0%,
-        #09000f 32%,
-        #11001c 62%,
-        #050008 100%
-      );
-  }
-}
+.portfolio-bg::before {
+  content: "";
 
-.purple-beam {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(44px);
-  mix-blend-mode: screen;
-  will-change: transform;
-}
-
-.beam-main {
-  top: 16%;
-  left: -18%;
-  width: 95vw;
-  height: 150px;
-  opacity: 0.88;
-  background:
-    linear-gradient(
-      100deg,
-      transparent 0%,
-      var(--beam-main-1) 20%,
-      var(--beam-main-2) 45%,
-      var(--beam-main-3) 56%,
-      var(--beam-main-1) 72%,
-      transparent 100%
-    );
-  transform: rotate(-10deg);
-  animation: beam-main-idle 9s ease-in-out infinite alternate;
-}
-
-.beam-secondary {
-  top: 40%;
-  right: -26%;
-  width: 80vw;
-  height: 130px;
-  opacity: 0.6;
-  background:
-    linear-gradient(
-      100deg,
-      transparent 0%,
-      var(--beam-secondary-1) 22%,
-      var(--beam-secondary-2) 48%,
-      rgba(208, 189, 252, 0.35) 62%,
-      transparent 100%
-    );
-  transform: rotate(16deg);
-  animation: beam-secondary-idle 12s ease-in-out infinite alternate;
-}
-
-.purple-glow {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(120px);
-  will-change: transform;
-}
-
-.glow-left {
-  top: 8%;
-  left: 18%;
-  width: 460px;
-  height: 460px;
-  opacity: 0.38;
-  background: var(--glow-left);
-}
-
-.glow-right {
-  top: 34%;
-  right: 10%;
-  width: 540px;
-  height: 540px;
-  opacity: 0.34;
-  background: var(--glow-right);
-}
-
-.bg-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.12;
+
+  opacity: 0.42;
+
   background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 72px 72px;
+    linear-gradient(
+      var(--grid-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      var(--grid-line) 1px,
+      transparent 1px
+    );
+
+  background-size: 80px 80px;
+
   mask-image: linear-gradient(
     to bottom,
-    transparent,
-    black 18%,
-    black 78%,
-    transparent
+    black 0%,
+    black 45%,
+    transparent 100%
   );
 }
 
-.bg-vignette {
+.portfolio-bg::after {
+  content: "";
+
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      circle at center,
-      transparent 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0.28) 100%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.16),
-      transparent 22%,
-      transparent 72%,
-      rgba(255, 255, 255, 0.18)
-    );
+
+  background: radial-gradient(
+    circle at 70% 15%,
+    var(--accent-soft),
+    transparent 28%
+  );
+
+  opacity: 0.45;
 }
 
-@media (prefers-color-scheme: dark) {
-  .bg-vignette {
-    background:
-      radial-gradient(
-        circle at center,
-        transparent 0%,
-        rgba(0, 0, 0, 0.2) 50%,
-        rgba(0, 0, 0, 0.75) 100%
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.45),
-        transparent 22%,
-        transparent 72%,
-        rgba(0, 0, 0, 0.5)
-      );
-  }
+/* ========================================
+   OLD BACKGROUND EFFECTS
+======================================== */
+
+.purple-beam,
+.purple-glow,
+.bg-grid,
+.bg-vignette {
+  display: none !important;
 }
 
-@keyframes beam-main-idle {
-  0% {
-    transform: translate3d(-4%, -2%, 0) rotate(-11deg) scaleX(1);
-    opacity: 0.65;
-  }
+/* ========================================
+   INTERACTION
+======================================== */
 
-  50% {
-    transform: translate3d(6%, 5%, 0) rotate(-7deg) scaleX(1.1);
-    opacity: 0.95;
-  }
-
-  100% {
-    transform: translate3d(10%, -1%, 0) rotate(-12deg) scaleX(1.04);
-    opacity: 0.78;
-  }
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
-@keyframes beam-secondary-idle {
-  0% {
-    transform: translate3d(5%, 0, 0) rotate(16deg) scaleX(1);
-    opacity: 0.42;
-  }
-
-  50% {
-    transform: translate3d(-6%, -4%, 0) rotate(13deg) scaleX(1.12);
-    opacity: 0.72;
-  }
-
-  100% {
-    transform: translate3d(-10%, 4%, 0) rotate(18deg) scaleX(1.05);
-    opacity: 0.5;
-  }
+button,
+a,
+.group,
+[class*="transition"] {
+  transition-duration: 200ms;
 }
 
-@media (max-width: 768px) {
-  .beam-main {
-    top: 18%;
-    left: -45%;
-    width: 160vw;
-  }
-
-  .beam-secondary {
-    top: 48%;
-    right: -55%;
-    width: 150vw;
-  }
-
-  .purple-glow {
-    opacity: 0.25;
-  }
-
-  .bg-grid {
-    background-size: 48px 48px;
-  }
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .beam-main,
-  .beam-secondary,
-  .purple-glow {
-    animation: none !important;
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
-nav a:hover {
-  color: var(--text) !important;
-  background-color: color-mix(
-    in srgb,
-    var(--accent) 14%,
-    transparent
-  ) !important;
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 767px) {
+  .portfolio-bg::before {
+    background-size: 60px 60px;
+    opacity: 0.28;
+  }
+
+  .portfolio-bg::after {
+    opacity: 0.25;
+  }
 }

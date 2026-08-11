@@ -1,14 +1,14 @@
+import { Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ScrollProgress from "./components/ScrollProgress";
 
-import Hero from "./sections/Hero";
-import About from "./sections/About";
-import Skills from "./sections/Skills";
-import Projects from "./sections/Projects";
-import Journey from "./sections/Journey";
-import Awards from "./sections/Awards";
-import Contact from "./sections/Contact";
+import Home from "./pages/Home";
+import Projects from "./pages/Projects";
+import Certificates from "./pages/Certificates";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -20,13 +20,29 @@ function App() {
         <Navbar />
 
         <main>
-          <Hero />
-          <About />
-          <Skills />
-          <Projects />
-          <Journey />
-          <Awards />
-          <Contact />
+          <Routes>
+            <Route path="/" element={<Home />} />
+
+            <Route
+              path="/projects"
+              element={<Projects />}
+            />
+
+            <Route
+              path="/certificates"
+              element={<Certificates />}
+            />
+
+            <Route
+              path="/about"
+              element={<About />}
+            />
+
+            <Route
+              path="/contact"
+              element={<Contact />}
+            />
+          </Routes>
         </main>
       </div>
     </div>
