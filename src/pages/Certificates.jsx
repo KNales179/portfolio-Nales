@@ -29,10 +29,11 @@ function Certificates() {
 
         {/* HEADER */}
         <div className="mb-12">
+          <h1 className="heading-font text-4xl font-bold tracking-tight md:text-5xl">
+            <span className="text-[var(--accent)]">#</span>{" "}
+            Certificates
+          </h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold tracking-[0.2em] text-purple-400">
-              03
-            </span>
 
             <div className="h-px w-10 bg-purple-500/40" />
 
@@ -41,9 +42,8 @@ function Certificates() {
             </span>
           </div>
 
-          <h1 className="heading-font mt-5 text-4xl font-bold tracking-tight md:text-5xl">
-            Certificates
-          </h1>
+          
+
 
           <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">
             Certifications and credentials earned through technical
