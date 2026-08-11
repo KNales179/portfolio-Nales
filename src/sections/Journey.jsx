@@ -59,6 +59,137 @@ const PATH =
   "C 600 175, 620 80, 720 80 " +
   "C 820 80, 840 150, 920 150";
 
+function MobileJourney({ milestones, activeIndex, selectMilestone }) {
+  return (
+    <div className="relative mt-10 md:hidden">
+      {/* Timeline line */}
+      <div className="absolute bottom-0 left-[18px] top-0 w-px bg-[var(--border)]" />
+
+      {/* Active progress */}
+      <motion.div
+        className="absolute left-[18px] top-0 w-px origin-top bg-[var(--accent)]"
+        animate={{
+          height: `${((activeIndex + 1) / milestones.length) * 100}%`,
+        }}
+        transition={{
+          duration: 0.5,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+      />
+
+      <div className="space-y-8">
+        {milestones.map((item, index) => {
+          const isActive = index === activeIndex;
+
+          return (
+            <motion.button
+              key={item.year}
+              type="button"
+              onClick={() => selectMilestone(index)}
+              initial={{
+                opacity: 0,
+                x: -20,
+              }}
+              whileInView={{
+                opacity: 1,
+                x: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              transition={{
+                duration: 0.45,
+                delay: index * 0.08,
+              }}
+              className="relative flex w-full items-start gap-5 text-left"
+            >
+              {/* DOT */}
+              <div className="relative z-10 flex shrink-0 items-center justify-center">
+                <motion.div
+                  animate={{
+                    scale: isActive ? 1 : 0.75,
+                  }}
+                  className={`size-9 border transition-all duration-300 ${
+                    isActive
+                      ? "border-[var(--accent)] bg-[var(--accent)]/15 shadow-[0_0_20px_var(--accent-soft)]"
+                      : "border-[var(--border)] bg-[var(--surface)]"
+                  }`}
+                >
+                  <div
+                    className={`mx-auto mt-[11px] size-2 rounded-full ${
+                      isActive
+                        ? "bg-[var(--accent)]"
+                        : "bg-[var(--muted)]"
+                    }`}
+                  />
+                </motion.div>
+              </div>
+
+              {/* CONTENT */}
+              <motion.div
+                animate={{
+                  opacity: isActive ? 1 : 0.6,
+                }}
+                className={`min-w-0 flex-1 border p-5 transition-all duration-300 ${
+                  isActive
+                    ? "border-[var(--accent)]/30 bg-[var(--card)]"
+                    : "border-[var(--border)] bg-[var(--card)]/50"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span
+                    className={`text-xs font-bold tracking-[0.2em] ${
+                      isActive
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--muted)]"
+                    }`}
+                  >
+                    {item.year}
+                  </span>
+
+                  <span className="text-[10px] tracking-[0.15em] text-[var(--muted)]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <h3 className="heading-font mt-2 text-lg font-bold">
+                  {item.title}
+                </h3>
+
+                <AnimatePresence initial={false}>
+                  {isActive && (
+                    <motion.p
+                      initial={{
+                        opacity: 0,
+                        height: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        height: "auto",
+                      }}
+                      exit={{
+                        opacity: 0,
+                        height: 0,
+                      }}
+                      transition={{
+                        duration: 0.3,
+                      }}
+                      className="mt-3 overflow-hidden text-sm leading-6 text-[var(--muted)]"
+                    >
+                      {item.description}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Journey() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -207,7 +338,7 @@ function Journey() {
 
         {/* JOURNEY CONTAINER */}
         <div
-          className="relative mt-12 overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-md"
+          className="relative mt-12 hidden overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-md md:block"
           onMouseEnter={() => {
             setIsPaused(true);
             lastTimeRef.current = null;
@@ -477,6 +608,13 @@ function Journey() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* MOBILE JOURNEY */}
+        <MobileJourney
+          milestones={milestones}
+          activeIndex={activeIndex}
+          selectMilestone={selectMilestone}
+        />
       </div>
     </section>
   );

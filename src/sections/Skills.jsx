@@ -181,6 +181,65 @@ function SkillRow({ group, index }) {
   );
 }
 
+function MobileSkillGroup({ group, index }) {
+  const Icon = group.icon;
+
+  return (
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.2,
+      }}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.08,
+      }}
+      className="border-b border-[var(--border)] py-5 last:border-b-0"
+    >
+      {/* CATEGORY */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)]">
+          <Icon
+            size={17}
+            strokeWidth={1.8}
+            className="text-[var(--accent)]"
+          />
+        </div>
+
+        <div>
+          <p className="text-[9px] tracking-[0.16em] text-[var(--accent)]">
+            {group.number}
+          </p>
+
+          <h3 className="heading-font text-sm font-semibold">
+            {group.name}
+          </h3>
+        </div>
+      </div>
+
+      {/* SKILLS */}
+      <div className="flex flex-wrap gap-2">
+        {group.skills.map((skill) => (
+          <span
+            key={skill}
+            className="border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-medium text-[var(--muted)]"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 function Skills() {
   return (
     <section
@@ -196,24 +255,8 @@ function Skills() {
           description="Technologies and tools I've learned and used while building applications and systems."
         />
 
-        {/* Skill ticker */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-          }}
-          transition={{
-            duration: 0.6,
-          }}
-          className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md"
-        >
+        {/* DESKTOP */}
+        <div className="hidden overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md md:block">
           {skillGroups.map((group, index) => (
             <SkillRow
               key={group.name}
@@ -221,7 +264,18 @@ function Skills() {
               index={index}
             />
           ))}
-        </motion.div>
+        </div>
+
+        {/* MOBILE */}
+        <div className="overflow-hidden border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md md:hidden">
+          {skillGroups.map((group, index) => (
+            <MobileSkillGroup
+              key={group.name}
+              group={group}
+              index={index}
+            />
+          ))}
+        </div>
 
         {/* Footer */}
         <motion.div
