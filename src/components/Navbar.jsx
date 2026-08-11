@@ -80,7 +80,7 @@ function Navbar() {
         ========================== */}
         <button
           type="button"
-          onClick={() => handleNavigation("/")}
+          onClick={() => handleNavigation("/portfolio-Nales")}
           className="group flex shrink-0 items-center gap-3"
         >
           <img
@@ -108,6 +108,7 @@ function Navbar() {
             <NavLink
               key={link.path}
               to={link.path}
+              end={link.path === "/portfolio-Nales"}
               onClick={() => {
                 window.scrollTo({
                   top: 0,
@@ -234,6 +235,7 @@ function Navbar() {
                 <NavLink
                   key={link.path}
                   to={link.path}
+                  end={link.path === "/portfolio-Nales"}
                   onClick={() => {
                     setMenuOpen(false);
 
