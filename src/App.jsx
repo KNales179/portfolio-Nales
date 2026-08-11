@@ -21,7 +21,7 @@ function App() {
 
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/portfolio-Nales" element={<Home />} />
 
             <Route
               path="/projects"
