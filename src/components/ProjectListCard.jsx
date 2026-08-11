@@ -1,5 +1,9 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight, CheckCircle2, Clock3 } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+} from "lucide-react";
 
 function ProjectListCard({ project, index = 0 }) {
   const isComplete = project.status === "complete";
@@ -8,7 +12,7 @@ function ProjectListCard({ project, index = 0 }) {
     <motion.article
       initial={{
         opacity: 0,
-        y: 30,
+        y: 24,
       }}
       whileInView={{
         opacity: 1,
@@ -19,11 +23,11 @@ function ProjectListCard({ project, index = 0 }) {
         amount: 0.15,
       }}
       transition={{
-        duration: 0.6,
+        duration: 0.55,
         delay: index * 0.08,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-400/40 hover:shadow-xl hover:shadow-purple-950/10"
+      className="group overflow-hidden border border-[var(--border)] bg-[var(--card)] transition-all duration-300 hover:-translate-y-1 hover:border-purple-400/40 hover:shadow-xl hover:shadow-purple-950/10"
     >
       {/* IMAGE */}
       <div className="relative aspect-[16/9] overflow-hidden bg-[var(--surface)]">
@@ -39,13 +43,13 @@ function ProjectListCard({ project, index = 0 }) {
           </div>
         )}
 
-        {/* Status */}
+        {/* STATUS */}
         <div className="absolute left-4 top-4">
           <span
-            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${
+            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${
               isComplete
-                ? "border-emerald-400/30 bg-emerald-950/70 text-emerald-300"
-                : "border-amber-400/30 bg-amber-950/70 text-amber-300"
+                ? "border-emerald-400/30 bg-emerald-950/80 text-emerald-300"
+                : "border-amber-400/30 bg-amber-950/80 text-amber-300"
             }`}
           >
             {isComplete ? (
@@ -57,19 +61,25 @@ function ProjectListCard({ project, index = 0 }) {
             {isComplete ? "Completed" : "In Development"}
           </span>
         </div>
+
+        {/* IMAGE OVERLAY */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-30" />
       </div>
 
       {/* CONTENT */}
       <div className="p-6 md:p-7">
+        {/* TYPE */}
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-purple-400">
           {project.type}
         </p>
 
-        <h3 className="heading-font text-2xl font-bold">
+        {/* TITLE */}
+        <h3 className="heading-font text-2xl font-bold tracking-tight">
           {project.name}
         </h3>
 
-        <p className="mt-3 line-clamp-3 text-sm leading-6 text-[var(--muted)]">
+        {/* DESCRIPTION */}
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           {project.description}
         </p>
 
@@ -79,7 +89,7 @@ function ProjectListCard({ project, index = 0 }) {
             {project.technologies.map((technology) => (
               <span
                 key={technology}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--muted)]"
+                className="border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--muted)]"
               >
                 {technology}
               </span>
@@ -88,7 +98,7 @@ function ProjectListCard({ project, index = 0 }) {
         )}
 
         {/* ACTION */}
-        <div className="mt-6 border-t border-[var(--border)] pt-5">
+        <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-5">
           <button
             type="button"
             className="group/button flex items-center gap-2 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300"
@@ -100,6 +110,11 @@ function ProjectListCard({ project, index = 0 }) {
               className="transition-transform duration-300 group-hover/button:-translate-y-0.5 group-hover/button:translate-x-0.5"
             />
           </button>
+
+          {/* PROJECT STATUS LABEL */}
+          <span className="text-xs uppercase tracking-wider text-[var(--muted)]">
+            {isComplete ? "Finished" : "Ongoing"}
+          </span>
         </div>
       </div>
     </motion.article>

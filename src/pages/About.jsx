@@ -36,6 +36,7 @@ function About() {
           </div>
 
           <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted)] md:text-lg">
+            I'm a passionate developer with a strong foundation in computer science and a keen interest in creating innovative solutions.
           </p>
         </motion.div>
 
@@ -60,10 +61,6 @@ function About() {
             <p className="mb-2 text-xs font-medium tracking-[0.2em] text-[var(--accent)]">
               02
             </p>
-
-            <h2 className="heading-font text-3xl font-bold md:text-4xl">
-              Academics
-            </h2>
           </div>
 
           <Awards />
