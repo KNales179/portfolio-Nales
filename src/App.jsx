@@ -24,22 +24,22 @@ function App() {
             <Route path="/portfolio-Nales" element={<Home />} />
 
             <Route
-              path="/projects"
+              path="/portfolio-Nales/projects"
               element={<Projects />}
             />
 
             <Route
-              path="/certificates"
+              path="/portfolio-Nales/certificates"
               element={<Certificates />}
             />
 
             <Route
-              path="/about"
+              path="/portfolio-Nales/about"
               element={<About />}
             />
 
             <Route
-              path="/contact"
+              path="/portfolio-Nales/contact"
               element={<Contact />}
             />
           </Routes>

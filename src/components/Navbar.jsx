@@ -6,23 +6,23 @@ import { NavLink, useNavigate } from "react-router-dom";
 const navigationLinks = [
   {
     label: "Home",
-    path: "/",
+    path: "/portfolio-Nales",
   },
   {
     label: "Projects",
-    path: "/projects",
+    path: "/portfolio-Nales/projects",
   },
   {
     label: "Certificates",
-    path: "/certificates",
+    path: "/portfolio-Nales/certificates",
   },
   {
     label: "About Me",
-    path: "/about",
+    path: "/portfolio-Nales/about",
   },
   {
     label: "Contact",
-    path: "/contact",
+    path: "/portfolio-Nales/contact",
   },
 ];
 
