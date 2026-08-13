@@ -51,10 +51,9 @@ function ProjectCard({ project, index = 0, onViewCaseStudy }) {
             border-[var(--border)]
             lg:min-h-[340px]
             lg:border-b-0
-            ${
-              index % 2 === 1
-                ? "lg:order-2 lg:border-l"
-                : "lg:border-r"
+            ${index % 2 === 1
+              ? "lg:order-2 lg:border-l"
+              : "lg:border-r"
             }
           `}
         >
@@ -132,10 +131,9 @@ function ProjectCard({ project, index = 0, onViewCaseStudy }) {
                     font-semibold
                     uppercase
                     tracking-wider
-                    ${
-                      project.status === "complete"
-                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                        : "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                    ${project.status === "complete"
+                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                      : "border-amber-500/20 bg-amber-500/10 text-amber-400"
                     }
                   `}
                 >

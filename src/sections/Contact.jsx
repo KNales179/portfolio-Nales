@@ -11,6 +11,7 @@ import {
   FaFacebook,
   FaLinkedin,
   FaGithub,
+  FaWhatsapp,
 } from "react-icons/fa";
 
 
@@ -36,6 +37,13 @@ const contacts = [
     label: "LinkedIn",
     href: "https://www.linkedin.com/in/ivhel-nales-996189419",
     icon: FaLinkedin,
+    external: true,
+  },
+  {
+    label: "WhatsApp",
+    value: "Chat with me",
+    href: "https://api.whatsapp.com/send?phone=639635321913",
+    icon: FaWhatsapp,
     external: true,
   },
   {
@@ -360,7 +368,7 @@ function Contact() {
                 <a
                   href="https://github.com/YOUR_USERNAME"
                   target="_blank"
-                  rel="noreferrer" 
+                  rel="noreferrer"
                   aria-label="GitHub"
                   className="flex size-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/50 transition hover:-translate-y-1 hover:border-purple-400/60 hover:text-purple-400"
                 >

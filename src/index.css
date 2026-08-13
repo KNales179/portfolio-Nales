@@ -113,24 +113,18 @@ a {
   opacity: 0.42;
 
   background-image:
-    linear-gradient(
+    linear-gradient(var(--grid-line) 1px,
+      transparent 1px),
+    linear-gradient(90deg,
       var(--grid-line) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      var(--grid-line) 1px,
-      transparent 1px
-    );
+      transparent 1px);
 
   background-size: 80px 80px;
 
-  mask-image: linear-gradient(
-    to bottom,
-    black 0%,
-    black 45%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 45%,
+      transparent 100%);
 }
 
 .portfolio-bg::after {
@@ -139,11 +133,9 @@ a {
   position: absolute;
   inset: 0;
 
-  background: radial-gradient(
-    circle at 70% 15%,
-    var(--accent-soft),
-    transparent 28%
-  );
+  background: radial-gradient(circle at 70% 15%,
+      var(--accent-soft),
+      transparent 28%);
 
   opacity: 0.45;
 }
@@ -186,6 +178,7 @@ a:focus-visible {
 ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -209,4 +202,100 @@ a:focus-visible {
   .portfolio-bg::after {
     opacity: 0.25;
   }
+}
+
+html.sidebar-resizing * {
+    transition: none !important;
+}
+
+/* ============================================================
+   ADMIN SIDEBAR
+   ============================================================ */
+
+.admin-sidebar {
+    container-type: inline-size;
+    container-name: admin-sidebar;
+}
+
+/* Smooth width transition when NOT resizing */
+.admin-sidebar,
+.admin-sidebar .sidebar-nav-item,
+.admin-sidebar .sidebar-footer,
+.admin-sidebar .sidebar-user-card {
+    transition:
+        width 180ms ease,
+        padding 180ms ease,
+        margin 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease;
+}
+
+/* Disable transitions while actively dragging */
+.sidebar-resizing .admin-sidebar,
+.sidebar-resizing .admin-sidebar * {
+    transition: none !important;
+}
+
+
+/* ============================================================
+   ICON-ONLY MODE
+   Activates when sidebar reaches ~120px
+   ============================================================ */
+
+@container admin-sidebar (max-width: 120px) {
+
+    /* Hide section titles */
+
+    .sidebar-section-title {
+        display: none;
+    }
+
+
+    /* Navigation */
+
+    .sidebar-nav-item {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+        gap: 0;
+    }
+
+
+    /* Icons */
+
+    .sidebar-nav-icon {
+        margin: 0;
+    }
+
+
+    /* Hide labels */
+
+    .sidebar-nav-label {
+        display: none;
+    }
+
+
+    /* Footer */
+
+    .sidebar-footer {
+        padding: 10px;
+    }
+
+    .sidebar-user-card {
+        padding: 10px;
+    }
+
+
+    /* User information */
+
+    .sidebar-user-info {
+        display: none;
+    }
+
+
+    /* Center user icon */
+
+    .sidebar-user-card > div {
+        justify-content: center;
+    }
 }

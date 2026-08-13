@@ -28,9 +28,8 @@ function SectionTitle({
       className={isCenter ? "mx-auto text-center" : ""}
     >
       <p
-        className={`mb-4 flex items-center gap-3 font-medium text-purple-400 ${
-          isCenter ? "justify-center" : ""
-        }`}
+        className={`mb-4 flex items-center gap-3 font-medium text-purple-400 ${isCenter ? "justify-center" : ""
+          }`}
       >
         <span className="h-px w-10 bg-purple-400" />
         {label}
@@ -43,9 +42,8 @@ function SectionTitle({
 
       {description && (
         <p
-          className={`leading-7 opacity-70 ${
-            isCenter ? "mx-auto max-w-2xl" : "max-w-2xl"
-          }`}
+          className={`leading-7 opacity-70 ${isCenter ? "mx-auto max-w-2xl" : "max-w-2xl"
+            }`}
         >
           {description}
         </p>

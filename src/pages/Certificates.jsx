@@ -42,7 +42,7 @@ function Certificates() {
             </span>
           </div>
 
-          
+
 
 
           <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">

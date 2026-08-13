@@ -59,7 +59,7 @@ function Hero() {
       aria-labelledby="hero-heading"
       className="relative z-10 flex min-h-screen items-center overflow-hidden pt-20"
     >
-            {/* =========================================
+      {/* =========================================
           SUBTLE IT / SYSTEM PARTICLES
       ========================================= */}
 
@@ -277,12 +277,6 @@ function Hero() {
             }}
           >
 
-            {/* Subtle circular anchor */}
-
-            <div
-              className="absolute left-1/2 top-1/2 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--border)] md:h-[440px] md:w-[440px]"
-              aria-hidden="true"
-            />
 
             {/* Portrait */}
 

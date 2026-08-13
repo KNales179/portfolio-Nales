@@ -146,9 +146,8 @@ function SkillRow({ group, index }) {
         <div
           className="skill-track flex w-max items-center gap-3"
           style={{
-            animation: `skill-marquee ${
-              18 + index * 3
-            }s linear infinite`,
+            animation: `skill-marquee ${18 + index * 3
+              }s linear infinite`,
             animationDirection:
               index % 2 === 0 ? "normal" : "reverse",
           }}

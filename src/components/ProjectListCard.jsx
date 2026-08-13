@@ -46,11 +46,10 @@ function ProjectListCard({ project, index = 0 }) {
         {/* STATUS */}
         <div className="absolute left-4 top-4">
           <span
-            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${
-              isComplete
+            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${isComplete
                 ? "border-emerald-400/30 bg-emerald-950/80 text-emerald-300"
                 : "border-amber-400/30 bg-amber-950/80 text-amber-300"
-            }`}
+              }`}
           >
             {isComplete ? (
               <CheckCircle2 size={13} />

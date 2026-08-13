@@ -106,11 +106,10 @@ function ProjectCard({ project, index, className = "" }) {
           duration: 0.35,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className={`absolute inset-3 flex items-center justify-center ${
-          isActive
+        className={`absolute inset-3 flex items-center justify-center ${isActive
             ? "pointer-events-auto"
             : "pointer-events-none"
-        }`}
+          }`}
       >
         <div className="relative w-full rounded-lg border border-white/15 bg-black/35 p-4 text-white shadow-2xl backdrop-blur-xl">
 

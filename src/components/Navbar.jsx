@@ -67,11 +67,10 @@ function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
-        scrolled || menuOpen
+      className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${scrolled || menuOpen
           ? "border-b border-[var(--border)] bg-[var(--surface)]/85 shadow-lg shadow-black/5 backdrop-blur-xl"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="mx-auto flex h-20 w-full max-w-[1440px] items-center justify-between px-5 md:px-10 lg:px-16">
 
@@ -116,10 +115,9 @@ function Navbar() {
                 });
               }}
               className={({ isActive }) =>
-                `group relative rounded-xl px-4 py-2 text-sm font-medium transition duration-300 ${
-                  isActive
-                    ? "bg-purple-500/15 text-purple-500 dark:text-purple-300"
-                    : "text-[var(--text)]/70 hover:bg-[var(--surface)]/70 hover:text-[var(--text)]"
+                `group relative rounded-xl px-4 py-2 text-sm font-medium transition duration-300 ${isActive
+                  ? "bg-purple-500/15 text-purple-500 dark:text-purple-300"
+                  : "text-[var(--text)]/70 hover:bg-[var(--surface)]/70 hover:text-[var(--text)]"
                 }`
               }
             >
@@ -128,11 +126,10 @@ function Navbar() {
                   {link.label}
 
                   <span
-                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-purple-500 transition-all duration-300 ${
-                      isActive
+                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-purple-500 transition-all duration-300 ${isActive
                         ? "w-6 opacity-100"
                         : "w-0 opacity-0 group-hover:w-6 group-hover:opacity-100"
-                    }`}
+                      }`}
                   />
                 </>
               )}
@@ -263,11 +260,10 @@ function Navbar() {
                         duration: 0.28,
                         delay: index * 0.045,
                       }}
-                      className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
-                        isActive
+                      className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition ${isActive
                           ? "bg-purple-500/15 text-purple-500"
                           : "text-[var(--text)]/75 hover:bg-purple-500/10"
-                      }`}
+                        }`}
                     >
                       {link.label}
                     </motion.div>

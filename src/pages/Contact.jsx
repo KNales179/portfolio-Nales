@@ -10,6 +10,7 @@ import {
   FaInstagram,
   FaLinkedin,
   FaGithub,
+  FaWhatsapp,
 } from "react-icons/fa";
 
 const contacts = [
@@ -40,6 +41,13 @@ const contacts = [
     icon: FaLinkedin,
     external: true,
   },
+  {
+    label: "WhatsApp",
+    value: "Chat with me",
+    href: "https://api.whatsapp.com/send?phone=639635321913",
+    icon: FaWhatsapp,
+    external: true,
+  }
 ];
 
 function Contact() {

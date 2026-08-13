@@ -110,18 +110,16 @@ function MobileJourney({ milestones, activeIndex, selectMilestone }) {
                   animate={{
                     scale: isActive ? 1 : 0.75,
                   }}
-                  className={`size-9 border transition-all duration-300 ${
-                    isActive
+                  className={`size-9 border transition-all duration-300 ${isActive
                       ? "border-[var(--accent)] bg-[var(--accent)]/15 shadow-[0_0_20px_var(--accent-soft)]"
                       : "border-[var(--border)] bg-[var(--surface)]"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`mx-auto mt-[11px] size-2 rounded-full ${
-                      isActive
+                    className={`mx-auto mt-[11px] size-2 rounded-full ${isActive
                         ? "bg-[var(--accent)]"
                         : "bg-[var(--muted)]"
-                    }`}
+                      }`}
                   />
                 </motion.div>
               </div>
@@ -131,19 +129,17 @@ function MobileJourney({ milestones, activeIndex, selectMilestone }) {
                 animate={{
                   opacity: isActive ? 1 : 0.6,
                 }}
-                className={`min-w-0 flex-1 border p-5 transition-all duration-300 ${
-                  isActive
+                className={`min-w-0 flex-1 border p-5 transition-all duration-300 ${isActive
                     ? "border-[var(--accent)]/30 bg-[var(--card)]"
                     : "border-[var(--border)] bg-[var(--card)]/50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <span
-                    className={`text-xs font-bold tracking-[0.2em] ${
-                      isActive
+                    className={`text-xs font-bold tracking-[0.2em] ${isActive
                         ? "text-[var(--accent)]"
                         : "text-[var(--muted)]"
-                    }`}
+                      }`}
                   >
                     {item.year}
                   </span>
@@ -489,11 +485,10 @@ function Journey() {
                           : 2
                         : 0,
                     }}
-                    className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold tracking-[0.2em] ${
-                      yearAbove
+                    className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold tracking-[0.2em] ${yearAbove
                         ? "bottom-9"
                         : "top-9"
-                    }`}
+                      }`}
                   >
                     <span
                       className={
@@ -518,11 +513,10 @@ function Journey() {
                     whileTap={{
                       scale: 0.9,
                     }}
-                    className={`relative flex size-10 items-center justify-center rounded-full border transition-all duration-300 ${
-                      isActive
+                    className={`relative flex size-10 items-center justify-center rounded-full border transition-all duration-300 ${isActive
                         ? "border-[var(--accent)] bg-[var(--accent)]/20 shadow-[0_0_25px_var(--accent-soft)]"
                         : "border-[var(--border)] bg-[var(--surface)]/90 hover:border-[var(--accent)]"
-                    }`}
+                      }`}
                     aria-label={`View ${item.year} milestone`}
                   >
                     <MapPin
