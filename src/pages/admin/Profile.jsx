@@ -336,14 +336,6 @@ function Profile() {
                     Administration
                 </p>
 
-                <h1 className="heading-font text-3xl font-bold tracking-tight md:text-4xl">
-                    My Profile
-                </h1>
-
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-                    Manage your personal administrator
-                    information and account details.
-                </p>
             </motion.div>
 
             {/* =================================================
