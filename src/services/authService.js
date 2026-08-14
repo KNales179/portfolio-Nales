@@ -1,3 +1,7 @@
+import {
+    getDeviceInfo,
+} from "../utils/deviceInfo";
+
 const API_URL = "https://portfolio-nales-backend.onrender.com/api";
 
 // ============================================================
@@ -110,10 +114,27 @@ export const login = async (
     username,
     password
 ) => {
+    const deviceInfo =
+        getDeviceInfo();
+
     const data = await request(
         "/auth/login",
         {
             method: "POST",
+
+            headers: {
+                "x-device-id":
+                    deviceInfo.deviceId,
+
+                "x-device-name":
+                    deviceInfo.deviceName,
+
+                "x-browser":
+                    deviceInfo.browser,
+
+                "x-operating-system":
+                    deviceInfo.operatingSystem,
+            },
 
             body: JSON.stringify({
                 username,
@@ -122,22 +143,11 @@ export const login = async (
         }
     );
 
-    // ========================================================
-    // NORMAL LOGIN
-    // ========================================================
-
     if (data.data?.token) {
         saveToken(
             data.data.token
         );
     }
-
-    // ========================================================
-    // 2FA REQUIRED
-    // ========================================================
-    //
-    // The challengeToken is intentionally NOT stored.
-    //
 
     return data;
 };
