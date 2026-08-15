@@ -394,35 +394,6 @@ function AdminSidebar({ open, onClose }) {
                                 )}
                             </NavLink>
 
-                            {/* SECURITY */}
-
-                            <NavLink
-                                to="/portfolio-Nales/admin/security"
-                                onClick={onClose}
-                                title="Security"
-                            >
-                                {({
-                                    isActive,
-                                }) => (
-                                    <div
-                                        className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                            isActive
-                                                ? "bg-purple-500/15 text-purple-400"
-                                                : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                        }`}
-                                    >
-                                        <Shield
-                                            size={18}
-                                            className="sidebar-nav-icon shrink-0"
-                                        />
-
-                                        <span className="sidebar-nav-label">
-                                            Security
-                                        </span>
-                                    </div>
-                                )}
-                            </NavLink>
-
                             {/* SETTINGS */}
 
                             <NavLink

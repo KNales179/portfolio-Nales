@@ -14,7 +14,11 @@ import Contact from "./pages/Contact";
 
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Profile from "./pages/admin/Profile";
-import Security from "./pages/admin/Security";
+import Security from "./pages/admin/settings/Security";
+import Settings from "./pages/admin/settings/Settings";
+import TrustedDevices from "./pages/admin/settings/TrustedDevices";
+import AccountSection from "./pages/admin/settings/AccountSection";
+import TwoFactor from "./pages/admin/settings/TwoFactor";
 
 import Login from "./pages/auth/Login";
 
@@ -93,10 +97,46 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/security"
+                            path="/portfolio-Nales/admin/settings"
+                            element={
+                                <ProtectedRoute>
+                                    <Settings />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/portfolio-Nales/admin/settings/security"
                             element={
                                 <ProtectedRoute>
                                     <Security />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/portfolio-Nales/admin/settings/trusted-devices"
+                            element={
+                                <ProtectedRoute>
+                                    <TrustedDevices />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/portfolio-Nales/admin/settings/account"
+                            element={
+                                <ProtectedRoute>
+                                    <AccountSection />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/portfolio-Nales/admin/settings/two-factor"
+                            element={
+                                <ProtectedRoute>
+                                    <TwoFactor />
                                 </ProtectedRoute>
                             }
                         />
