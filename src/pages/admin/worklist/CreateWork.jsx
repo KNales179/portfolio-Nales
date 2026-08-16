@@ -13,6 +13,8 @@ import { motion } from "framer-motion";
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 
+import { useAuth } from "../../../context/AuthContext";
+
 import {
     createWork,
     getAdminsForWork,
@@ -30,8 +32,11 @@ import {
 function CreateWork() {
     const navigate = useNavigate();
 
+    const { admin } = useAuth();
+
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
+
 
     // ========================================================
     // FORM
@@ -52,6 +57,7 @@ function CreateWork() {
     const [participants, setParticipants] =
         useState([]);
 
+
     // ========================================================
     // ADMINS
     // ========================================================
@@ -62,6 +68,7 @@ function CreateWork() {
     const [adminsLoading, setAdminsLoading] =
         useState(true);
 
+
     // ========================================================
     // STATE
     // ========================================================
@@ -71,6 +78,7 @@ function CreateWork() {
 
     const [error, setError] =
         useState("");
+
 
     // ========================================================
     // LOAD ADMINS
@@ -85,15 +93,20 @@ function CreateWork() {
                 const response =
                     await getAdminsForWork();
 
-                setAdmins(
+                const fetchedAdmins =
                     response?.data?.admins ||
                     response?.admins ||
-                    []
+                    [];
+
+                setAdmins(
+                    Array.isArray(fetchedAdmins)
+                        ? fetchedAdmins
+                        : []
                 );
 
             } catch (error) {
                 console.error(
-                    "Failed to load admins:",
+                    "Failed to load administrators:",
                     error
                 );
 
@@ -109,15 +122,21 @@ function CreateWork() {
         loadAdmins();
     }, []);
 
+
     // ========================================================
     // PARTICIPANT TOGGLE
     // ========================================================
 
-    const toggleParticipant = (adminId) => {
+    const toggleParticipant = (
+        adminId
+    ) => {
         setParticipants((current) => {
-            if (current.includes(adminId)) {
+            if (
+                current.includes(adminId)
+            ) {
                 return current.filter(
-                    (id) => id !== adminId
+                    (id) =>
+                        id !== adminId
                 );
             }
 
@@ -128,100 +147,166 @@ function CreateWork() {
         });
     };
 
+
+    // ========================================================
+    // ACCESS TYPE
+    // ========================================================
+
+    const handleAccessTypeChange = (
+        nextAccessType
+    ) => {
+        setAccessType(
+            nextAccessType
+        );
+
+        if (
+            nextAccessType !==
+            "PASSWORD"
+        ) {
+            setWorkPassword("");
+        }
+
+        setError("");
+    };
+
+
     // ========================================================
     // SUBMIT
     // ========================================================
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (
+        event
+    ) => {
         event.preventDefault();
 
-        if (!title.trim()) {
+        if (!canCreateWork(admin)) {
             setError(
-                "Project title is required."
+                "You do not have permission to create work."
             );
 
             return;
         }
 
-        if (!description.trim()) {
+        const trimmedTitle =
+            title.trim();
+
+        const trimmedDescription =
+            description.trim();
+
+        const trimmedPassword =
+            workPassword.trim();
+
+
+        // ----------------------------------------------------
+        // VALIDATION
+        // ----------------------------------------------------
+
+        if (!trimmedTitle) {
             setError(
-                "Project description is required."
+                "Work title is required."
+            );
+
+            return;
+        }
+
+        if (!trimmedDescription) {
+            setError(
+                "Work description is required."
             );
 
             return;
         }
 
         if (
-            accessType === "PASSWORD" &&
-            !workPassword.trim()
+            accessType ===
+                "PASSWORD" &&
+            !trimmedPassword
         ) {
             setError(
-                "A project password is required for password-protected access."
+                "A work password is required for password-protected access."
             );
 
             return;
         }
 
+
+        // ----------------------------------------------------
+        // PAYLOAD
+        // ----------------------------------------------------
+
+        const payload = {
+            title: trimmedTitle,
+
+            description:
+                trimmedDescription,
+
+            participants,
+
+            accessType,
+
+            ...(accessType ===
+                "PASSWORD"
+                ? {
+                    password:
+                        trimmedPassword,
+                }
+                : {}),
+        };
+
+
+        // ----------------------------------------------------
+        // CREATE
+        // ----------------------------------------------------
+
         try {
             setLoading(true);
             setError("");
 
-            const payload = {
-                title: title.trim(),
-
-                description:
-                    description.trim(),
-
-                participants,
-
-                accessType,
-
-                ...(accessType === "PASSWORD"
-                    ? {
-                        password:
-                            workPassword,
-                    }
-                    : {}),
-            };
-
             const response =
-                await createWork(payload);
+                await createWork(
+                    payload
+                );
 
             const createdWork =
                 response?.data?.work ||
                 response?.work ||
                 null;
 
-            if (createdWork?._id) {
+            if (
+                createdWork?._id
+            ) {
                 navigate(
-                    `/admin/worklist/${createdWork._id}`
+                    `/portfolio-Nales/admin/worklist/${createdWork._id}`
                 );
 
                 return;
             }
 
-            navigate("/admin/worklist");
+            navigate(
+                "/portfolio-Nales/admin/worklist"
+            );
 
         } catch (error) {
             console.error(
-                "Failed to create project:",
+                "Failed to create work:",
                 error
             );
 
             setError(
                 error?.message ||
-                "Unable to create project."
+                "Unable to create work."
             );
         } finally {
             setLoading(false);
         }
     };
 
+
     // ========================================================
     // PERMISSION GUARD
     // ========================================================
 
-    if (!canCreateWork()) {
+    if (!canCreateWork(admin)) {
         return (
             <div className="min-h-screen bg-[var(--surface)]">
 
@@ -258,7 +343,7 @@ function CreateWork() {
 
                             <p className="mt-2 text-sm text-[var(--muted)]">
                                 You do not have permission
-                                to create a project.
+                                to create work.
                             </p>
 
                         </div>
@@ -270,6 +355,7 @@ function CreateWork() {
             </div>
         );
     }
+
 
     // ========================================================
     // RENDER
@@ -291,6 +377,7 @@ function CreateWork() {
                 }
             />
 
+
             {/* ==================================================
                 SIDEBAR
             ================================================== */}
@@ -301,6 +388,7 @@ function CreateWork() {
                     setSidebarOpen(false)
                 }
             />
+
 
             {/* ==================================================
                 MAIN
@@ -332,7 +420,7 @@ function CreateWork() {
                             type="button"
                             onClick={() =>
                                 navigate(
-                                    "/admin/worklist"
+                                    "/portfolio-Nales/admin/worklist"
                                 )
                             }
                             className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--text)]"
@@ -341,49 +429,65 @@ function CreateWork() {
                                 size={17}
                             />
 
-                            Back to projects
+                            Back to work list
                         </button>
 
+
                         <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-purple-400">
-                            Project Board
+                            Work System
                         </p>
 
+
                         <h1 className="heading-font text-3xl font-bold tracking-tight md:text-4xl">
-                            Create project.
+                            Create work.
                         </h1>
 
+
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-                            Create a project for the
-                            administrator team to work on
-                            together.
+                            Create a shared work container
+                            for the administrator team.
                         </p>
 
                     </motion.div>
+
 
                     {/* ==================================================
                         ERROR
                     ================================================== */}
 
                     {error && (
-                        <div className="mt-6 border border-red-500/20 bg-red-500/5 p-5">
+                        <motion.div
+                            initial={{
+                                opacity: 0,
+                                y: 10,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                            }}
+                            className="mt-6 border border-red-500/20 bg-red-500/5 p-5"
+                        >
 
                             <p className="text-sm font-semibold text-red-400">
-                                Unable to create project
+                                Unable to create work
                             </p>
 
                             <p className="mt-1 text-sm text-[var(--muted)]">
                                 {error}
                             </p>
 
-                        </div>
+                        </motion.div>
                     )}
+
 
                     {/* ==================================================
                         FORM
                     ================================================== */}
 
                     <motion.form
-                        onSubmit={handleSubmit}
+                        onSubmit={
+                            handleSubmit
+                        }
                         initial={{
                             opacity: 0,
                             y: 15,
@@ -408,15 +512,16 @@ function CreateWork() {
                             <div className="border-b border-[var(--border)] p-6">
 
                                 <h2 className="text-lg font-semibold">
-                                    Project information
+                                    Work information
                                 </h2>
 
                                 <p className="mt-1 text-sm text-[var(--muted)]">
                                     Define the basic information
-                                    for this project.
+                                    for this work.
                                 </p>
 
                             </div>
+
 
                             <div className="space-y-6 p-6">
 
@@ -428,18 +533,24 @@ function CreateWork() {
                                         htmlFor="workTitle"
                                         className="mb-2 block text-sm font-medium"
                                     >
-                                        Project title
+                                        Work title
                                     </label>
 
                                     <input
                                         id="workTitle"
                                         type="text"
                                         value={title}
-                                        onChange={(event) =>
+                                        onChange={(
+                                            event
+                                        ) => {
                                             setTitle(
                                                 event.target.value
-                                            )
-                                        }
+                                            );
+
+                                            setError(
+                                                ""
+                                            );
+                                        }}
                                         maxLength={200}
                                         placeholder="e.g. Portfolio authentication system"
                                         disabled={loading}
@@ -451,6 +562,7 @@ function CreateWork() {
                                     </p>
 
                                 </div>
+
 
                                 {/* DESCRIPTION */}
 
@@ -465,21 +577,32 @@ function CreateWork() {
 
                                     <textarea
                                         id="workDescription"
-                                        value={description}
-                                        onChange={(event) =>
+                                        value={
+                                            description
+                                        }
+                                        onChange={(
+                                            event
+                                        ) => {
                                             setDescription(
                                                 event.target.value
-                                            )
-                                        }
+                                            );
+
+                                            setError(
+                                                ""
+                                            );
+                                        }}
                                         maxLength={2000}
                                         rows={6}
-                                        placeholder="Describe what this project is about and what the team is expected to accomplish."
+                                        placeholder="Describe what this work is about and what the team is expected to accomplish."
                                         disabled={loading}
                                         className="w-full resize-y border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 outline-none transition focus:border-purple-400 disabled:opacity-60"
                                     />
 
                                     <p className="mt-2 text-xs text-[var(--muted)]">
-                                        {description.length}/2000
+                                        {
+                                            description.length
+                                        }
+                                        /2000
                                     </p>
 
                                 </div>
@@ -487,6 +610,7 @@ function CreateWork() {
                             </div>
 
                         </section>
+
 
                         {/* ==================================================
                             ACCESS
@@ -501,11 +625,12 @@ function CreateWork() {
                                 </h2>
 
                                 <p className="mt-1 text-sm text-[var(--muted)]">
-                                    Decide how administrators can
-                                    access this project.
+                                    Decide how administrators
+                                    can access this work.
                                 </p>
 
                             </div>
+
 
                             <div className="space-y-4 p-6">
 
@@ -522,7 +647,7 @@ function CreateWork() {
                                             "OPEN"
                                         }
                                         onChange={() =>
-                                            setAccessType(
+                                            handleAccessTypeChange(
                                                 "OPEN"
                                             )
                                         }
@@ -547,12 +672,13 @@ function CreateWork() {
                                             Administrators can
                                             access and contribute
                                             according to their
-                                            project permissions.
+                                            work permissions.
                                         </p>
 
                                     </div>
 
                                 </label>
+
 
                                 {/* VIEW ONLY */}
 
@@ -567,7 +693,7 @@ function CreateWork() {
                                             "VIEW_ONLY"
                                         }
                                         onChange={() =>
-                                            setAccessType(
+                                            handleAccessTypeChange(
                                                 "VIEW_ONLY"
                                             )
                                         }
@@ -589,14 +715,17 @@ function CreateWork() {
                                         </p>
 
                                         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                                            Administrators can view
-                                            the project but cannot
-                                            contribute to it.
+                                            Administrators can
+                                            view the work but
+                                            cannot contribute
+                                            through normal work
+                                            permissions.
                                         </p>
 
                                     </div>
 
                                 </label>
+
 
                                 {/* PASSWORD */}
 
@@ -611,7 +740,7 @@ function CreateWork() {
                                             "PASSWORD"
                                         }
                                         onChange={() =>
-                                            setAccessType(
+                                            handleAccessTypeChange(
                                                 "PASSWORD"
                                             )
                                         }
@@ -633,10 +762,11 @@ function CreateWork() {
                                         </p>
 
                                         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                                            Require a project
-                                            password before
-                                            accessing the project.
+                                            Require a password
+                                            before accessing
+                                            this work.
                                         </p>
+
 
                                         {accessType ===
                                             "PASSWORD" && (
@@ -647,14 +777,17 @@ function CreateWork() {
                                                 }
                                                 onChange={(
                                                     event
-                                                ) =>
+                                                ) => {
                                                     setWorkPassword(
-                                                        event
-                                                            .target
-                                                            .value
-                                                    )
-                                                }
-                                                placeholder="Project password"
+                                                        event.target.value
+                                                    );
+
+                                                    setError(
+                                                        ""
+                                                    );
+                                                }}
+                                                minLength={8}
+                                                placeholder="Work password"
                                                 disabled={
                                                     loading
                                                 }
@@ -670,6 +803,7 @@ function CreateWork() {
 
                         </section>
 
+
                         {/* ==================================================
                             PARTICIPANTS
                         ================================================== */}
@@ -683,11 +817,12 @@ function CreateWork() {
                                 </h2>
 
                                 <p className="mt-1 text-sm text-[var(--muted)]">
-                                    Select administrators who can
-                                    contribute to this project.
+                                    Select administrators who
+                                    can participate in this work.
                                 </p>
 
                             </div>
+
 
                             <div className="p-6">
 
@@ -704,7 +839,8 @@ function CreateWork() {
 
                                     </div>
 
-                                ) : admins.length === 0 ? (
+                                ) : admins.length ===
+                                  0 ? (
 
                                     <div className="py-6 text-sm text-[var(--muted)]">
                                         No administrators are
@@ -716,11 +852,17 @@ function CreateWork() {
                                     <div className="grid gap-3 md:grid-cols-2">
 
                                         {admins.map(
-                                            (admin) => {
+                                            (
+                                                availableAdmin
+                                            ) => {
 
                                                 const id =
-                                                    admin._id ||
-                                                    admin.id;
+                                                    availableAdmin?._id ||
+                                                    availableAdmin?.id;
+
+                                                if (!id) {
+                                                    return null;
+                                                }
 
                                                 const selected =
                                                     participants.includes(
@@ -730,10 +872,11 @@ function CreateWork() {
                                                 return (
                                                     <label
                                                         key={id}
-                                                        className={`flex cursor-pointer items-center gap-3 border p-4 transition ${selected
-                                                            ? "border-purple-500/40 bg-purple-500/5"
-                                                            : "border-[var(--border)] hover:bg-[var(--surface)]"
-                                                            }`}
+                                                        className={`flex cursor-pointer items-center gap-3 border p-4 transition ${
+                                                            selected
+                                                                ? "border-purple-500/40 bg-purple-500/5"
+                                                                : "border-[var(--border)] hover:bg-[var(--surface)]"
+                                                        }`}
                                                     >
 
                                                         <input
@@ -752,12 +895,13 @@ function CreateWork() {
                                                             className="h-4 w-4 accent-purple-500"
                                                         />
 
+
                                                         <div className="min-w-0">
 
                                                             <p className="truncate text-sm font-semibold">
                                                                 {
-                                                                    admin.fullName ||
-                                                                    admin.username ||
+                                                                    availableAdmin.fullName ||
+                                                                    availableAdmin.username ||
                                                                     "Unknown administrator"
                                                                 }
                                                             </p>
@@ -765,7 +909,7 @@ function CreateWork() {
                                                             <p className="truncate text-xs text-[var(--muted)]">
                                                                 @
                                                                 {
-                                                                    admin.username ||
+                                                                    availableAdmin.username ||
                                                                     "unknown"
                                                                 }
                                                             </p>
@@ -778,15 +922,15 @@ function CreateWork() {
                                         )}
 
                                     </div>
-
                                 )}
 
                             </div>
 
                         </section>
 
+
                         {/* ==================================================
-                            NOTICE
+                            OWNERSHIP NOTICE
                         ================================================== */}
 
                         <div className="border border-purple-500/20 bg-purple-500/5 p-5">
@@ -801,19 +945,19 @@ function CreateWork() {
                                 <div>
 
                                     <p className="text-sm font-semibold">
-                                        Project ownership
+                                        Work ownership
                                     </p>
 
                                     <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
                                         You will automatically
                                         become the creator and
-                                        owner of this project.
-                                        Participants can contribute
-                                        according to the project's
-                                        permissions, while ownership
-                                        controls remain restricted
-                                        to the creator and
-                                        Superadmin.
+                                        owner of this work.
+                                        Participants can
+                                        contribute according to
+                                        the work permissions,
+                                        while ownership controls
+                                        remain restricted to the
+                                        creator and Superadmin.
                                     </p>
 
                                 </div>
@@ -821,6 +965,7 @@ function CreateWork() {
                             </div>
 
                         </div>
+
 
                         {/* ==================================================
                             ACTIONS
@@ -832,7 +977,7 @@ function CreateWork() {
                                 type="button"
                                 onClick={() =>
                                     navigate(
-                                        "/admin/worklist"
+                                        "/portfolio-Nales/admin/worklist"
                                     )
                                 }
                                 disabled={loading}
@@ -840,6 +985,7 @@ function CreateWork() {
                             >
                                 Cancel
                             </button>
+
 
                             <button
                                 type="submit"
@@ -849,7 +995,7 @@ function CreateWork() {
                                     !description.trim() ||
                                     (
                                         accessType ===
-                                        "PASSWORD" &&
+                                            "PASSWORD" &&
                                         !workPassword.trim()
                                     )
                                 }
@@ -867,7 +1013,7 @@ function CreateWork() {
                                     />
                                 )}
 
-                                Create project
+                                Create work
 
                             </button>
 
