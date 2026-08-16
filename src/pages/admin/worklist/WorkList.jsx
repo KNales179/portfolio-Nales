@@ -6,7 +6,6 @@ import {
     ChevronRight,
     ClipboardList,
     Loader2,
-    Lock,
     Plus,
     RefreshCw,
     RotateCcw,
@@ -16,8 +15,6 @@ import {
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
-
-import { useAuth } from "../../../context/AuthContext";
 
 import {
     getWorks,
@@ -32,17 +29,10 @@ import {
     canRestoreWork,
 } from "../../../utils/workPermissions";
 
+
 // ============================================================
 // HELPERS
 // ============================================================
-
-const getAdminId = (admin) => {
-    return (
-        admin?._id ||
-        admin?.id ||
-        null
-    );
-};
 
 const getWorkId = (work) => {
     return (
@@ -52,6 +42,7 @@ const getWorkId = (work) => {
     );
 };
 
+
 const getWorkParticipants = (work) => {
     if (!Array.isArray(work?.participants)) {
         return [];
@@ -60,24 +51,73 @@ const getWorkParticipants = (work) => {
     return work.participants;
 };
 
+
 const getProgress = (work) => {
-    const value = Number(
+    const directProgress = Number(
         work?.progress ??
-        work?.progressPercentage ??
-        0
+        work?.progressPercentage
     );
 
-    if (!Number.isFinite(value)) {
+    if (
+        Number.isFinite(directProgress)
+    ) {
+        return Math.min(
+            100,
+            Math.max(
+                0,
+                Math.round(
+                    directProgress
+                )
+            )
+        );
+    }
+
+    const totalTasks = Array.isArray(
+        work?.tasks
+    )
+        ? work.tasks.length
+        : Number(
+            work?.totalTasks ?? 0
+        );
+
+    const completedTasks = Array.isArray(
+        work?.tasks
+    )
+        ? work.tasks.filter(
+            (task) =>
+                task?.status ===
+                "COMPLETED"
+        ).length
+        : Number(
+            work?.completedTasks ?? 0
+        );
+
+    if (
+        !Number.isFinite(
+            totalTasks
+        ) ||
+        totalTasks <= 0
+    ) {
         return 0;
     }
 
     return Math.min(
         100,
-        Math.max(0, Math.round(value))
+        Math.max(
+            0,
+            Math.round(
+                (completedTasks /
+                    totalTasks) *
+                100
+            )
+        )
     );
 };
 
-const getStatusLabel = (status) => {
+
+const getStatusLabel = (
+    status
+) => {
     switch (status) {
         case "PLANNED":
             return "Planned";
@@ -96,7 +136,10 @@ const getStatusLabel = (status) => {
     }
 };
 
-const getStatusClasses = (status) => {
+
+const getStatusClasses = (
+    status
+) => {
     switch (status) {
         case "PLANNED":
             return "bg-blue-500/10 text-blue-400";
@@ -115,13 +158,14 @@ const getStatusClasses = (status) => {
     }
 };
 
+
 // ============================================================
 // COMPONENT
 // ============================================================
 
-function WorkList() {
-    const { admin } = useAuth();
-
+function WorkList({
+    currentAdmin = null,
+}) {
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
@@ -158,21 +202,25 @@ function WorkList() {
     const [actionLoadingId, setActionLoadingId] =
         useState(null);
 
+
     // ========================================================
     // PERMISSIONS
     // ========================================================
 
-    const adminId = getAdminId(admin);
-
     const canCreate =
-        canCreateWork(admin);
+        canCreateWork(
+            currentAdmin
+        );
+
 
     // ========================================================
     // FETCH WORKS
     // ========================================================
 
     const fetchWorks = useCallback(
-        async (showRefreshLoader = false) => {
+        async (
+            showRefreshLoader = false
+        ) => {
             try {
                 if (showRefreshLoader) {
                     setRefreshing(true);
@@ -182,20 +230,26 @@ function WorkList() {
 
                 setPageError("");
 
-                const response = await getWorks({
-                    includeArchived: showArchived,
-                });
+                const response =
+                    await getWorks({
+                        includeArchived:
+                            showArchived,
+                    });
 
                 const fetchedWorks =
-                    response?.data?.works ||
-                    response?.works ||
+                    response?.data?.works ??
+                    response?.works ??
+                    response?.data ??
                     [];
 
                 setWorks(
-                    Array.isArray(fetchedWorks)
+                    Array.isArray(
+                        fetchedWorks
+                    )
                         ? fetchedWorks
                         : []
                 );
+
             } catch (error) {
                 console.error(
                     "Failed to fetch works:",
@@ -203,42 +257,54 @@ function WorkList() {
                 );
 
                 setPageError(
+                    error?.response?.data
+                        ?.message ||
                     error?.message ||
                     "Unable to load works."
                 );
+
             } finally {
                 setLoading(false);
                 setRefreshing(false);
             }
         },
-        [showArchived]
+        [
+            showArchived,
+        ]
     );
 
+
     // ========================================================
-    // INITIAL FETCH
+    // INITIAL / FILTER FETCH
     // ========================================================
 
     useEffect(() => {
         fetchWorks();
-    }, [fetchWorks]);
-
-    // ========================================================
-    // FILTER
-    // ========================================================
-
-    const visibleWorks = useMemo(() => {
-        if (showArchived) {
-            return works;
-        }
-
-        return works.filter(
-            (work) =>
-                work.status !== "ARCHIVED"
-        );
     }, [
-        works,
-        showArchived,
+        fetchWorks,
     ]);
+
+
+    // ========================================================
+    // FILTERED WORKS
+    // ========================================================
+
+    const visibleWorks =
+        useMemo(() => {
+            if (showArchived) {
+                return works;
+            }
+
+            return works.filter(
+                (work) =>
+                    work?.status !==
+                    "ARCHIVED"
+            );
+        }, [
+            works,
+            showArchived,
+        ]);
+
 
     // ========================================================
     // CREATE WORK
@@ -255,6 +321,7 @@ function WorkList() {
         setCreateModalOpen(true);
     };
 
+
     const closeCreateModal = () => {
         if (createLoading) {
             return;
@@ -266,8 +333,15 @@ function WorkList() {
         setCreateError("");
     };
 
-    const handleCreateWork = async (event) => {
+
+    const handleCreateWork = async (
+        event
+    ) => {
         event.preventDefault();
+
+        if (!canCreate) {
+            return;
+        }
 
         const title =
             newWorkTitle.trim();
@@ -305,6 +379,7 @@ function WorkList() {
             setNewWorkDescription("");
 
             await fetchWorks(true);
+
         } catch (error) {
             console.error(
                 "Failed to create work:",
@@ -312,19 +387,25 @@ function WorkList() {
             );
 
             setCreateError(
+                error?.response?.data
+                    ?.message ||
                 error?.message ||
                 "Unable to create work."
             );
+
         } finally {
             setCreateLoading(false);
         }
     };
 
+
     // ========================================================
     // ARCHIVE
     // ========================================================
 
-    const handleArchive = async (work) => {
+    const handleArchive = async (
+        work
+    ) => {
         const workId =
             getWorkId(work);
 
@@ -334,7 +415,7 @@ function WorkList() {
 
         if (
             !canArchiveWork(
-                admin,
+                currentAdmin,
                 work
             )
         ) {
@@ -342,12 +423,18 @@ function WorkList() {
         }
 
         try {
-            setActionLoadingId(workId);
+            setActionLoadingId(
+                workId
+            );
+
             setPageError("");
 
-            await archiveWork(workId);
+            await archiveWork(
+                workId
+            );
 
             await fetchWorks(true);
+
         } catch (error) {
             console.error(
                 "Failed to archive work:",
@@ -355,19 +442,25 @@ function WorkList() {
             );
 
             setPageError(
+                error?.response?.data
+                    ?.message ||
                 error?.message ||
                 "Unable to archive work."
             );
+
         } finally {
             setActionLoadingId(null);
         }
     };
 
+
     // ========================================================
     // RESTORE
     // ========================================================
 
-    const handleRestore = async (work) => {
+    const handleRestore = async (
+        work
+    ) => {
         const workId =
             getWorkId(work);
 
@@ -377,7 +470,7 @@ function WorkList() {
 
         if (
             !canRestoreWork(
-                admin,
+                currentAdmin,
                 work
             )
         ) {
@@ -385,12 +478,18 @@ function WorkList() {
         }
 
         try {
-            setActionLoadingId(workId);
+            setActionLoadingId(
+                workId
+            );
+
             setPageError("");
 
-            await restoreWork(workId);
+            await restoreWork(
+                workId
+            );
 
             await fetchWorks(true);
+
         } catch (error) {
             console.error(
                 "Failed to restore work:",
@@ -398,19 +497,25 @@ function WorkList() {
             );
 
             setPageError(
+                error?.response?.data
+                    ?.message ||
                 error?.message ||
                 "Unable to restore work."
             );
+
         } finally {
             setActionLoadingId(null);
         }
     };
 
+
     // ========================================================
     // WORK NAVIGATION
     // ========================================================
 
-    const openWork = (work) => {
+    const openWork = (
+        work
+    ) => {
         const workId =
             getWorkId(work);
 
@@ -422,6 +527,7 @@ function WorkList() {
             `/portfolio-Nales/admin/worklist/${workId}`;
     };
 
+
     // ========================================================
     // RENDER
     // ========================================================
@@ -429,21 +535,14 @@ function WorkList() {
     return (
         <div className="min-h-screen bg-[var(--surface)]">
 
-            {/* ==================================================
-                NAVBAR
-            ================================================== */}
-
             <AdminNavbar
                 onMenuToggle={() =>
                     setSidebarOpen(
-                        (current) => !current
+                        (current) =>
+                            !current
                     )
                 }
             />
-
-            {/* ==================================================
-                SIDEBAR
-            ================================================== */}
 
             <AdminSidebar
                 open={sidebarOpen}
@@ -452,15 +551,13 @@ function WorkList() {
                 }
             />
 
-            {/* ==================================================
-                MAIN
-            ================================================== */}
-
             <main className="min-h-screen pt-20 lg:pl-[var(--admin-sidebar-width)]">
 
                 <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10 lg:px-12">
 
-                    {/* HEADER */}
+                    {/* ==================================================
+                        HEADER
+                    ================================================== */}
 
                     <motion.div
                         initial={{
@@ -475,9 +572,11 @@ function WorkList() {
                             duration: 0.4,
                         }}
                     >
+
                         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
 
                             <div>
+
                                 <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-purple-400">
                                     Administration
                                 </p>
@@ -492,6 +591,7 @@ function WorkList() {
                                     activity across the administrator
                                     team.
                                 </p>
+
                             </div>
 
                             <div className="flex flex-col gap-2 sm:flex-row">
@@ -507,6 +607,7 @@ function WorkList() {
                                     }
                                     className="flex items-center justify-center gap-2 border border-[var(--border)] px-4 py-2.5 text-sm font-semibold transition hover:bg-[var(--card)] disabled:cursor-not-allowed disabled:opacity-50"
                                 >
+
                                     {refreshing ? (
                                         <Loader2
                                             size={16}
@@ -519,6 +620,7 @@ function WorkList() {
                                     )}
 
                                     Refresh
+
                                 </button>
 
                                 {canCreate && (
@@ -529,19 +631,26 @@ function WorkList() {
                                         }
                                         className="flex items-center justify-center gap-2 bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-600"
                                     >
+
                                         <Plus
                                             size={17}
                                         />
 
                                         New work
+
                                     </button>
                                 )}
 
                             </div>
+
                         </div>
+
                     </motion.div>
 
-                    {/* TOOLBAR */}
+
+                    {/* ==================================================
+                        TOOLBAR
+                    ================================================== */}
 
                     <motion.div
                         initial={{
@@ -558,6 +667,7 @@ function WorkList() {
                         }}
                         className="mt-8 flex flex-col gap-4 border border-[var(--border)] bg-[var(--card)] p-4 sm:flex-row sm:items-center sm:justify-between"
                     >
+
                         <div className="flex items-center gap-3">
 
                             <ClipboardList
@@ -566,9 +676,11 @@ function WorkList() {
                             />
 
                             <div>
+
                                 <p className="text-sm font-semibold">
                                     {visibleWorks.length} work
-                                    {visibleWorks.length === 1
+                                    {visibleWorks.length ===
+                                    1
                                         ? ""
                                         : "s"}
                                 </p>
@@ -577,6 +689,7 @@ function WorkList() {
                                     Progress is calculated from
                                     task completion.
                                 </p>
+
                             </div>
 
                         </div>
@@ -595,15 +708,23 @@ function WorkList() {
                                     : "border-[var(--border)] hover:bg-[var(--surface)]"
                             }`}
                         >
-                            <Archive size={16} />
+
+                            <Archive
+                                size={16}
+                            />
 
                             {showArchived
                                 ? "Showing archive"
                                 : "Show archive"}
+
                         </button>
+
                     </motion.div>
 
-                    {/* ERROR */}
+
+                    {/* ==================================================
+                        ERROR
+                    ================================================== */}
 
                     {pageError && (
                         <motion.div
@@ -617,6 +738,7 @@ function WorkList() {
                             }}
                             className="mt-6 border border-red-500/20 bg-red-500/5 p-5"
                         >
+
                             <p className="text-sm font-semibold text-red-400">
                                 Unable to load works
                             </p>
@@ -624,25 +746,33 @@ function WorkList() {
                             <p className="mt-1 text-sm text-[var(--muted)]">
                                 {pageError}
                             </p>
+
                         </motion.div>
                     )}
 
-                    {/* LOADING */}
+
+                    {/* ==================================================
+                        CONTENT
+                    ================================================== */}
 
                     {loading ? (
+
                         <div className="mt-6 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] p-14">
+
                             <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
+
                                 <Loader2
                                     size={20}
                                     className="animate-spin"
                                 />
 
                                 Loading works...
-                            </div>
-                        </div>
-                    ) : visibleWorks.length === 0 ? (
 
-                        /* EMPTY */
+                            </div>
+
+                        </div>
+
+                    ) : visibleWorks.length === 0 ? (
 
                         <motion.div
                             initial={{
@@ -655,6 +785,7 @@ function WorkList() {
                             }}
                             className="mt-6 border border-[var(--border)] bg-[var(--card)] p-12 text-center"
                         >
+
                             <ClipboardList
                                 size={32}
                                 className="mx-auto text-[var(--muted)]"
@@ -681,18 +812,19 @@ function WorkList() {
                                         }
                                         className="mt-6 inline-flex items-center gap-2 bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-600"
                                     >
+
                                         <Plus
                                             size={17}
                                         />
 
                                         Create work
+
                                     </button>
                                 )}
+
                         </motion.div>
 
                     ) : (
-
-                        /* WORK LIST */
 
                         <motion.section
                             initial={{
@@ -708,6 +840,7 @@ function WorkList() {
                             }}
                             className="mt-6"
                         >
+
                             <div className="space-y-4">
 
                                 <AnimatePresence>
@@ -716,6 +849,7 @@ function WorkList() {
                                             work,
                                             index
                                         ) => {
+
                                             const workId =
                                                 getWorkId(
                                                     work
@@ -732,11 +866,11 @@ function WorkList() {
                                                 );
 
                                             const isArchived =
-                                                work.status ===
+                                                work?.status ===
                                                 "ARCHIVED";
 
                                             const isCompleted =
-                                                work.status ===
+                                                work?.status ===
                                                 "COMPLETED";
 
                                             const actionLoading =
@@ -745,18 +879,18 @@ function WorkList() {
 
                                             const canArchive =
                                                 canArchiveWork(
-                                                    admin,
+                                                    currentAdmin,
                                                     work
                                                 );
 
                                             const canRestore =
                                                 canRestoreWork(
-                                                    admin,
+                                                    currentAdmin,
                                                     work
                                                 );
 
                                             const creator =
-                                                work.createdBy;
+                                                work?.createdBy;
 
                                             const creatorName =
                                                 creator?.fullName ||
@@ -766,7 +900,8 @@ function WorkList() {
                                             return (
                                                 <motion.article
                                                     key={
-                                                        workId
+                                                        workId ||
+                                                        `work-${index}`
                                                     }
                                                     layout
                                                     initial={{
@@ -794,11 +929,10 @@ function WorkList() {
                                                             : "border-[var(--border)]"
                                                     }`}
                                                 >
+
                                                     <div className="p-6">
 
                                                         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-
-                                                            {/* INFO */}
 
                                                             <button
                                                                 type="button"
@@ -809,51 +943,45 @@ function WorkList() {
                                                                 }
                                                                 className="min-w-0 flex-1 text-left"
                                                             >
+
                                                                 <div className="flex flex-wrap items-center gap-2">
 
                                                                     <h2 className="text-lg font-semibold transition hover:text-purple-400">
                                                                         {
-                                                                            work.title
+                                                                            work?.title
                                                                         }
                                                                     </h2>
 
                                                                     <span
                                                                         className={`px-2 py-1 text-[11px] font-semibold ${getStatusClasses(
-                                                                            work.status
+                                                                            work?.status
                                                                         )}`}
                                                                     >
                                                                         {
                                                                             getStatusLabel(
-                                                                                work.status
+                                                                                work?.status
                                                                             )
                                                                         }
                                                                     </span>
 
-                                                                    {work.locked && (
-                                                                        <span className="flex items-center gap-1 bg-zinc-500/10 px-2 py-1 text-[11px] font-semibold text-zinc-400">
-                                                                            <Lock
-                                                                                size={12}
-                                                                            />
-
-                                                                            Locked
-                                                                        </span>
-                                                                    )}
-
                                                                     {isCompleted &&
                                                                         !isArchived && (
                                                                             <span className="flex items-center gap-1 bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-400">
+
                                                                                 <CheckCircle2
                                                                                     size={12}
                                                                                 />
 
                                                                                 Complete
+
                                                                             </span>
                                                                         )}
+
                                                                 </div>
 
                                                                 <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
                                                                     {
-                                                                        work.description
+                                                                        work?.description
                                                                     }
                                                                 </p>
 
@@ -869,6 +997,7 @@ function WorkList() {
                                                                     </span>
 
                                                                     <span className="flex items-center gap-1.5">
+
                                                                         <Users
                                                                             size={14}
                                                                         />
@@ -881,12 +1010,12 @@ function WorkList() {
                                                                         1
                                                                             ? ""
                                                                             : "s"}
+
                                                                     </span>
 
                                                                 </div>
-                                                            </button>
 
-                                                            {/* ACTIONS */}
+                                                            </button>
 
                                                             <div className="flex shrink-0 flex-wrap items-center gap-2">
 
@@ -899,11 +1028,13 @@ function WorkList() {
                                                                     }
                                                                     className="flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 text-sm font-semibold transition hover:bg-[var(--surface)]"
                                                                 >
+
                                                                     Open
 
                                                                     <ChevronRight
                                                                         size={16}
                                                                     />
+
                                                                 </button>
 
                                                                 {!isArchived &&
@@ -920,6 +1051,7 @@ function WorkList() {
                                                                             }
                                                                             className="flex items-center gap-2 border border-yellow-500/30 px-4 py-2.5 text-sm font-semibold text-yellow-400 transition hover:bg-yellow-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                                                                         >
+
                                                                             {actionLoading ? (
                                                                                 <Loader2
                                                                                     size={16}
@@ -932,6 +1064,7 @@ function WorkList() {
                                                                             )}
 
                                                                             Archive
+
                                                                         </button>
                                                                     )}
 
@@ -949,6 +1082,7 @@ function WorkList() {
                                                                             }
                                                                             className="flex items-center gap-2 border border-green-500/30 px-4 py-2.5 text-sm font-semibold text-green-400 transition hover:bg-green-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                                                                         >
+
                                                                             {actionLoading ? (
                                                                                 <Loader2
                                                                                     size={16}
@@ -961,13 +1095,13 @@ function WorkList() {
                                                                             )}
 
                                                                             Restore
+
                                                                         </button>
                                                                     )}
 
                                                             </div>
-                                                        </div>
 
-                                                        {/* PROGRESS */}
+                                                        </div>
 
                                                         <div className="mt-6">
 
@@ -979,19 +1113,21 @@ function WorkList() {
                                                                         Progress
                                                                     </span>
 
-                                                                    {work.totalTasks !==
+                                                                    {work?.totalTasks !==
                                                                         undefined && (
-                                                                        <span className="text-xs text-[var(--muted)]">
-                                                                            {
-                                                                                work.completedTasks
-                                                                            }{" "}
-                                                                            /{" "}
-                                                                            {
-                                                                                work.totalTasks
-                                                                            }{" "}
-                                                                            tasks
-                                                                        </span>
-                                                                    )}
+                                                                            <span className="text-xs text-[var(--muted)]">
+                                                                                {
+                                                                                    work?.completedTasks ??
+                                                                                    0
+                                                                                }{" "}
+                                                                                /{" "}
+                                                                                {
+                                                                                    work?.totalTasks ??
+                                                                                    0
+                                                                                }{" "}
+                                                                                tasks
+                                                                            </span>
+                                                                        )}
 
                                                                 </div>
 
@@ -1016,23 +1152,23 @@ function WorkList() {
                                                                     transition={{
                                                                         duration:
                                                                             0.55,
-                                                                        delay:
-                                                                            0.05,
                                                                     }}
                                                                     className={`h-full ${
                                                                         isArchived
                                                                             ? "bg-zinc-500"
                                                                             : progress ===
                                                                                 100
-                                                                              ? "bg-green-500"
-                                                                              : "bg-purple-500"
+                                                                                ? "bg-green-500"
+                                                                                : "bg-purple-500"
                                                                     }`}
                                                                 />
 
                                                             </div>
+
                                                         </div>
 
                                                     </div>
+
                                                 </motion.article>
                                             );
                                         }
@@ -1040,16 +1176,22 @@ function WorkList() {
                                 </AnimatePresence>
 
                             </div>
+
                         </motion.section>
+
                     )}
+
                 </div>
+
             </main>
+
 
             {/* ========================================================
                 CREATE WORK MODAL
             ======================================================== */}
 
             {createModalOpen && (
+
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5">
 
                     <motion.div
@@ -1069,6 +1211,7 @@ function WorkList() {
                         <div className="flex items-start justify-between border-b border-[var(--border)] p-6">
 
                             <div>
+
                                 <p className="text-xs font-medium uppercase tracking-[0.15em] text-purple-400">
                                     New work
                                 </p>
@@ -1082,6 +1225,7 @@ function WorkList() {
                                     Tasks and participants can be
                                     managed afterward.
                                 </p>
+
                             </div>
 
                             <button
@@ -1094,7 +1238,11 @@ function WorkList() {
                                 }
                                 className="text-[var(--muted)] transition hover:text-[var(--text)] disabled:opacity-50"
                             >
-                                <X size={19} />
+
+                                <X
+                                    size={19}
+                                />
+
                             </button>
 
                         </div>
@@ -1107,6 +1255,7 @@ function WorkList() {
                         >
 
                             <div>
+
                                 <label
                                     htmlFor="workTitle"
                                     className="mb-2 block text-sm font-medium"
@@ -1126,7 +1275,6 @@ function WorkList() {
                                         setNewWorkTitle(
                                             event.target.value
                                         );
-
                                         setCreateError(
                                             ""
                                         );
@@ -1138,6 +1286,7 @@ function WorkList() {
                                     placeholder="e.g. Authentication system"
                                     className="w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-purple-400 disabled:opacity-60"
                                 />
+
                             </div>
 
                             <div className="mt-5">
@@ -1160,7 +1309,6 @@ function WorkList() {
                                         setNewWorkDescription(
                                             event.target.value
                                         );
-
                                         setCreateError(
                                             ""
                                         );
@@ -1173,6 +1321,7 @@ function WorkList() {
                                     placeholder="Describe what this work is for..."
                                     className="w-full resize-y border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 outline-none transition focus:border-purple-400 disabled:opacity-60"
                                 />
+
                             </div>
 
                             {createError && (
@@ -1210,6 +1359,7 @@ function WorkList() {
                                     }
                                     className="flex items-center justify-center gap-2 bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
+
                                     {createLoading ? (
                                         <Loader2
                                             size={17}
@@ -1222,14 +1372,18 @@ function WorkList() {
                                     )}
 
                                     Create work
+
                                 </button>
 
                             </div>
 
                         </form>
+
                     </motion.div>
+
                 </div>
             )}
+
         </div>
     );
 }
