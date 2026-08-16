@@ -5,23 +5,26 @@
 // Frontend capability checks for the Work System.
 //
 // IMPORTANT:
-// These functions only control UI visibility / interaction.
+// These functions ONLY control frontend UI visibility and
+// interaction.
+//
 // They are NOT security.
 //
-// The backend must independently verify:
-// - authenticated admin
-// - work creator
-// - participant
-// - superadmin
+// The backend MUST independently enforce:
+// - authentication
+// - role
+// - work ownership
+// - participant membership
 // - archived state
 // - locked state
-// - any future access rules
+// - task/subtask ownership rules
+// - any future access/password rules
 //
 // ============================================================
 
 
 // ============================================================
-// ID HELPERS
+// ID NORMALIZATION
 // ============================================================
 
 export const getId = (value) => {
@@ -54,19 +57,31 @@ export const isSuperAdmin = (admin) => {
 };
 
 
+export const isAdmin = (admin) => {
+    return admin?.role === "ADMIN";
+};
+
+
+// ============================================================
+// WORK OWNERSHIP / MEMBERSHIP
+// ============================================================
+
 export const isWorkCreator = (admin, work) => {
     if (!admin || !work) {
         return false;
     }
 
-    const creatorId = getId(work.createdBy);
     const adminId = getId(admin);
 
-    return (
-        creatorId !== null &&
-        adminId !== null &&
-        creatorId === adminId
+    const creatorId = getId(
+        work.createdBy
     );
+
+    if (!adminId || !creatorId) {
+        return false;
+    }
+
+    return adminId === creatorId;
 };
 
 
@@ -87,8 +102,24 @@ export const isWorkParticipant = (admin, work) => {
             : [];
 
     return participants.some(
-        (participant) =>
-            getId(participant) === adminId
+        (participant) => {
+            /*
+             * Backend participant structure:
+             *
+             * {
+             *     admin: ObjectId,
+             *     addedBy: ObjectId,
+             *     addedAt: Date
+             * }
+             */
+
+            return (
+                getId(
+                    participant?.admin ??
+                    participant
+                ) === adminId
+            );
+        }
     );
 };
 
@@ -104,8 +135,8 @@ export const isArchived = (work) => {
 
 export const isLocked = (work) => {
     return (
-        work?.isLocked === true ||
-        work?.locked === true
+        work?.locked === true ||
+        work?.isLocked === true
     );
 };
 
@@ -118,36 +149,42 @@ export const isCompleted = (work) => {
 // ============================================================
 // WORK CREATION
 // ============================================================
+//
+// ONLY SUPER_ADMIN can create a Work.
+//
+// Regular ADMIN cannot create Work.
+//
+// This is intentionally explicit rather than relying on
+// "authenticated admin".
+//
 
 export const canCreateWork = (admin) => {
-    return Boolean(admin);
-};
-
-
-// ============================================================
-// CORE WORK ACCESS
-// ============================================================
-
-export const canViewWork = (
-    admin,
-    work
-) => {
     return Boolean(
         admin &&
-        work
+        isSuperAdmin(admin)
     );
 };
 
 
-export const canEditWork = (
-    admin,
-    work
-) => {
-    if (
-        !admin ||
-        !work ||
-        isArchived(work)
-    ) {
+// ============================================================
+// WORK VIEWING
+// ============================================================
+//
+// Superadmin:
+//     Can view everything.
+//
+// Creator:
+//     Can view their work.
+//
+// Participant:
+//     Can view participating work.
+//
+// Regular unrelated admin:
+//     Cannot view the work.
+//
+
+export const canViewWork = (admin, work) => {
+    if (!admin || !work) {
         return false;
     }
 
@@ -155,7 +192,45 @@ export const canEditWork = (
         return true;
     }
 
-    return isWorkCreator(
+    return (
+        isWorkCreator(admin, work) ||
+        isWorkParticipant(admin, work)
+    );
+};
+
+
+// ============================================================
+// WORK MANAGEMENT
+// ============================================================
+//
+// Superadmin:
+//     Can manage every work.
+//
+// Creator:
+//     Can manage their own work.
+//
+// Participant:
+//     Cannot manage the work itself.
+//
+
+export const canManageWork = (admin, work) => {
+    if (!admin || !work) {
+        return false;
+    }
+
+    if (isArchived(work)) {
+        return false;
+    }
+
+    return (
+        isSuperAdmin(admin) ||
+        isWorkCreator(admin, work)
+    );
+};
+
+
+export const canEditWork = (admin, work) => {
+    return canManageWork(
         admin,
         work
     );
@@ -166,7 +241,38 @@ export const canEditWorkDetails = (
     admin,
     work
 ) => {
-    return canEditWork(
+    return canManageWork(
+        admin,
+        work
+    );
+};
+
+
+// ============================================================
+// STRUCTURE MANAGEMENT
+// ============================================================
+//
+// Structure means:
+// - tasks
+// - subtasks
+// - ordering
+//
+// Superadmin:
+//     Yes
+//
+// Creator:
+//     Yes
+//
+// Participant:
+//     Can work on existing tasks but cannot restructure
+//     the Work itself.
+//
+
+export const canModifyWorkStructure = (
+    admin,
+    work
+) => {
+    return canManageWork(
         admin,
         work
     );
@@ -177,10 +283,24 @@ export const canEditWorkDetails = (
 // TASK CAPABILITIES
 // ============================================================
 
-export const canAddTask = (
-    admin,
-    work
-) => {
+export const canAddTask = (admin, work) => {
+    if (
+        !admin ||
+        !work ||
+        isArchived(work) ||
+        isLocked(work)
+    ) {
+        return false;
+    }
+
+    return (
+        isSuperAdmin(admin) ||
+        isWorkCreator(admin, work)
+    );
+};
+
+
+export const canEditTask = (admin, work) => {
     if (
         !admin ||
         !work ||
@@ -198,22 +318,11 @@ export const canAddTask = (
 };
 
 
-export const canEditTask = (
-    admin,
-    work
-) => {
-    return canAddTask(
-        admin,
-        work
-    );
-};
-
-
 export const canCompleteTask = (
     admin,
     work
 ) => {
-    return canAddTask(
+    return canEditTask(
         admin,
         work
     );
@@ -227,7 +336,8 @@ export const canReopenTask = (
     if (
         !admin ||
         !work ||
-        isArchived(work)
+        isArchived(work) ||
+        isLocked(work)
     ) {
         return false;
     }
@@ -264,10 +374,7 @@ export const canRestoreTask = (
     admin,
     work
 ) => {
-    if (
-        !admin ||
-        !work
-    ) {
+    if (!admin || !work) {
         return false;
     }
 
@@ -297,8 +404,7 @@ export const canAddSubtask = (
 
     return (
         isSuperAdmin(admin) ||
-        isWorkCreator(admin, work) ||
-        isWorkParticipant(admin, work)
+        isWorkCreator(admin, work)
     );
 };
 
@@ -307,9 +413,19 @@ export const canEditSubtask = (
     admin,
     work
 ) => {
-    return canAddSubtask(
-        admin,
-        work
+    if (
+        !admin ||
+        !work ||
+        isArchived(work) ||
+        isLocked(work)
+    ) {
+        return false;
+    }
+
+    return (
+        isSuperAdmin(admin) ||
+        isWorkCreator(admin, work) ||
+        isWorkParticipant(admin, work)
     );
 };
 
@@ -318,7 +434,7 @@ export const canCompleteSubtask = (
     admin,
     work
 ) => {
-    return canAddSubtask(
+    return canEditSubtask(
         admin,
         work
     );
@@ -332,7 +448,8 @@ export const canReopenSubtask = (
     if (
         !admin ||
         !work ||
-        isArchived(work)
+        isArchived(work) ||
+        isLocked(work)
     ) {
         return false;
     }
@@ -369,10 +486,7 @@ export const canRestoreSubtask = (
     admin,
     work
 ) => {
-    if (
-        !admin ||
-        !work
-    ) {
+    if (!admin || !work) {
         return false;
     }
 
@@ -407,8 +521,7 @@ export const canReorderTasks = (
 
     return (
         isSuperAdmin(admin) ||
-        isWorkCreator(admin, work) ||
-        isWorkParticipant(admin, work)
+        isWorkCreator(admin, work)
     );
 };
 
@@ -428,8 +541,7 @@ export const canReorderSubtasks = (
 
     return (
         isSuperAdmin(admin) ||
-        isWorkCreator(admin, work) ||
-        isWorkParticipant(admin, work)
+        isWorkCreator(admin, work)
     );
 };
 
@@ -437,6 +549,11 @@ export const canReorderSubtasks = (
 // ============================================================
 // LOCKING
 // ============================================================
+//
+// Only:
+// - SUPER_ADMIN
+// - Work creator
+//
 
 export const canLockWork = (
     admin,
@@ -523,6 +640,13 @@ export const canRestoreWork = (
 // ============================================================
 // PARTICIPANTS
 // ============================================================
+//
+// Only:
+// - SUPER_ADMIN
+// - Work creator
+//
+// can manage participants.
+//
 
 export const canManageParticipants = (
     admin,
@@ -569,17 +693,9 @@ export const canTransferOwnership = (
     admin,
     work
 ) => {
-    if (
-        !admin ||
-        !work ||
-        isArchived(work)
-    ) {
-        return false;
-    }
-
-    return (
-        isSuperAdmin(admin) ||
-        isWorkCreator(admin, work)
+    return canManageParticipants(
+        admin,
+        work
     );
 };
 
@@ -592,10 +708,17 @@ export const canAddComment = (
     admin,
     work
 ) => {
-    return Boolean(
-        admin &&
-        work &&
-        !isArchived(work)
+    if (!admin || !work) {
+        return false;
+    }
+
+    return (
+        !isArchived(work) &&
+        (
+            isSuperAdmin(admin) ||
+            isWorkCreator(admin, work) ||
+            isWorkParticipant(admin, work)
+        )
     );
 };
 
@@ -604,10 +727,7 @@ export const canEditComment = (
     admin,
     comment
 ) => {
-    if (
-        !admin ||
-        !comment
-    ) {
+    if (!admin || !comment) {
         return false;
     }
 
@@ -617,10 +737,9 @@ export const canEditComment = (
 
     return (
         getId(
-            comment.admin ||
+            comment.admin ??
             comment.createdBy
-        ) ===
-        getId(admin)
+        ) === getId(admin)
     );
 };
 
@@ -676,7 +795,7 @@ export const canDeleteLink = (
     admin,
     work
 ) => {
-    return canEditLink(
+    return canAddLink(
         admin,
         work
     );
@@ -686,13 +805,18 @@ export const canDeleteLink = (
 // ============================================================
 // ACTIVITY
 // ============================================================
+//
+// Activity is immutable.
+// Any authenticated admin who can view the Work can view
+// its activity.
+//
 
 export const canViewWorkActivity = (
     admin,
     work
 ) => {
-    return Boolean(
-        admin &&
+    return canViewWork(
+        admin,
         work
     );
 };
@@ -707,15 +831,20 @@ export const getWorkPermissions = (
     work
 ) => {
     return {
+        // Work
+        canCreate:
+            canCreateWork(admin),
+
         canView:
             canViewWork(
                 admin,
                 work
             ),
 
-        canCreate:
-            canCreateWork(
-                admin
+        canManage:
+            canManageWork(
+                admin,
+                work
             ),
 
         canEdit:
@@ -730,6 +859,13 @@ export const getWorkPermissions = (
                 work
             ),
 
+        canModifyStructure:
+            canModifyWorkStructure(
+                admin,
+                work
+            ),
+
+        // Tasks
         canAddTask:
             canAddTask(
                 admin,
@@ -766,6 +902,7 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Subtasks
         canAddSubtask:
             canAddSubtask(
                 admin,
@@ -802,10 +939,9 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Ordering
         canReorderWorks:
-            canReorderWorks(
-                admin
-            ),
+            canReorderWorks(admin),
 
         canReorderTasks:
             canReorderTasks(
@@ -819,6 +955,7 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Lock
         canLock:
             canLockWork(
                 admin,
@@ -831,6 +968,7 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Archive
         canArchive:
             canArchiveWork(
                 admin,
@@ -843,6 +981,7 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Participants
         canManageParticipants:
             canManageParticipants(
                 admin,
@@ -867,12 +1006,14 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Comments
         canAddComment:
             canAddComment(
                 admin,
                 work
             ),
 
+        // Links
         canAddLink:
             canAddLink(
                 admin,
@@ -891,6 +1032,7 @@ export const getWorkPermissions = (
                 work
             ),
 
+        // Activity
         canViewActivity:
             canViewWorkActivity(
                 admin,
@@ -898,6 +1040,5 @@ export const getWorkPermissions = (
             ),
     };
 };
-
 
 export default getWorkPermissions;
