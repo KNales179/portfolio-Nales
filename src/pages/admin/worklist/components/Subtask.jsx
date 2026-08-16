@@ -8,57 +8,109 @@ import {
 
 function Subtask({
     subtask,
+
     canEdit = false,
     canComplete = false,
     canReopen = false,
     canArchive = false,
     canRestore = false,
+
     locked = false,
     archived = false,
+
     onToggle,
     onEdit,
     onArchive,
     onRestore,
     onReorder,
 }) {
+    if (!subtask) {
+        return null;
+    }
+
     const completed =
-        Boolean(subtask?.completed);
+        subtask.completed === true;
 
     const canToggle =
         !locked &&
         !archived &&
-        (completed
-            ? canReopen
-            : canComplete);
+        (
+            completed
+                ? canReopen
+                : canComplete
+        );
+
+    const draggable =
+        canEdit &&
+        !locked &&
+        !archived;
 
     const handleToggle = () => {
         if (!canToggle) {
             return;
         }
 
-        onToggle?.(
-            subtask._id,
-            !completed
-        );
+        onToggle?.(subtask);
+    };
+
+    const handleEdit = () => {
+        if (
+            !canEdit ||
+            locked ||
+            archived
+        ) {
+            return;
+        }
+
+        onEdit?.(subtask);
+    };
+
+    const handleArchive = () => {
+        if (
+            !canArchive ||
+            locked ||
+            archived
+        ) {
+            return;
+        }
+
+        onArchive?.(subtask);
+    };
+
+    const handleRestore = () => {
+        if (!canRestore) {
+            return;
+        }
+
+        onRestore?.(subtask);
     };
 
     return (
         <div
-            draggable={
-                canEdit &&
-                !locked &&
-                !archived
-            }
+            draggable={draggable}
+
             onDragStart={(event) => {
+                if (!draggable) {
+                    return;
+                }
+
                 event.dataTransfer.setData(
                     "text/plain",
                     String(subtask._id)
                 );
             }}
-            onDragOver={(event) =>
-                event.preventDefault()
-            }
+
+            onDragOver={(event) => {
+                if (draggable) {
+                    event.preventDefault();
+                }
+            }}
+
             onDrop={(event) => {
+                if (!draggable) {
+                    return;
+                }
+
                 event.preventDefault();
 
                 const sourceId =
@@ -69,9 +121,7 @@ function Subtask({
                 if (
                     sourceId &&
                     sourceId !==
-                        String(
-                            subtask._id
-                        )
+                    String(subtask._id)
                 ) {
                     onReorder?.(
                         sourceId,
@@ -79,30 +129,30 @@ function Subtask({
                     );
                 }
             }}
-            className={`flex items-start gap-3 border-b border-[var(--border)] p-4 last:border-b-0 ${archived
-                ? "opacity-60"
-                : ""
-                }`}
+
+            className={`flex items-start gap-3 border-b border-[var(--border)] p-4 last:border-b-0 ${
+                archived
+                    ? "opacity-60"
+                    : ""
+            }`}
         >
 
-            {canEdit &&
-                !locked &&
-                !archived && (
-                    <GripVertical
-                        size={16}
-                        className="mt-0.5 shrink-0 cursor-grab text-[var(--muted)] active:cursor-grabbing"
-                    />
-                )}
-
+            {draggable && (
+                <GripVertical
+                    size={16}
+                    className="mt-1 shrink-0 cursor-grab text-[var(--muted)]"
+                />
+            )}
 
             <button
                 type="button"
                 onClick={handleToggle}
                 disabled={!canToggle}
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border transition ${completed
-                    ? "border-purple-500 bg-purple-500 text-white"
-                    : "border-[var(--border)] hover:border-purple-400"
-                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] transition ${
+                    completed
+                        ? "border-purple-500 bg-purple-500 text-white"
+                        : "border-[var(--border)] hover:border-purple-400"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
                 aria-label={
                     completed
                         ? "Reopen subtask"
@@ -110,109 +160,92 @@ function Subtask({
                 }
             >
                 {completed && (
-                    <Check size={12} />
+                    <Check size={11} />
                 )}
             </button>
 
-
             <div className="min-w-0 flex-1">
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-start justify-between gap-3">
 
-                    <p
-                        className={`text-sm font-medium ${completed
-                            ? "text-[var(--muted)] line-through"
-                            : ""
+                    <div className="min-w-0">
+
+                        <p
+                            className={`text-sm font-medium ${
+                                completed
+                                    ? "text-[var(--muted)] line-through"
+                                    : ""
                             }`}
-                    >
-                        {subtask.title}
-                    </p>
+                        >
+                            {subtask.title ||
+                                "Untitled subtask"}
+                        </p>
 
-                    {completed &&
-                        subtask.completedBy && (
-                            <span className="text-[10px] text-[var(--muted)]">
-                                Completed by{" "}
-                                {subtask.completedBy
-                                    ?.fullName ||
-                                    subtask
-                                        .completedBy
-                                        ?.username ||
-                                    ""}
-                            </span>
+                        {subtask.description && (
+                            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                                {subtask.description}
+                            </p>
                         )}
 
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+
+                        {archived && (
+                            <button
+                                type="button"
+                                onClick={
+                                    handleRestore
+                                }
+                                disabled={
+                                    !canRestore
+                                }
+                                className="flex items-center gap-1.5 text-xs font-semibold text-green-400 disabled:opacity-40"
+                            >
+                                <RotateCcw
+                                    size={13}
+                                />
+                                Restore
+                            </button>
+                        )}
+
+                        {!archived &&
+                            canEdit &&
+                            !locked && (
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleEdit
+                                    }
+                                    className="flex items-center gap-1.5 text-xs font-semibold text-[var(--muted)] transition hover:text-[var(--text)]"
+                                >
+                                    <Pencil
+                                        size={13}
+                                    />
+                                    Edit
+                                </button>
+                            )}
+
+                        {!archived &&
+                            canArchive &&
+                            !locked && (
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleArchive
+                                    }
+                                    className="flex items-center gap-1.5 text-xs font-semibold text-red-400 transition hover:text-red-300"
+                                >
+                                    <Archive
+                                        size={13}
+                                    />
+                                    Archive
+                                </button>
+                            )}
+
+                    </div>
+
                 </div>
-
-
-                {subtask.description && (
-                    <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                        {
-                            subtask.description
-                        }
-                    </p>
-                )}
-
-            </div>
-
-
-            <div className="flex shrink-0 items-center gap-1">
-
-                {canEdit &&
-                    !locked &&
-                    !archived && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                onEdit?.(
-                                    subtask
-                                )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text)]"
-                            title="Edit subtask"
-                        >
-                            <Pencil
-                                size={14}
-                            />
-                        </button>
-                    )}
-
-
-                {canArchive &&
-                    !archived && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                onArchive?.(
-                                    subtask._id
-                                )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-yellow-400 transition hover:bg-yellow-500/10"
-                            title="Archive subtask"
-                        >
-                            <Archive
-                                size={14}
-                            />
-                        </button>
-                    )}
-
-
-                {canRestore &&
-                    archived && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                onRestore?.(
-                                    subtask._id
-                                )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-green-400 transition hover:bg-green-500/10"
-                            title="Restore subtask"
-                        >
-                            <RotateCcw
-                                size={14}
-                            />
-                        </button>
-                    )}
 
             </div>
 

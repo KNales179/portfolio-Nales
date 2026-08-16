@@ -4,12 +4,35 @@ import {
     UserPlus,
     UserMinus,
     ShieldCheck,
+    Loader2,
 } from "lucide-react";
+
+const getId = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    if (typeof value === "string") {
+        return value;
+    }
+
+    return (
+        value?._id ||
+        value?.id ||
+        value?.admin?._id ||
+        value?.admin?.id ||
+        value?.admin ||
+        null
+    )?.toString?.() || null;
+};
+
+const getAdminFromParticipant = (participant) => {
+    return participant?.admin || participant;
+};
 
 function Participants({
     work,
     admins = [],
-    currentAdmin,
     canManage = false,
     disabled = false,
     onAdd,
@@ -18,88 +41,152 @@ function Participants({
     const [selectedAdminIds, setSelectedAdminIds] =
         useState([]);
 
+    const [saving, setSaving] =
+        useState(false);
+
     const creatorId =
-        work?.createdBy?._id ||
-        work?.createdBy?.id ||
-        work?.createdBy;
+        getId(work?.createdBy);
 
     const participants =
-        work?.participants || [];
+        Array.isArray(work?.participants)
+            ? work.participants
+            : [];
 
     const participantIds = useMemo(
         () =>
             new Set(
-                participants.map(
-                    (participant) =>
-                        String(
-                            participant?._id ||
-                            participant?.id ||
-                            participant?.admin?._id ||
-                            participant?.admin?.id ||
-                            participant?.admin
-                        )
-                )
+                participants
+                    .map((participant) =>
+                        getId(participant)
+                    )
+                    .filter(Boolean)
+                    .map(String)
             ),
         [participants]
     );
 
-    const availableAdmins = admins.filter(
-        (admin) => {
-            const id =
-                admin?._id ||
-                admin?.id;
+    const availableAdmins = useMemo(
+        () =>
+            admins.filter((admin) => {
+                const adminId =
+                    getId(admin);
 
-            return (
-                id &&
-                String(id) !==
-                    String(creatorId) &&
-                !participantIds.has(
-                    String(id)
-                ) &&
-                admin.status !== "INACTIVE"
-            );
-        }
+                if (!adminId) {
+                    return false;
+                }
+
+                if (
+                    String(adminId) ===
+                    String(creatorId)
+                ) {
+                    return false;
+                }
+
+                if (
+                    participantIds.has(
+                        String(adminId)
+                    )
+                ) {
+                    return false;
+                }
+
+                return (
+                    admin.status !==
+                    "INACTIVE"
+                );
+            }),
+        [
+            admins,
+            creatorId,
+            participantIds,
+        ]
     );
 
-    const getAdmin = (participant) =>
-        participant?.admin ||
-        participant;
-
-    const getAdminId = (admin) =>
-        admin?._id ||
-        admin?.id ||
-        admin;
-
     const toggleAdmin = (adminId) => {
-        const value = String(adminId);
+        const id = String(adminId);
 
         setSelectedAdminIds(
             (current) =>
-                current.includes(value)
+                current.includes(id)
                     ? current.filter(
-                        (id) => id !== value
+                        (value) =>
+                            value !== id
                     )
-                    : [...current, value]
+                    : [...current, id]
         );
     };
 
     const handleAdd = async () => {
         if (
-            !selectedAdminIds.length ||
-            disabled
+            saving ||
+            disabled ||
+            !canManage ||
+            !selectedAdminIds.length
         ) {
             return;
         }
 
-        await onAdd?.(
-            selectedAdminIds
-        );
+        try {
+            setSaving(true);
 
-        setSelectedAdminIds([]);
+            /*
+             * Work API accepts one adminId per call:
+             *
+             * addWorkParticipant(workId, adminId)
+             *
+             * The parent handles the actual API call.
+             */
+
+            for (
+                const adminId
+                of selectedAdminIds
+            ) {
+                await onAdd?.(adminId);
+            }
+
+            setSelectedAdminIds([]);
+        } catch (error) {
+            console.error(
+                "Failed to add participant:",
+                error
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleRemove = async (
+        adminId
+    ) => {
+        if (
+            saving ||
+            disabled ||
+            !canManage ||
+            !adminId
+        ) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+
+            await onRemove?.(
+                adminId
+            );
+        } catch (error) {
+            console.error(
+                "Failed to remove participant:",
+                error
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
         <section className="border border-[var(--border)] bg-[var(--card)]">
+
+            {/* HEADER */}
 
             <div className="flex flex-col gap-4 border-b border-[var(--border)] p-5 md:flex-row md:items-center md:justify-between">
 
@@ -130,6 +217,7 @@ function Participants({
 
             </div>
 
+            {/* PARTICIPANTS */}
 
             <div className="divide-y divide-[var(--border)]">
 
@@ -172,21 +260,17 @@ function Participants({
                     </div>
                 )}
 
-
                 {/* PARTICIPANTS */}
 
                 {participants.map(
                     (participant) => {
-
                         const admin =
-                            getAdmin(
+                            getAdminFromParticipant(
                                 participant
                             );
 
                         const adminId =
-                            getAdminId(
-                                admin
-                            );
+                            getId(admin);
 
                         const name =
                             admin?.fullName ||
@@ -203,23 +287,18 @@ function Participants({
                             >
 
                                 {image ? (
-
                                     <img
                                         src={image}
                                         alt=""
                                         className="h-10 w-10 shrink-0 object-cover"
                                     />
-
                                 ) : (
-
                                     <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--surface)] text-sm font-bold text-[var(--muted)]">
                                         {name
                                             .charAt(0)
                                             .toUpperCase()}
                                     </div>
-
                                 )}
-
 
                                 <div className="min-w-0 flex-1">
 
@@ -235,21 +314,30 @@ function Participants({
 
                                 </div>
 
-
                                 {canManage &&
                                     !disabled && (
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                onRemove?.(
+                                                handleRemove(
                                                     adminId
                                                 )
                                             }
-                                            className="flex items-center gap-1.5 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                            disabled={
+                                                saving
+                                            }
+                                            className="flex items-center gap-1.5 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
-                                            <UserMinus
-                                                size={13}
-                                            />
+                                            {saving ? (
+                                                <Loader2
+                                                    size={13}
+                                                    className="animate-spin"
+                                                />
+                                            ) : (
+                                                <UserMinus
+                                                    size={13}
+                                                />
+                                            )}
                                             Remove
                                         </button>
                                     )}
@@ -258,7 +346,6 @@ function Participants({
                         );
                     }
                 )}
-
 
                 {participants.length === 0 && (
                     <div className="p-8 text-center">
@@ -281,8 +368,7 @@ function Participants({
 
             </div>
 
-
-            {/* ADD PARTICIPANTS */}
+            {/* ADD */}
 
             {canManage &&
                 !disabled &&
@@ -303,16 +389,12 @@ function Participants({
 
                         </div>
 
-
                         <div className="mt-4 max-h-60 overflow-y-auto border border-[var(--border)]">
 
                             {availableAdmins.map(
                                 (admin) => {
-
                                     const id =
-                                        getAdminId(
-                                            admin
-                                        );
+                                        getId(admin);
 
                                     const selected =
                                         selectedAdminIds.includes(
@@ -328,22 +410,26 @@ function Participants({
                                                     id
                                                 )
                                             }
-                                            className={`flex w-full items-center gap-3 border-b border-[var(--border)] p-3 text-left transition last:border-b-0 ${selected
-                                                ? "bg-purple-500/10"
-                                                : "hover:bg-[var(--surface)]"
-                                                }`}
+                                            disabled={
+                                                saving
+                                            }
+                                            className={`flex w-full items-center gap-3 border-b border-[var(--border)] p-3 text-left transition last:border-b-0 ${
+                                                selected
+                                                    ? "bg-purple-500/10"
+                                                    : "hover:bg-[var(--surface)]"
+                                            }`}
                                         >
 
                                             <span
-                                                className={`flex h-5 w-5 shrink-0 items-center justify-center border ${selected
-                                                    ? "border-purple-400 bg-purple-500 text-white"
-                                                    : "border-[var(--border)]"
-                                                    }`}
+                                                className={`flex h-5 w-5 shrink-0 items-center justify-center border ${
+                                                    selected
+                                                        ? "border-purple-400 bg-purple-500 text-white"
+                                                        : "border-[var(--border)]"
+                                                }`}
                                             >
                                                 {selected &&
                                                     "✓"}
                                             </span>
-
 
                                             <div className="min-w-0">
 
@@ -368,18 +454,28 @@ function Participants({
 
                         </div>
 
-
                         <button
                             type="button"
                             onClick={handleAdd}
                             disabled={
+                                saving ||
                                 selectedAdminIds.length ===
                                 0
                             }
                             className="mt-4 flex items-center justify-center gap-2 bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <UserPlus size={15} />
+
+                            {saving ? (
+                                <Loader2
+                                    size={15}
+                                    className="animate-spin"
+                                />
+                            ) : (
+                                <UserPlus size={15} />
+                            )}
+
                             Add selected
+
                         </button>
 
                     </div>

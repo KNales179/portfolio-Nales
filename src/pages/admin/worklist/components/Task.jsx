@@ -4,7 +4,6 @@ import {
     ChevronDown,
     ChevronRight,
     GripVertical,
-    MoreVertical,
     Pencil,
     Plus,
     Archive,
@@ -15,44 +14,56 @@ function Task({
     task,
     subtasks = [],
     index = 0,
+
     canEdit = false,
     canComplete = false,
     canReopen = false,
     canArchive = false,
     canRestore = false,
+
     locked = false,
     archived = false,
+
     onToggle,
     onEdit,
     onAddSubtask,
     onArchive,
     onRestore,
     onReorder,
+
+    renderSubtask,
 }) {
     const [expanded, setExpanded] =
         useState(true);
 
-    const [menuOpen, setMenuOpen] =
-        useState(false);
+    if (!task) {
+        return null;
+    }
 
-    const hasSubtasks =
-        subtasks.length > 0;
+    const safeSubtasks =
+        Array.isArray(subtasks)
+            ? subtasks
+            : Array.isArray(task.subtasks)
+                ? task.subtasks
+                : [];
 
     const completedSubtasks =
-        subtasks.filter(
+        safeSubtasks.filter(
             (subtask) =>
-                subtask.completed
+                subtask?.completed === true
         ).length;
+
+    const hasSubtasks =
+        safeSubtasks.length > 0;
 
     const progress =
         hasSubtasks
             ? Math.round(
                 (completedSubtasks /
-                    subtasks.length) *
+                    safeSubtasks.length) *
                 100
             )
-            : task.status ===
-                "COMPLETED"
+            : task.status === "COMPLETED"
                 ? 100
                 : 0;
 
@@ -62,38 +73,83 @@ function Task({
     const canToggle =
         !locked &&
         !archived &&
-        (completed
-            ? canReopen
-            : canComplete);
+        (
+            completed
+                ? canReopen
+                : canComplete
+        );
+
+    const draggable =
+        canEdit &&
+        !locked &&
+        !archived;
 
     const handleToggle = () => {
         if (!canToggle) {
             return;
         }
 
-        onToggle?.(
-            task._id,
-            !completed
-        );
+        onToggle?.(task);
+    };
+
+    const handleEdit = () => {
+        if (
+            !canEdit ||
+            locked ||
+            archived
+        ) {
+            return;
+        }
+
+        onEdit?.(task);
+    };
+
+    const handleArchive = () => {
+        if (
+            !canArchive ||
+            locked ||
+            archived
+        ) {
+            return;
+        }
+
+        onArchive?.(task);
+    };
+
+    const handleRestore = () => {
+        if (!canRestore) {
+            return;
+        }
+
+        onRestore?.(task);
     };
 
     return (
         <article
-            draggable={
-                canEdit &&
-                !locked &&
-                !archived
-            }
+            draggable={draggable}
+
             onDragStart={(event) => {
+                if (!draggable) {
+                    return;
+                }
+
                 event.dataTransfer.setData(
                     "text/plain",
                     String(task._id)
                 );
             }}
-            onDragOver={(event) =>
-                event.preventDefault()
-            }
+
+            onDragOver={(event) => {
+                if (draggable) {
+                    event.preventDefault();
+                }
+            }}
+
             onDrop={(event) => {
+                if (!draggable) {
+                    return;
+                }
+
                 event.preventDefault();
 
                 const sourceId =
@@ -104,7 +160,7 @@ function Task({
                 if (
                     sourceId &&
                     sourceId !==
-                        String(task._id)
+                    String(task._id)
                 ) {
                     onReorder?.(
                         sourceId,
@@ -112,32 +168,34 @@ function Task({
                     );
                 }
             }}
-            className={`border border-[var(--border)] bg-[var(--card)] ${archived
-                ? "opacity-60"
-                : ""
-                }`}
+
+            className={`border-b border-[var(--border)] last:border-b-0 ${
+                archived
+                    ? "opacity-60"
+                    : ""
+            }`}
         >
 
-            <div className="flex items-start gap-3 p-4">
+            {/* TASK HEADER */}
 
-                {canEdit &&
-                    !locked &&
-                    !archived && (
-                        <GripVertical
-                            size={18}
-                            className="mt-1 shrink-0 cursor-grab text-[var(--muted)] active:cursor-grabbing"
-                        />
-                    )}
+            <div className="flex items-start gap-3 p-5">
 
+                {draggable && (
+                    <GripVertical
+                        size={17}
+                        className="mt-1 shrink-0 cursor-grab text-[var(--muted)]"
+                    />
+                )}
 
                 <button
                     type="button"
                     onClick={handleToggle}
                     disabled={!canToggle}
-                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border transition ${completed
-                        ? "border-purple-500 bg-purple-500 text-white"
-                        : "border-[var(--border)] hover:border-purple-400"
-                        } disabled:cursor-not-allowed disabled:opacity-60`}
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border text-[10px] transition ${
+                        completed
+                            ? "border-purple-500 bg-purple-500 text-white"
+                            : "border-[var(--border)] hover:border-purple-400"
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
                     aria-label={
                         completed
                             ? "Reopen task"
@@ -145,335 +203,190 @@ function Task({
                     }
                 >
                     {completed && (
-                        <Check
-                            size={14}
-                        />
+                        <Check size={12} />
                     )}
                 </button>
 
-
                 <div className="min-w-0 flex-1">
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 
-                        <h3
-                            className={`text-sm font-semibold ${completed
-                                ? "text-[var(--muted)] line-through"
-                                : ""
-                                }`}
-                        >
-                            {task.title}
-                        </h3>
+                        <div className="min-w-0">
 
-                        {task.status ===
-                            "BLOCKED" && (
-                            <span className="bg-red-500/10 px-2 py-1 text-[10px] font-semibold text-red-400">
-                                Blocked
-                            </span>
-                        )}
+                            <div className="flex items-center gap-2">
 
-                    </div>
+                                {hasSubtasks && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setExpanded(
+                                                (current) =>
+                                                    !current
+                                            )
+                                        }
+                                        className="shrink-0 text-[var(--muted)] transition hover:text-[var(--text)]"
+                                        aria-label={
+                                            expanded
+                                                ? "Collapse task"
+                                                : "Expand task"
+                                        }
+                                    >
+                                        {expanded ? (
+                                            <ChevronDown
+                                                size={17}
+                                            />
+                                        ) : (
+                                            <ChevronRight
+                                                size={17}
+                                            />
+                                        )}
+                                    </button>
+                                )}
 
+                                <h3
+                                    className={`text-sm font-semibold ${
+                                        completed
+                                            ? "text-[var(--muted)] line-through"
+                                            : ""
+                                    }`}
+                                >
+                                    {task.title ||
+                                        "Untitled task"}
+                                </h3>
 
-                    {task.description && (
-                        <p className="mt-1 text-sm leading-5 text-[var(--muted)]">
-                            {
-                                task.description
-                            }
-                        </p>
-                    )}
+                            </div>
 
-
-                    <div className="mt-3 flex items-center gap-3">
-
-                        <div className="h-1.5 flex-1 overflow-hidden bg-[var(--surface)]">
-
-                            <div
-                                className="h-full bg-purple-500 transition-all"
-                                style={{
-                                    width: `${progress}%`,
-                                }}
-                            />
+                            {task.description && (
+                                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                                    {task.description}
+                                </p>
+                            )}
 
                         </div>
 
-                        <span className="text-[11px] font-semibold text-[var(--muted)]">
-                            {progress}%
-                        </span>
+                        <div className="flex shrink-0 flex-wrap items-center gap-2">
 
-                    </div>
+                            <span className="text-xs font-semibold text-[var(--muted)]">
+                                {progress}%
+                            </span>
 
-                </div>
-
-
-                <div className="relative flex shrink-0 items-center gap-1">
-
-                    {hasSubtasks && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setExpanded(
-                                    (value) =>
-                                        !value
-                                )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text)]"
-                        >
-                            {expanded ? (
-                                <ChevronDown
-                                    size={17}
-                                />
-                            ) : (
-                                <ChevronRight
-                                    size={17}
-                                />
-                            )}
-                        </button>
-                    )}
-
-
-                    {(canEdit ||
-                        canArchive ||
-                        canRestore) && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setMenuOpen(
-                                    (value) =>
-                                        !value
-                                )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text)]"
-                        >
-                            <MoreVertical
-                                size={17}
-                            />
-                        </button>
-                    )}
-
-
-                    {menuOpen && (
-                        <div className="absolute right-0 top-9 z-20 min-w-[160px] border border-[var(--border)] bg-[var(--card)] p-1 shadow-xl">
-
-                            {canEdit &&
-                                !locked &&
-                                !archived && (
+                            {!archived &&
+                                canEdit &&
+                                !locked && (
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setMenuOpen(
-                                                false
-                                            );
-                                            onEdit?.(
-                                                task
-                                            );
-                                        }}
-                                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold transition hover:bg-[var(--surface)]"
+                                        onClick={
+                                            handleEdit
+                                        }
+                                        className="flex items-center gap-1.5 text-xs font-semibold text-[var(--muted)] transition hover:text-[var(--text)]"
                                     >
                                         <Pencil
-                                            size={14}
+                                            size={13}
                                         />
-                                        Edit task
+                                        Edit
                                     </button>
                                 )}
 
-
-                            {canEdit &&
-                                !locked &&
-                                !archived && (
+                            {!archived &&
+                                canArchive &&
+                                !locked && (
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setMenuOpen(
-                                                false
-                                            );
-                                            onAddSubtask?.(
-                                                task
-                                            );
-                                        }}
-                                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold transition hover:bg-[var(--surface)]"
-                                    >
-                                        <Plus
-                                            size={14}
-                                        />
-                                        Add subtask
-                                    </button>
-                                )}
-
-
-                            {canArchive &&
-                                !archived && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setMenuOpen(
-                                                false
-                                            );
-                                            onArchive?.(
-                                                task._id
-                                            );
-                                        }}
-                                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-yellow-400 transition hover:bg-yellow-500/10"
+                                        onClick={
+                                            handleArchive
+                                        }
+                                        className="flex items-center gap-1.5 text-xs font-semibold text-red-400 transition hover:text-red-300"
                                     >
                                         <Archive
-                                            size={14}
+                                            size={13}
                                         />
-                                        Archive task
+                                        Archive
                                     </button>
                                 )}
 
-
-                            {canRestore &&
-                                archived && (
+                            {archived &&
+                                canRestore && (
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setMenuOpen(
-                                                false
-                                            );
-                                            onRestore?.(
-                                                task._id
-                                            );
-                                        }}
-                                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-green-400 transition hover:bg-green-500/10"
+                                        onClick={
+                                            handleRestore
+                                        }
+                                        className="flex items-center gap-1.5 text-xs font-semibold text-green-400"
                                     >
                                         <RotateCcw
-                                            size={14}
+                                            size={13}
                                         />
-                                        Restore task
+                                        Restore
                                     </button>
                                 )}
 
                         </div>
-                    )}
+
+                    </div>
+
+                    <div className="mt-3 h-1.5 overflow-hidden bg-[var(--surface)]">
+
+                        <div
+                            className={`h-full transition-all duration-300 ${
+                                completed
+                                    ? "bg-green-500"
+                                    : "bg-purple-500"
+                            }`}
+                            style={{
+                                width: `${progress}%`,
+                            }}
+                        />
+
+                    </div>
 
                 </div>
 
             </div>
 
-
             {/* SUBTASKS */}
 
-            {hasSubtasks &&
-                expanded && (
-                    <div className="border-t border-[var(--border)] bg-[var(--surface)]/40">
+            {expanded &&
+                hasSubtasks && (
 
-                        {subtasks.map(
-                            (
-                                subtask,
-                                subtaskIndex
-                            ) => (
-                                <SubtaskRow
-                                    key={
-                                        subtask._id
-                                    }
-                                    subtask={
+                    <div className="ml-8 border-t border-[var(--border)] sm:ml-12">
+
+                        {safeSubtasks.map(
+                            (subtask) =>
+                                renderSubtask
+                                    ? renderSubtask(
                                         subtask
-                                    }
-                                    index={
-                                        subtaskIndex
-                                    }
-                                    canEdit={
-                                        canEdit
-                                    }
-                                    canComplete={
-                                        canComplete
-                                    }
-                                    canReopen={
-                                        canReopen
-                                    }
-                                    canArchive={
-                                        canArchive
-                                    }
-                                    canRestore={
-                                        canRestore
-                                    }
-                                    locked={
-                                        locked
-                                    }
-                                    archived={
-                                        archived
-                                    }
-                                    onToggle={
-                                        onToggleSubtask
-                                    }
-                                />
-                            )
+                                    )
+                                    : null
                         )}
+
+                    </div>
+                )}
+
+            {/* ADD SUBTASK */}
+
+            {canEdit &&
+                !locked &&
+                !archived && (
+
+                    <div className="border-t border-[var(--border)] px-5 py-3">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                onAddSubtask?.(
+                                    task
+                                )
+                            }
+                            className="flex items-center gap-1.5 text-xs font-semibold text-purple-400 transition hover:text-purple-300"
+                        >
+                            <Plus size={14} />
+                            Add subtask
+                        </button>
 
                     </div>
                 )}
 
         </article>
-    );
-}
-
-function SubtaskRow({
-    subtask,
-    canEdit,
-    canComplete,
-    canReopen,
-    canArchive,
-    canRestore,
-    locked,
-    archived,
-    onToggle,
-}) {
-    const completed =
-        Boolean(subtask.completed);
-
-    const canToggle =
-        !locked &&
-        !archived &&
-        (completed
-            ? canReopen
-            : canComplete);
-
-    return (
-        <div className="flex items-start gap-3 border-b border-[var(--border)] p-4 pl-12 last:border-b-0">
-
-            <button
-                type="button"
-                onClick={() =>
-                    onToggle?.(
-                        subtask._id,
-                        !completed
-                    )
-                }
-                disabled={!canToggle}
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border transition ${completed
-                    ? "border-purple-500 bg-purple-500 text-white"
-                    : "border-[var(--border)]"
-                    } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-                {completed && (
-                    <Check size={12} />
-                )}
-            </button>
-
-
-            <div className="min-w-0 flex-1">
-
-                <p
-                    className={`text-sm font-medium ${completed
-                        ? "text-[var(--muted)] line-through"
-                        : ""
-                        }`}
-                >
-                    {subtask.title}
-                </p>
-
-                {subtask.description && (
-                    <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                        {
-                            subtask.description
-                        }
-                    </p>
-                )}
-
-            </div>
-
-        </div>
     );
 }
 
