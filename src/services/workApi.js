@@ -7,10 +7,10 @@
 // IMPORTANT:
 // - Authentication is handled through the existing admin token.
 // - Authorization is enforced by the backend.
-// - This file should NOT decide whether an admin is actually
-//   allowed to perform a sensitive operation.
+// - This file does NOT decide permissions.
 // - workPermissions.js is for frontend UI capability checks.
 // - The backend remains the final authority.
+//
 // ============================================================
 
 
@@ -84,8 +84,8 @@ const apiRequest = async (
             response.status;
 
         error.code =
-            data?.error?.code ||
             data?.code ||
+            data?.error?.code ||
             null;
 
         error.data =
@@ -102,23 +102,36 @@ const apiRequest = async (
 // WORKS
 // ============================================================
 
+// GET /api/work
+//
+// Returns active works.
+
 export const getWorks = async ({
     includeArchived = false,
 } = {}) => {
-    const query =
-        includeArchived
-            ? "?includeArchived=true"
-            : "";
+    if (includeArchived) {
+        return apiRequest(
+            "/api/work/archived"
+        );
+    }
 
     return apiRequest(
-        `/api/work${query}`
+        "/api/work"
     );
 };
 
 
+// GET /api/work/:workId
+
 export const getWorkById = async (
     workId
 ) => {
+    if (!workId) {
+        throw new Error(
+            "Work ID is required."
+        );
+    }
+
     return apiRequest(
         `/api/work/${encodeURIComponent(
             workId
@@ -126,6 +139,8 @@ export const getWorkById = async (
     );
 };
 
+
+// POST /api/work
 
 export const createWork = async (
     payload
@@ -143,10 +158,18 @@ export const createWork = async (
 };
 
 
+// PATCH /api/work/:workId
+
 export const updateWork = async (
     workId,
     payload
 ) => {
+    if (!workId) {
+        throw new Error(
+            "Work ID is required."
+        );
+    }
+
     return apiRequest(
         `/api/work/${encodeURIComponent(
             workId
@@ -163,8 +186,11 @@ export const updateWork = async (
 
 
 // ============================================================
-// WORK STATUS
+// WORK LIFECYCLE
 // ============================================================
+
+
+// POST /api/work/:workId/archive
 
 export const archiveWork = async (
     workId
@@ -180,6 +206,8 @@ export const archiveWork = async (
 };
 
 
+// POST /api/work/:workId/restore
+
 export const restoreWork = async (
     workId
 ) => {
@@ -194,68 +222,12 @@ export const restoreWork = async (
 };
 
 
-export const lockWork = async (
-    workId
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/lock`,
-        {
-            method: "POST",
-        }
-    );
-};
-
-
-export const unlockWork = async (
-    workId
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/unlock`,
-        {
-            method: "POST",
-        }
-    );
-};
-
-
 // ============================================================
-// WORK ORDER
+// WORK PARTICIPANTS
 // ============================================================
 
-export const reorderWorks = async (
-    orders
-) => {
-    return apiRequest(
-        "/api/work/reorder",
-        {
-            method: "PATCH",
 
-            body: JSON.stringify({
-                orders,
-            }),
-        }
-    );
-};
-
-
-// ============================================================
-// PARTICIPANTS
-// ============================================================
-
-export const getWorkParticipants = async (
-    workId
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/participants`
-    );
-};
-
+// POST /api/work/:workId/participants
 
 export const addWorkParticipant = async (
     workId,
@@ -276,6 +248,8 @@ export const addWorkParticipant = async (
 };
 
 
+// DELETE /api/work/:workId/participants/:adminId
+
 export const removeWorkParticipant = async (
     workId,
     adminId
@@ -293,6 +267,8 @@ export const removeWorkParticipant = async (
 };
 
 
+// POST /api/work/:workId/transfer-ownership
+
 export const transferWorkOwnership = async (
     workId,
     adminId
@@ -300,9 +276,9 @@ export const transferWorkOwnership = async (
     return apiRequest(
         `/api/work/${encodeURIComponent(
             workId
-        )}/ownership`,
+        )}/transfer-ownership`,
         {
-            method: "PATCH",
+            method: "POST",
 
             body: JSON.stringify({
                 adminId,
@@ -313,8 +289,40 @@ export const transferWorkOwnership = async (
 
 
 // ============================================================
+// WORK ORDER
+// ============================================================
+
+
+// PATCH /api/work/reorder
+//
+// Body:
+//
+// {
+//     orderedIds: []
+// }
+
+export const reorderWorks = async (
+    orderedIds
+) => {
+    return apiRequest(
+        "/api/work/reorder",
+        {
+            method: "PATCH",
+
+            body: JSON.stringify({
+                orderedIds,
+            }),
+        }
+    );
+};
+
+
+// ============================================================
 // TASKS
 // ============================================================
+
+
+// POST /api/work/:workId/tasks
 
 export const createTask = async (
     workId,
@@ -335,12 +343,17 @@ export const createTask = async (
 };
 
 
+// PATCH /api/work/:workId/tasks/:taskId
+
 export const updateTask = async (
+    workId,
     taskId,
     payload
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}`,
         {
@@ -354,11 +367,16 @@ export const updateTask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/complete
+
 export const completeTask = async (
+    workId,
     taskId
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}/complete`,
         {
@@ -368,11 +386,16 @@ export const completeTask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/reopen
+
 export const reopenTask = async (
+    workId,
     taskId
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}/reopen`,
         {
@@ -382,27 +405,18 @@ export const reopenTask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/archive
+
 export const archiveTask = async (
+    workId,
     taskId
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}/archive`,
-        {
-            method: "POST",
-        }
-    );
-};
-
-
-export const restoreTask = async (
-    taskId
-) => {
-    return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
-            taskId
-        )}/restore`,
         {
             method: "POST",
         }
@@ -414,9 +428,18 @@ export const restoreTask = async (
 // TASK ORDER
 // ============================================================
 
+
+// PATCH /api/work/:workId/tasks/reorder
+//
+// Body:
+//
+// {
+//     orderedIds: []
+// }
+
 export const reorderTasks = async (
     workId,
-    orders
+    orderedIds
 ) => {
     return apiRequest(
         `/api/work/${encodeURIComponent(
@@ -426,7 +449,7 @@ export const reorderTasks = async (
             method: "PATCH",
 
             body: JSON.stringify({
-                orders,
+                orderedIds,
             }),
         }
     );
@@ -437,12 +460,18 @@ export const reorderTasks = async (
 // SUBTASKS
 // ============================================================
 
+
+// POST /api/work/:workId/tasks/:taskId/subtasks
+
 export const createSubtask = async (
+    workId,
     taskId,
     payload
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}/subtasks`,
         {
@@ -456,12 +485,20 @@ export const createSubtask = async (
 };
 
 
+// PATCH /api/work/:workId/tasks/:taskId/subtasks/:subtaskId
+
 export const updateSubtask = async (
+    workId,
+    taskId,
     subtaskId,
     payload
 ) => {
     return apiRequest(
-        `/api/work/subtasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
+            taskId
+        )}/subtasks/${encodeURIComponent(
             subtaskId
         )}`,
         {
@@ -475,11 +512,19 @@ export const updateSubtask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/subtasks/:subtaskId/complete
+
 export const completeSubtask = async (
+    workId,
+    taskId,
     subtaskId
 ) => {
     return apiRequest(
-        `/api/work/subtasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
+            taskId
+        )}/subtasks/${encodeURIComponent(
             subtaskId
         )}/complete`,
         {
@@ -489,11 +534,19 @@ export const completeSubtask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/subtasks/:subtaskId/reopen
+
 export const reopenSubtask = async (
+    workId,
+    taskId,
     subtaskId
 ) => {
     return apiRequest(
-        `/api/work/subtasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
+            taskId
+        )}/subtasks/${encodeURIComponent(
             subtaskId
         )}/reopen`,
         {
@@ -503,27 +556,21 @@ export const reopenSubtask = async (
 };
 
 
+// POST /api/work/:workId/tasks/:taskId/subtasks/:subtaskId/archive
+
 export const archiveSubtask = async (
+    workId,
+    taskId,
     subtaskId
 ) => {
     return apiRequest(
-        `/api/work/subtasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
+            taskId
+        )}/subtasks/${encodeURIComponent(
             subtaskId
         )}/archive`,
-        {
-            method: "POST",
-        }
-    );
-};
-
-
-export const restoreSubtask = async (
-    subtaskId
-) => {
-    return apiRequest(
-        `/api/work/subtasks/${encodeURIComponent(
-            subtaskId
-        )}/restore`,
         {
             method: "POST",
         }
@@ -535,19 +582,31 @@ export const restoreSubtask = async (
 // SUBTASK ORDER
 // ============================================================
 
+
+// PATCH /api/work/:workId/tasks/:taskId/subtasks/reorder
+//
+// Body:
+//
+// {
+//     orderedIds: []
+// }
+
 export const reorderSubtasks = async (
+    workId,
     taskId,
-    orders
+    orderedIds
 ) => {
     return apiRequest(
-        `/api/work/tasks/${encodeURIComponent(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/${encodeURIComponent(
             taskId
         )}/subtasks/reorder`,
         {
             method: "PATCH",
 
             body: JSON.stringify({
-                orders,
+                orderedIds,
             }),
         }
     );
@@ -555,8 +614,11 @@ export const reorderSubtasks = async (
 
 
 // ============================================================
-// ACTIVITIES
+// WORK ACTIVITY
 // ============================================================
+
+
+// GET /api/work/:workId/activity
 
 export const getWorkActivities = async (
     workId
@@ -564,141 +626,7 @@ export const getWorkActivities = async (
     return apiRequest(
         `/api/work/${encodeURIComponent(
             workId
-        )}/activities`
-    );
-};
-
-
-// ============================================================
-// COMMENTS
-// ============================================================
-
-export const getWorkComments = async (
-    workId
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/comments`
-    );
-};
-
-
-export const createWorkComment = async (
-    workId,
-    payload
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/comments`,
-        {
-            method: "POST",
-
-            body: JSON.stringify(
-                payload
-            ),
-        }
-    );
-};
-
-
-export const updateWorkComment = async (
-    commentId,
-    payload
-) => {
-    return apiRequest(
-        `/api/work/comments/${encodeURIComponent(
-            commentId
-        )}`,
-        {
-            method: "PATCH",
-
-            body: JSON.stringify(
-                payload
-            ),
-        }
-    );
-};
-
-
-export const deleteWorkComment = async (
-    commentId
-) => {
-    return apiRequest(
-        `/api/work/comments/${encodeURIComponent(
-            commentId
-        )}`,
-        {
-            method: "DELETE",
-        }
-    );
-};
-
-
-// ============================================================
-// LINKS
-// ============================================================
-
-export const getWorkLinks = async (
-    workId
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/links`
-    );
-};
-
-
-export const createWorkLink = async (
-    workId,
-    payload
-) => {
-    return apiRequest(
-        `/api/work/${encodeURIComponent(
-            workId
-        )}/links`,
-        {
-            method: "POST",
-
-            body: JSON.stringify(
-                payload
-            ),
-        }
-    );
-};
-
-
-export const updateWorkLink = async (
-    linkId,
-    payload
-) => {
-    return apiRequest(
-        `/api/work/links/${encodeURIComponent(
-            linkId
-        )}`,
-        {
-            method: "PATCH",
-
-            body: JSON.stringify(
-                payload
-            ),
-        }
-    );
-};
-
-
-export const deleteWorkLink = async (
-    linkId
-) => {
-    return apiRequest(
-        `/api/work/links/${encodeURIComponent(
-            linkId
-        )}`,
-        {
-            method: "DELETE",
-        }
+        )}/activity`
     );
 };
 
@@ -717,12 +645,8 @@ const workApi = {
     archiveWork,
     restoreWork,
 
-    lockWork,
-    unlockWork,
-
     reorderWorks,
 
-    getWorkParticipants,
     addWorkParticipant,
     removeWorkParticipant,
     transferWorkOwnership,
@@ -732,7 +656,6 @@ const workApi = {
     completeTask,
     reopenTask,
     archiveTask,
-    restoreTask,
     reorderTasks,
 
     createSubtask,
@@ -740,20 +663,9 @@ const workApi = {
     completeSubtask,
     reopenSubtask,
     archiveSubtask,
-    restoreSubtask,
     reorderSubtasks,
 
     getWorkActivities,
-
-    getWorkComments,
-    createWorkComment,
-    updateWorkComment,
-    deleteWorkComment,
-
-    getWorkLinks,
-    createWorkLink,
-    updateWorkLink,
-    deleteWorkLink,
 };
 
 export default workApi;
