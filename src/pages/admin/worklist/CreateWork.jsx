@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     ArrowLeft,
     Loader2,
+    Lock,
     Plus,
     ShieldCheck,
-    Lock,
     Unlock,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -15,10 +15,7 @@ import AdminSidebar from "../../../components/admin/AdminSidebar";
 
 import { useAuth } from "../../../context/AuthContext";
 
-import {
-    createWork,
-    getAdminsForWork,
-} from "../../../services/workApi";
+import { createWork } from "../../../services/workApi";
 
 import {
     canCreateWork,
@@ -37,7 +34,6 @@ function CreateWork() {
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
-
     // ========================================================
     // FORM
     // ========================================================
@@ -48,26 +44,11 @@ function CreateWork() {
     const [description, setDescription] =
         useState("");
 
-    const [accessType, setAccessType] =
-        useState("OPEN");
+    const [accessMode, setAccessMode] =
+        useState("COLLABORATIVE");
 
     const [workPassword, setWorkPassword] =
         useState("");
-
-    const [participants, setParticipants] =
-        useState([]);
-
-
-    // ========================================================
-    // ADMINS
-    // ========================================================
-
-    const [admins, setAdmins] =
-        useState([]);
-
-    const [adminsLoading, setAdminsLoading] =
-        useState(true);
-
 
     // ========================================================
     // STATE
@@ -81,87 +62,19 @@ function CreateWork() {
 
 
     // ========================================================
-    // LOAD ADMINS
+    // ACCESS MODE
     // ========================================================
 
-    useEffect(() => {
-        const loadAdmins = async () => {
-            try {
-                setAdminsLoading(true);
-                setError("");
-
-                const response =
-                    await getAdminsForWork();
-
-                const fetchedAdmins =
-                    response?.data?.admins ||
-                    response?.admins ||
-                    [];
-
-                setAdmins(
-                    Array.isArray(fetchedAdmins)
-                        ? fetchedAdmins
-                        : []
-                );
-
-            } catch (error) {
-                console.error(
-                    "Failed to load administrators:",
-                    error
-                );
-
-                setError(
-                    error?.message ||
-                    "Unable to load administrators."
-                );
-            } finally {
-                setAdminsLoading(false);
-            }
-        };
-
-        loadAdmins();
-    }, []);
-
-
-    // ========================================================
-    // PARTICIPANT TOGGLE
-    // ========================================================
-
-    const toggleParticipant = (
-        adminId
+    const handleAccessModeChange = (
+        nextAccessMode
     ) => {
-        setParticipants((current) => {
-            if (
-                current.includes(adminId)
-            ) {
-                return current.filter(
-                    (id) =>
-                        id !== adminId
-                );
-            }
-
-            return [
-                ...current,
-                adminId,
-            ];
-        });
-    };
-
-
-    // ========================================================
-    // ACCESS TYPE
-    // ========================================================
-
-    const handleAccessTypeChange = (
-        nextAccessType
-    ) => {
-        setAccessType(
-            nextAccessType
+        setAccessMode(
+            nextAccessMode
         );
 
         if (
-            nextAccessType !==
-            "PASSWORD"
+            nextAccessMode !==
+            "PASSWORD_PROTECTED"
         ) {
             setWorkPassword("");
         }
@@ -179,6 +92,10 @@ function CreateWork() {
     ) => {
         event.preventDefault();
 
+        // ----------------------------------------------------
+        // FRONTEND PERMISSION CHECK
+        // ----------------------------------------------------
+
         if (!canCreateWork(admin)) {
             setError(
                 "You do not have permission to create work."
@@ -186,6 +103,10 @@ function CreateWork() {
 
             return;
         }
+
+        // ----------------------------------------------------
+        // NORMALIZE INPUT
+        // ----------------------------------------------------
 
         const trimmedTitle =
             title.trim();
@@ -218,12 +139,24 @@ function CreateWork() {
         }
 
         if (
-            accessType ===
-                "PASSWORD" &&
+            accessMode ===
+                "PASSWORD_PROTECTED" &&
             !trimmedPassword
         ) {
             setError(
                 "A work password is required for password-protected access."
+            );
+
+            return;
+        }
+
+        if (
+            accessMode ===
+                "PASSWORD_PROTECTED" &&
+            trimmedPassword.length < 8
+        ) {
+            setError(
+                "The work password must contain at least 8 characters."
             );
 
             return;
@@ -235,17 +168,16 @@ function CreateWork() {
         // ----------------------------------------------------
 
         const payload = {
-            title: trimmedTitle,
+            title:
+                trimmedTitle,
 
             description:
                 trimmedDescription,
 
-            participants,
+            accessMode,
 
-            accessType,
-
-            ...(accessType ===
-                "PASSWORD"
+            ...(accessMode ===
+                "PASSWORD_PROTECTED"
                 ? {
                     password:
                         trimmedPassword,
@@ -272,11 +204,14 @@ function CreateWork() {
                 response?.work ||
                 null;
 
-            if (
-                createdWork?._id
-            ) {
+            const createdWorkId =
+                createdWork?._id ||
+                createdWork?.id ||
+                null;
+
+            if (createdWorkId) {
                 navigate(
-                    `/portfolio-Nales/admin/worklist/${createdWork._id}`
+                    `/portfolio-Nales/admin/worklist/${createdWorkId}`
                 );
 
                 return;
@@ -296,6 +231,7 @@ function CreateWork() {
                 error?.message ||
                 "Unable to create work."
             );
+
         } finally {
             setLoading(false);
         }
@@ -425,11 +361,13 @@ function CreateWork() {
                             }
                             className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--text)]"
                         >
+
                             <ArrowLeft
                                 size={17}
                             />
 
                             Back to work list
+
                         </button>
 
 
@@ -539,7 +477,9 @@ function CreateWork() {
                                     <input
                                         id="workTitle"
                                         type="text"
-                                        value={title}
+                                        value={
+                                            title
+                                        }
                                         onChange={(
                                             event
                                         ) => {
@@ -553,12 +493,17 @@ function CreateWork() {
                                         }}
                                         maxLength={200}
                                         placeholder="e.g. Portfolio authentication system"
-                                        disabled={loading}
+                                        disabled={
+                                            loading
+                                        }
                                         className="w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-purple-400 disabled:opacity-60"
                                     />
 
                                     <p className="mt-2 text-xs text-[var(--muted)]">
-                                        {title.length}/200
+                                        {
+                                            title.length
+                                        }
+                                        /200
                                     </p>
 
                                 </div>
@@ -594,7 +539,9 @@ function CreateWork() {
                                         maxLength={2000}
                                         rows={6}
                                         placeholder="Describe what this work is about and what the team is expected to accomplish."
-                                        disabled={loading}
+                                        disabled={
+                                            loading
+                                        }
                                         className="w-full resize-y border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 outline-none transition focus:border-purple-400 disabled:opacity-60"
                                     />
 
@@ -634,24 +581,26 @@ function CreateWork() {
 
                             <div className="space-y-4 p-6">
 
-                                {/* OPEN */}
+                                {/* OPEN VIEW */}
 
                                 <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-4 transition hover:bg-[var(--surface)]">
 
                                     <input
                                         type="radio"
-                                        name="accessType"
-                                        value="OPEN"
+                                        name="accessMode"
+                                        value="OPEN_VIEW"
                                         checked={
-                                            accessType ===
-                                            "OPEN"
+                                            accessMode ===
+                                            "OPEN_VIEW"
                                         }
                                         onChange={() =>
-                                            handleAccessTypeChange(
-                                                "OPEN"
+                                            handleAccessModeChange(
+                                                "OPEN_VIEW"
                                             )
                                         }
-                                        disabled={loading}
+                                        disabled={
+                                            loading
+                                        }
                                         className="mt-1"
                                     />
 
@@ -664,15 +613,14 @@ function CreateWork() {
                                                 className="text-green-400"
                                             />
 
-                                            Open
+                                            Open view
 
                                         </p>
 
                                         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
                                             Administrators can
-                                            access and contribute
-                                            according to their
-                                            work permissions.
+                                            access the work for
+                                            viewing.
                                         </p>
 
                                     </div>
@@ -680,24 +628,26 @@ function CreateWork() {
                                 </label>
 
 
-                                {/* VIEW ONLY */}
+                                {/* COLLABORATIVE */}
 
                                 <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-4 transition hover:bg-[var(--surface)]">
 
                                     <input
                                         type="radio"
-                                        name="accessType"
-                                        value="VIEW_ONLY"
+                                        name="accessMode"
+                                        value="COLLABORATIVE"
                                         checked={
-                                            accessType ===
-                                            "VIEW_ONLY"
+                                            accessMode ===
+                                            "COLLABORATIVE"
                                         }
                                         onChange={() =>
-                                            handleAccessTypeChange(
-                                                "VIEW_ONLY"
+                                            handleAccessModeChange(
+                                                "COLLABORATIVE"
                                             )
                                         }
-                                        disabled={loading}
+                                        disabled={
+                                            loading
+                                        }
                                         className="mt-1"
                                     />
 
@@ -707,18 +657,18 @@ function CreateWork() {
 
                                             <ShieldCheck
                                                 size={16}
-                                                className="text-blue-400"
+                                                className="text-purple-400"
                                             />
 
-                                            View only
+                                            Collaborative
 
                                         </p>
 
                                         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                                            Administrators can
-                                            view the work but
-                                            cannot contribute
-                                            through normal work
+                                            Authorized
+                                            administrators can
+                                            actively contribute
+                                            according to work
                                             permissions.
                                         </p>
 
@@ -727,24 +677,26 @@ function CreateWork() {
                                 </label>
 
 
-                                {/* PASSWORD */}
+                                {/* PASSWORD PROTECTED */}
 
                                 <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-4 transition hover:bg-[var(--surface)]">
 
                                     <input
                                         type="radio"
-                                        name="accessType"
-                                        value="PASSWORD"
+                                        name="accessMode"
+                                        value="PASSWORD_PROTECTED"
                                         checked={
-                                            accessType ===
-                                            "PASSWORD"
+                                            accessMode ===
+                                            "PASSWORD_PROTECTED"
                                         }
                                         onChange={() =>
-                                            handleAccessTypeChange(
-                                                "PASSWORD"
+                                            handleAccessModeChange(
+                                                "PASSWORD_PROTECTED"
                                             )
                                         }
-                                        disabled={loading}
+                                        disabled={
+                                            loading
+                                        }
                                         className="mt-1"
                                     />
 
@@ -762,14 +714,14 @@ function CreateWork() {
                                         </p>
 
                                         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-                                            Require a password
-                                            before accessing
-                                            this work.
+                                            Require an additional
+                                            password before
+                                            protected work access.
                                         </p>
 
 
-                                        {accessType ===
-                                            "PASSWORD" && (
+                                        {accessMode ===
+                                            "PASSWORD_PROTECTED" && (
                                             <input
                                                 type="password"
                                                 value={
@@ -786,7 +738,12 @@ function CreateWork() {
                                                         ""
                                                     );
                                                 }}
-                                                minLength={8}
+                                                minLength={
+                                                    8
+                                                }
+                                                maxLength={
+                                                    128
+                                                }
                                                 placeholder="Work password"
                                                 disabled={
                                                     loading
@@ -798,131 +755,6 @@ function CreateWork() {
                                     </div>
 
                                 </label>
-
-                            </div>
-
-                        </section>
-
-
-                        {/* ==================================================
-                            PARTICIPANTS
-                        ================================================== */}
-
-                        <section className="border border-[var(--border)] bg-[var(--card)]">
-
-                            <div className="border-b border-[var(--border)] p-6">
-
-                                <h2 className="text-lg font-semibold">
-                                    Participants
-                                </h2>
-
-                                <p className="mt-1 text-sm text-[var(--muted)]">
-                                    Select administrators who
-                                    can participate in this work.
-                                </p>
-
-                            </div>
-
-
-                            <div className="p-6">
-
-                                {adminsLoading ? (
-
-                                    <div className="flex items-center gap-3 py-6 text-sm text-[var(--muted)]">
-
-                                        <Loader2
-                                            size={18}
-                                            className="animate-spin"
-                                        />
-
-                                        Loading administrators...
-
-                                    </div>
-
-                                ) : admins.length ===
-                                  0 ? (
-
-                                    <div className="py-6 text-sm text-[var(--muted)]">
-                                        No administrators are
-                                        available.
-                                    </div>
-
-                                ) : (
-
-                                    <div className="grid gap-3 md:grid-cols-2">
-
-                                        {admins.map(
-                                            (
-                                                availableAdmin
-                                            ) => {
-
-                                                const id =
-                                                    availableAdmin?._id ||
-                                                    availableAdmin?.id;
-
-                                                if (!id) {
-                                                    return null;
-                                                }
-
-                                                const selected =
-                                                    participants.includes(
-                                                        id
-                                                    );
-
-                                                return (
-                                                    <label
-                                                        key={id}
-                                                        className={`flex cursor-pointer items-center gap-3 border p-4 transition ${
-                                                            selected
-                                                                ? "border-purple-500/40 bg-purple-500/5"
-                                                                : "border-[var(--border)] hover:bg-[var(--surface)]"
-                                                        }`}
-                                                    >
-
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={
-                                                                selected
-                                                            }
-                                                            onChange={() =>
-                                                                toggleParticipant(
-                                                                    id
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                loading
-                                                            }
-                                                            className="h-4 w-4 accent-purple-500"
-                                                        />
-
-
-                                                        <div className="min-w-0">
-
-                                                            <p className="truncate text-sm font-semibold">
-                                                                {
-                                                                    availableAdmin.fullName ||
-                                                                    availableAdmin.username ||
-                                                                    "Unknown administrator"
-                                                                }
-                                                            </p>
-
-                                                            <p className="truncate text-xs text-[var(--muted)]">
-                                                                @
-                                                                {
-                                                                    availableAdmin.username ||
-                                                                    "unknown"
-                                                                }
-                                                            </p>
-
-                                                        </div>
-
-                                                    </label>
-                                                );
-                                            }
-                                        )}
-
-                                    </div>
-                                )}
 
                             </div>
 
@@ -952,12 +784,10 @@ function CreateWork() {
                                         You will automatically
                                         become the creator and
                                         owner of this work.
-                                        Participants can
-                                        contribute according to
-                                        the work permissions,
-                                        while ownership controls
-                                        remain restricted to the
-                                        creator and Superadmin.
+                                        Participants can be
+                                        added after creation
+                                        through the work
+                                        participant controls.
                                     </p>
 
                                 </div>
@@ -980,7 +810,9 @@ function CreateWork() {
                                         "/portfolio-Nales/admin/worklist"
                                     )
                                 }
-                                disabled={loading}
+                                disabled={
+                                    loading
+                                }
                                 className="border border-[var(--border)] px-6 py-3 text-sm font-semibold transition hover:bg-[var(--card)] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Cancel
@@ -994,9 +826,12 @@ function CreateWork() {
                                     !title.trim() ||
                                     !description.trim() ||
                                     (
-                                        accessType ===
-                                            "PASSWORD" &&
-                                        !workPassword.trim()
+                                        accessMode ===
+                                            "PASSWORD_PROTECTED" &&
+                                        (
+                                            !workPassword.trim() ||
+                                            workPassword.trim().length < 8
+                                        )
                                     )
                                 }
                                 className="flex items-center justify-center gap-2 bg-purple-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
