@@ -3,6 +3,7 @@ import {
     Award,
     BookOpen,
     BriefcaseBusiness,
+    ClipboardList,
     FileBadge,
     FolderKanban,
     Gauge,
@@ -11,7 +12,6 @@ import {
     Mail,
     Route,
     Settings,
-    Shield,
     UserCircle,
     Users,
     X,
@@ -75,29 +75,26 @@ function AdminSidebar({ open, onClose }) {
     const isSuperAdmin =
         admin?.role === "SUPER_ADMIN";
 
-    // ============================================================
-    // SIDEBAR WIDTH
-    // ============================================================
-
     const [sidebarWidth, setSidebarWidth] = useState(() => {
         const savedWidth =
-            localStorage.getItem("adminSidebarWidth");
+            localStorage.getItem(
+                "adminSidebarWidth"
+            );
 
         const parsedWidth = savedWidth
             ? Number(savedWidth)
             : DEFAULT_WIDTH;
 
         return Math.min(
-            Math.max(parsedWidth, MIN_WIDTH),
+            Math.max(
+                parsedWidth,
+                MIN_WIDTH
+            ),
             MAX_WIDTH
         );
     });
 
     const isResizing = useRef(false);
-
-    // ============================================================
-    // APPLY WIDTH
-    // ============================================================
 
     useEffect(() => {
         document.documentElement.style.setProperty(
@@ -116,10 +113,6 @@ function AdminSidebar({ open, onClose }) {
                 : "false";
     }, [sidebarWidth]);
 
-    // ============================================================
-    // RESIZE
-    // ============================================================
-
     const handleResizeStart = (event) => {
         if (window.innerWidth < 1024) {
             return;
@@ -132,40 +125,48 @@ function AdminSidebar({ open, onClose }) {
         const startX = event.clientX;
         const startWidth = sidebarWidth;
 
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
+        document.body.style.cursor =
+            "col-resize";
+
+        document.body.style.userSelect =
+            "none";
 
         document.documentElement.classList.add(
             "sidebar-resizing"
         );
 
-        const handleMouseMove = (moveEvent) => {
+        const handleMouseMove = (
+            moveEvent
+        ) => {
             if (!isResizing.current) {
                 return;
             }
 
             const difference =
-                moveEvent.clientX - startX;
+                moveEvent.clientX -
+                startX;
 
             const newWidth =
-                startWidth + difference;
+                startWidth +
+                difference;
 
-            const clampedWidth = Math.min(
-                Math.max(newWidth, MIN_WIDTH),
-                MAX_WIDTH
-            );
+            const clampedWidth =
+                Math.min(
+                    Math.max(
+                        newWidth,
+                        MIN_WIDTH
+                    ),
+                    MAX_WIDTH
+                );
 
-            // IMPORTANT:
-            // Direct CSS update.
-            // No React render during dragging.
             document.documentElement.style.setProperty(
                 "--admin-sidebar-width",
                 `${clampedWidth}px`
             );
 
-            // Automatically switch to icon-only mode
             document.documentElement.dataset.sidebarCollapsed =
-                clampedWidth <= COLLAPSE_WIDTH
+                clampedWidth <=
+                COLLAPSE_WIDTH
                     ? "true"
                     : "false";
         };
@@ -177,27 +178,31 @@ function AdminSidebar({ open, onClose }) {
 
             isResizing.current = false;
 
-            const currentWidth = parseInt(
-                getComputedStyle(
-                    document.documentElement
-                )
-                    .getPropertyValue(
-                        "--admin-sidebar-width"
+            const currentWidth =
+                parseInt(
+                    getComputedStyle(
+                        document.documentElement
                     )
-                    .trim(),
-                10
-            );
+                        .getPropertyValue(
+                            "--admin-sidebar-width"
+                        )
+                        .trim(),
+                    10
+                );
 
-            const finalWidth = Math.min(
-                Math.max(
-                    currentWidth || DEFAULT_WIDTH,
-                    MIN_WIDTH
-                ),
-                MAX_WIDTH
-            );
+            const finalWidth =
+                Math.min(
+                    Math.max(
+                        currentWidth ||
+                            DEFAULT_WIDTH,
+                        MIN_WIDTH
+                    ),
+                    MAX_WIDTH
+                );
 
-            // React updates only once after dragging
-            setSidebarWidth(finalWidth);
+            setSidebarWidth(
+                finalWidth
+            );
 
             localStorage.setItem(
                 "adminSidebarWidth",
@@ -205,7 +210,8 @@ function AdminSidebar({ open, onClose }) {
             );
 
             document.documentElement.dataset.sidebarCollapsed =
-                finalWidth <= COLLAPSE_WIDTH
+                finalWidth <=
+                COLLAPSE_WIDTH
                     ? "true"
                     : "false";
 
@@ -213,8 +219,11 @@ function AdminSidebar({ open, onClose }) {
                 "sidebar-resizing"
             );
 
-            document.body.style.cursor = "";
-            document.body.style.userSelect = "";
+            document.body.style.cursor =
+                "";
+
+            document.body.style.userSelect =
+                "";
 
             document.removeEventListener(
                 "mousemove",
@@ -238,26 +247,14 @@ function AdminSidebar({ open, onClose }) {
         );
     };
 
-    // ============================================================
-    // RENDER
-    // ============================================================
-
     return (
         <>
-            {/* =====================================================
-                MOBILE BACKDROP
-            ====================================================== */}
-
             {open && (
                 <div
                     className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
                     onClick={onClose}
                 />
             )}
-
-            {/* =====================================================
-                SIDEBAR
-            ====================================================== */}
 
             <aside
                 className={`admin-sidebar fixed left-0 top-20 z-50 h-[calc(100vh-5rem)] border-r border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-xl lg:translate-x-0 ${
@@ -272,11 +269,10 @@ function AdminSidebar({ open, onClose }) {
             >
                 <div className="flex h-full flex-col">
 
-                    {/* =================================================
-                        MOBILE HEADER
-                    ================================================== */}
+                    {/* MOBILE HEADER */}
 
                     <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4 lg:hidden">
+
                         <p className="text-sm font-semibold">
                             Administration
                         </p>
@@ -288,84 +284,131 @@ function AdminSidebar({ open, onClose }) {
                         >
                             <X size={18} />
                         </button>
+
                     </div>
 
-                    {/* =================================================
-                        NAVIGATION
-                    ================================================== */}
+                    {/* NAVIGATION */}
 
                     <nav className="flex-1 overflow-y-auto px-4 py-5">
 
-                        {/* PORTFOLIO HEADER */}
+                        {/* PORTFOLIO */}
 
                         <p className="sidebar-section-title mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
                             Portfolio
                         </p>
 
-                        {/* PORTFOLIO LINKS */}
-
                         <div className="space-y-1">
 
-                            {navigation.map((item) => {
-                                const Icon = item.icon;
+                            {navigation.map(
+                                (item) => {
+                                    const Icon =
+                                        item.icon;
 
-                                return (
-                                    <NavLink
-                                        key={item.path}
-                                        to={item.path}
-                                        end={
-                                            item.path ===
-                                            "/portfolio-Nales/admin/dashboard"
-                                        }
-                                        onClick={onClose}
-                                        title={item.label}
-                                    >
-                                        {({
-                                            isActive,
-                                        }) => (
-                                            <motion.div
-                                                whileHover={{
-                                                    x: 3,
-                                                }}
-                                                className={`sidebar-nav-item group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                                    isActive
-                                                        ? "bg-purple-500/15 text-purple-400"
-                                                        : "text-[var(--text)]/70 hover:bg-purple-500/10 hover:text-[var(--text)]"
-                                                }`}
-                                            >
-                                                <Icon
-                                                    size={18}
-                                                    className={`sidebar-nav-icon shrink-0 ${
+                                    return (
+                                        <NavLink
+                                            key={
+                                                item.path
+                                            }
+                                            to={
+                                                item.path
+                                            }
+                                            end={
+                                                item.path ===
+                                                "/portfolio-Nales/admin/dashboard"
+                                            }
+                                            onClick={
+                                                onClose
+                                            }
+                                            title={
+                                                item.label
+                                            }
+                                        >
+                                            {({
+                                                isActive,
+                                            }) => (
+                                                <motion.div
+                                                    whileHover={{
+                                                        x: 3,
+                                                    }}
+                                                    className={`sidebar-nav-item group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                                                         isActive
-                                                            ? "text-purple-400"
-                                                            : "text-[var(--muted)]"
+                                                            ? "bg-purple-500/15 text-purple-400"
+                                                            : "text-[var(--text)]/70 hover:bg-purple-500/10 hover:text-[var(--text)]"
                                                     }`}
-                                                />
+                                                >
+                                                    <Icon
+                                                        size={
+                                                            18
+                                                        }
+                                                        className={`sidebar-nav-icon shrink-0 ${
+                                                            isActive
+                                                                ? "text-purple-400"
+                                                                : "text-[var(--muted)]"
+                                                        }`}
+                                                    />
 
-                                                <span className="sidebar-nav-label truncate">
-                                                    {
-                                                        item.label
-                                                    }
-                                                </span>
-                                            </motion.div>
-                                        )}
-                                    </NavLink>
-                                );
-                            })}
+                                                    <span className="sidebar-nav-label truncate">
+                                                        {
+                                                            item.label
+                                                        }
+                                                    </span>
+                                                </motion.div>
+                                            )}
+                                        </NavLink>
+                                    );
+                                }
+                            )}
 
                         </div>
 
-                        {/* =================================================
-                            ACCOUNT
-                        ================================================== */}
+                        {/* WORK SYSTEM */}
+
+                        <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                            Work
+                        </p>
+
+                        <div className="space-y-1">
+
+                            <NavLink
+                                to="/portfolio-Nales/admin/worklist"
+                                onClick={onClose}
+                                title="Work List"
+                            >
+                                {({
+                                    isActive,
+                                }) => (
+                                    <div
+                                        className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                                            isActive
+                                                ? "bg-purple-500/15 text-purple-400"
+                                                : "text-[var(--text)]/70 hover:bg-purple-500/10"
+                                        }`}
+                                    >
+                                        <ClipboardList
+                                            size={18}
+                                            className={`sidebar-nav-icon shrink-0 ${
+                                                isActive
+                                                    ? "text-purple-400"
+                                                    : "text-[var(--muted)]"
+                                            }`}
+                                        />
+
+                                        <span className="sidebar-nav-label">
+                                            Work List
+                                        </span>
+                                    </div>
+                                )}
+                            </NavLink>
+
+                        </div>
+
+                        {/* ACCOUNT */}
 
                         <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
                             Account
                         </p>
 
                         <div className="space-y-1">
-
-                            {/* PROFILE */}
 
                             <NavLink
                                 to="/portfolio-Nales/admin/profile"
@@ -393,8 +436,6 @@ function AdminSidebar({ open, onClose }) {
                                     </div>
                                 )}
                             </NavLink>
-
-                            {/* SETTINGS */}
 
                             <NavLink
                                 to="/portfolio-Nales/admin/settings"
@@ -425,9 +466,7 @@ function AdminSidebar({ open, onClose }) {
 
                         </div>
 
-                        {/* =================================================
-                            SUPER ADMIN
-                        ================================================== */}
+                        {/* SUPER ADMIN */}
 
                         {isSuperAdmin && (
                             <>
@@ -436,8 +475,6 @@ function AdminSidebar({ open, onClose }) {
                                 </p>
 
                                 <div className="space-y-1">
-
-                                    {/* MANAGE ADMINS */}
 
                                     <NavLink
                                         to="/portfolio-Nales/admin/manage-admins"
@@ -469,8 +506,6 @@ function AdminSidebar({ open, onClose }) {
                                             </div>
                                         )}
                                     </NavLink>
-
-                                    {/* AUDIT LOGS */}
 
                                     <NavLink
                                         to="/portfolio-Nales/admin/audit-logs"
@@ -509,9 +544,7 @@ function AdminSidebar({ open, onClose }) {
 
                     </nav>
 
-                    {/* =================================================
-                        USER FOOTER
-                    ================================================== */}
+                    {/* FOOTER */}
 
                     <div className="sidebar-footer border-t border-[var(--border)] p-4">
 
@@ -545,9 +578,7 @@ function AdminSidebar({ open, onClose }) {
 
                 </div>
 
-                {/* =====================================================
-                    RESIZE HANDLE
-                ====================================================== */}
+                {/* RESIZE HANDLE */}
 
                 <div
                     onMouseDown={

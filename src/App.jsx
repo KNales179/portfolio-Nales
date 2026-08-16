@@ -14,11 +14,15 @@ import Contact from "./pages/Contact";
 
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Profile from "./pages/admin/Profile";
+
 import Security from "./pages/admin/settings/Security";
 import Settings from "./pages/admin/settings/Settings";
 import TrustedDevices from "./pages/admin/settings/TrustedDevices";
 import AccountSection from "./pages/admin/settings/AccountSection";
 import TwoFactor from "./pages/admin/settings/TwoFactor";
+
+import WorkList from "./pages/admin/worklist/WorkList";
+import WorkDetail from "./pages/admin/worklist/WorkDetail";
 
 import Login from "./pages/auth/Login";
 
@@ -87,6 +91,32 @@ function App() {
                             }
                         />
 
+                        {/* =========================================
+                            WORK SYSTEM
+                        ========================================= */}
+
+                        <Route
+                            path="/portfolio-Nales/admin/worklist"
+                            element={
+                                <ProtectedRoute>
+                                    <WorkList />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/portfolio-Nales/admin/worklist/:workId"
+                            element={
+                                <ProtectedRoute>
+                                    <WorkDetail />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* =========================================
+                            PROFILE
+                        ========================================= */}
+
                         <Route
                             path="/portfolio-Nales/admin/profile"
                             element={
@@ -95,6 +125,10 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* =========================================
+                            SETTINGS
+                        ========================================= */}
 
                         <Route
                             path="/portfolio-Nales/admin/settings"
