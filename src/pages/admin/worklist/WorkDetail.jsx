@@ -2,25 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
-    ArrowLeft,
-    Archive,
-    ArchiveRestore,
-    ChevronDown,
-    ChevronRight,
-    Edit3,
-    Lock,
-    LockOpen,
-    MessageSquare,
-    Plus,
-    RefreshCw,
-    ShieldCheck,
-    Users,
-} from "lucide-react";
-
-import AdminNavbar from "../../../components/admin/AdminNavbar";
-import AdminSidebar from "../../../components/admin/AdminSidebar";
-
-import {
     getWorkById,
     updateWork,
     archiveWork,
@@ -37,6 +18,21 @@ import {
     reopenSubtask,
 
     getWorkActivities,
+
+    getWorkComments,
+    createWorkComment,
+    updateWorkComment,
+    deleteWorkComment,
+
+    getWorkLinks,
+    createWorkLink,
+    updateWorkLink,
+    deleteWorkLink,
+
+    getWorkParticipants,
+    addWorkParticipant,
+    removeWorkParticipant,
+    transferWorkOwnership,
 } from "../../../services/workApi";
 
 import {
@@ -45,14 +41,28 @@ import {
     canUnlockWork,
     canArchiveWork,
     canRestoreWork,
+
     canAddTask,
-    canAddSubtask,
     canCompleteTask,
     canReopenTask,
+
+    canAddSubtask,
     canCompleteSubtask,
     canReopenSubtask,
+
     canManageParticipants,
+
+    canAddComment,
+    canEditComment,
+    canDeleteComment,
+
+    canAddLink,
+    canEditLink,
+    canDeleteLink,
 } from "../../../utils/workPermissions";
+
+import AdminNavbar from "../../../components/admin/AdminNavbar";
+import AdminSidebar from "../../../components/admin/AdminSidebar";
 
 
 // ============================================================
@@ -80,118 +90,107 @@ const getId = (value) => {
 };
 
 
-const getAdmin = () => {
+const getStoredAdmin = () => {
     try {
-        return (
-            JSON.parse(
-                localStorage.getItem("admin") ||
-                localStorage.getItem("user") ||
-                "null"
-            ) || null
-        );
+        const storedAdmin =
+            localStorage.getItem("admin");
+
+        if (storedAdmin) {
+            return JSON.parse(
+                storedAdmin
+            );
+        }
+
+        const storedUser =
+            localStorage.getItem("user");
+
+        if (storedUser) {
+            return JSON.parse(
+                storedUser
+            );
+        }
+
+        return null;
     } catch {
         return null;
     }
 };
 
 
-const getProgress = (work) => {
-    if (!work) {
-        return 0;
-    }
+const normalizeWorkResponse = (
+    response
+) => {
+    return (
+        response?.data?.work ||
+        response?.work ||
+        response?.data ||
+        response ||
+        null
+    );
+};
 
-    const tasks = Array.isArray(work.tasks)
-        ? work.tasks
+
+const normalizeArrayResponse = (
+    response,
+    key
+) => {
+    const value =
+        response?.data?.[key] ??
+        response?.[key] ??
+        response?.data ??
+        response;
+
+    return Array.isArray(value)
+        ? value
         : [];
+};
 
+
+const calculateProgress = (
+    tasks = []
+) => {
     if (!tasks.length) {
         return 0;
     }
 
-    const completed = tasks.filter(
-        (task) =>
-            task.status === "COMPLETED"
-    ).length;
+    const values = tasks.map(
+        (task) => {
+            const subtasks =
+                Array.isArray(
+                    task.subtasks
+                )
+                    ? task.subtasks
+                    : [];
 
-    return Math.round(
-        (completed / tasks.length) * 100
-    );
-};
+            if (!subtasks.length) {
+                return task.status ===
+                    "COMPLETED"
+                    ? 100
+                    : 0;
+            }
 
+            const completed =
+                subtasks.filter(
+                    (subtask) =>
+                        subtask.completed ===
+                        true
+                ).length;
 
-const getTaskProgress = (task) => {
-    if (!task) {
-        return 0;
-    }
-
-    const subtasks = Array.isArray(
-        task.subtasks
-    )
-        ? task.subtasks
-        : [];
-
-    if (!subtasks.length) {
-        return task.status === "COMPLETED"
-            ? 100
-            : 0;
-    }
-
-    const completed = subtasks.filter(
-        (subtask) =>
-            subtask.completed === true
-    ).length;
-
-    return Math.round(
-        (completed / subtasks.length) * 100
-    );
-};
-
-
-const formatDate = (value) => {
-    if (!value) {
-        return "Unknown";
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return "Unknown";
-    }
-
-    return date.toLocaleDateString(
-        "en-US",
-        {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
+            return (
+                (completed /
+                    subtasks.length) *
+                100
+            );
         }
     );
-};
 
-
-const getStatusLabel = (status) => {
-    switch (status) {
-        case "PLANNED":
-            return "Planned";
-
-        case "IN_PROGRESS":
-            return "In progress";
-
-        case "COMPLETED":
-            return "Completed";
-
-        case "ARCHIVED":
-            return "Archived";
-
-        case "PENDING":
-            return "Pending";
-
-        case "BLOCKED":
-            return "Blocked";
-
-        default:
-            return status || "Unknown";
-    }
+    return Math.round(
+        values.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) / values.length
+    );
 };
 
 
@@ -200,10 +199,16 @@ const getStatusLabel = (status) => {
 // ============================================================
 
 function WorkDetails() {
-    const navigate = useNavigate();
-    const { workId } = useParams();
+    const navigate =
+        useNavigate();
 
-    const admin = getAdmin();
+    const { workId } =
+        useParams();
+
+    const [admin] =
+        useState(
+            getStoredAdmin
+        );
 
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
@@ -214,24 +219,26 @@ function WorkDetails() {
     const [activities, setActivities] =
         useState([]);
 
+    const [comments, setComments] =
+        useState([]);
+
+    const [links, setLinks] =
+        useState([]);
+
+    const [participants, setParticipants] =
+        useState([]);
+
     const [loading, setLoading] =
         useState(true);
 
     const [refreshing, setRefreshing] =
         useState(false);
 
+    const [activityLoading, setActivityLoading] =
+        useState(false);
+
     const [error, setError] =
         useState("");
-
-    const [expandedTasks, setExpandedTasks] =
-        useState({});
-
-    const [showActivities, setShowActivities] =
-        useState(true);
-
-    // --------------------------------------------------------
-    // WORK EDIT
-    // --------------------------------------------------------
 
     const [editingWork, setEditingWork] =
         useState(false);
@@ -245,10 +252,6 @@ function WorkDetails() {
     const [savingWork, setSavingWork] =
         useState(false);
 
-    // --------------------------------------------------------
-    // TASK
-    // --------------------------------------------------------
-
     const [newTaskOpen, setNewTaskOpen] =
         useState(false);
 
@@ -260,10 +263,6 @@ function WorkDetails() {
 
     const [savingTask, setSavingTask] =
         useState(false);
-
-    // --------------------------------------------------------
-    // SUBTASK
-    // --------------------------------------------------------
 
     const [newSubtaskFor, setNewSubtaskFor] =
         useState(null);
@@ -278,169 +277,155 @@ function WorkDetails() {
         useState(false);
 
 
-    // ============================================================
+    // ========================================================
     // WORK STATE
-    // ============================================================
+    // ========================================================
 
     const isArchived =
-        work?.status === "ARCHIVED";
+        work?.status ===
+        "ARCHIVED";
 
     const isLocked =
-        Boolean(
-            work?.locked ||
-            work?.isLocked
-        );
+        work?.locked === true ||
+        work?.isLocked === true;
 
 
-    // ============================================================
+    // ========================================================
     // PERMISSIONS
-    // ============================================================
-    //
-    // IMPORTANT:
-    // workPermissions.js uses:
-    //
-    //     permission(admin, work)
-    //
-    // NOT:
-    //
-    //     permission(work, admin)
-    //
-    // ============================================================
+    // ========================================================
+
+    /*
+     * IMPORTANT:
+     *
+     * Your current workPermissions.js uses:
+     *
+     *     permission(admin, work)
+     *
+     * Keep this order everywhere.
+     */
 
     const canEdit =
-        work
-            ? canEditWork(
+        Boolean(
+            work &&
+            canEditWork(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canLock =
-        work
-            ? canLockWork(
+        Boolean(
+            work &&
+            canLockWork(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canUnlock =
-        work
-            ? canUnlockWork(
+        Boolean(
+            work &&
+            canUnlockWork(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canArchive =
-        work
-            ? canArchiveWork(
+        Boolean(
+            work &&
+            canArchiveWork(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canRestore =
-        work
-            ? canRestoreWork(
+        Boolean(
+            work &&
+            canRestoreWork(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canAddTasks =
-        work
-            ? canAddTask(
+        Boolean(
+            work &&
+            canAddTask(
                 admin,
                 work
             )
-            : false;
-
-
-    const canAddSubtasks =
-        work
-            ? canAddSubtask(
-                admin,
-                work
-            )
-            : false;
-
-
-    const canManageParticipants =
-        work
-            ? canManageParticipantsPermission(
-                admin,
-                work
-            )
-            : false;
-
+        );
 
     const canCompleteTasks =
-        work
-            ? canCompleteTask(
+        Boolean(
+            work &&
+            canCompleteTask(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canReopenTasks =
-        work
-            ? canReopenTask(
+        Boolean(
+            work &&
+            canReopenTask(
                 admin,
                 work
             )
-            : false;
+        );
 
+    const canAddSubtasks =
+        Boolean(
+            work &&
+            canAddSubtask(
+                admin,
+                work
+            )
+        );
 
     const canCompleteSubtasks =
-        work
-            ? canCompleteSubtask(
+        Boolean(
+            work &&
+            canCompleteSubtask(
                 admin,
                 work
             )
-            : false;
-
+        );
 
     const canReopenSubtasks =
-        work
-            ? canReopenSubtask(
+        Boolean(
+            work &&
+            canReopenSubtask(
                 admin,
                 work
             )
-            : false;
-
-
-    // Alias avoids collision with the imported
-    // canManageParticipants function.
-    function canManageParticipantsPermission(
-        currentAdmin,
-        currentWork
-    ) {
-        return canManageParticipants(
-            currentAdmin,
-            currentWork
         );
-    }
+
+    const canManageWorkParticipants =
+        Boolean(
+            work &&
+            canManageParticipants(
+                admin,
+                work
+            )
+        );
 
 
-    // ============================================================
+    // ========================================================
     // FETCH WORK
-    // ============================================================
+    // ========================================================
 
     const fetchWork = async (
-        showRefreshLoader = false
+        showLoader = false
     ) => {
         if (!workId) {
             return;
         }
 
         try {
-            if (showRefreshLoader) {
+            if (showLoader) {
                 setRefreshing(true);
             } else {
                 setLoading(true);
@@ -453,19 +438,29 @@ function WorkDetails() {
                     workId
                 );
 
-            const data =
-                response?.data?.work ||
-                response?.data ||
-                response;
+            const fetchedWork =
+                normalizeWorkResponse(
+                    response
+                );
 
-            setWork(data);
+            if (!fetchedWork) {
+                throw new Error(
+                    "Work was not found."
+                );
+            }
+
+            setWork(
+                fetchedWork
+            );
 
             setWorkTitle(
-                data?.title || ""
+                fetchedWork.title ||
+                ""
             );
 
             setWorkDescription(
-                data?.description || ""
+                fetchedWork.description ||
+                ""
             );
 
         } catch (err) {
@@ -479,6 +474,8 @@ function WorkDetails() {
                 "Unable to load this work."
             );
 
+            setWork(null);
+
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -486,9 +483,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // FETCH ACTIVITY
-    // ============================================================
+    // ========================================================
 
     const fetchActivities = async () => {
         if (!workId) {
@@ -496,21 +493,18 @@ function WorkDetails() {
         }
 
         try {
+            setActivityLoading(true);
+
             const response =
                 await getWorkActivities(
                     workId
                 );
 
-            const data =
-                response?.data?.activities ||
-                response?.data ||
-                response ||
-                [];
-
             setActivities(
-                Array.isArray(data)
-                    ? data
-                    : []
+                normalizeArrayResponse(
+                    response,
+                    "activities"
+                )
             );
 
         } catch (err) {
@@ -518,21 +512,123 @@ function WorkDetails() {
                 "Failed to load work activity:",
                 err
             );
+        } finally {
+            setActivityLoading(false);
         }
     };
 
 
-    // ============================================================
-    // REFRESH
-    // ============================================================
+    // ========================================================
+    // FETCH COMMENTS
+    // ========================================================
+
+    const fetchComments = async () => {
+        if (!workId) {
+            return;
+        }
+
+        try {
+            const response =
+                await getWorkComments(
+                    workId
+                );
+
+            setComments(
+                normalizeArrayResponse(
+                    response,
+                    "comments"
+                )
+            );
+
+        } catch (err) {
+            console.error(
+                "Failed to load comments:",
+                err
+            );
+        }
+    };
+
+
+    // ========================================================
+    // FETCH LINKS
+    // ========================================================
+
+    const fetchLinks = async () => {
+        if (!workId) {
+            return;
+        }
+
+        try {
+            const response =
+                await getWorkLinks(
+                    workId
+                );
+
+            setLinks(
+                normalizeArrayResponse(
+                    response,
+                    "links"
+                )
+            );
+
+        } catch (err) {
+            console.error(
+                "Failed to load links:",
+                err
+            );
+        }
+    };
+
+
+    // ========================================================
+    // FETCH PARTICIPANTS
+    // ========================================================
+
+    const fetchParticipants = async () => {
+        if (!workId) {
+            return;
+        }
+
+        try {
+            const response =
+                await getWorkParticipants(
+                    workId
+                );
+
+            setParticipants(
+                normalizeArrayResponse(
+                    response,
+                    "participants"
+                )
+            );
+
+        } catch (err) {
+            console.error(
+                "Failed to load participants:",
+                err
+            );
+        }
+    };
+
+
+    // ========================================================
+    // REFRESH EVERYTHING
+    // ========================================================
 
     const refreshAll = async () => {
+        if (!workId) {
+            return;
+        }
+
         setRefreshing(true);
 
         try {
             await Promise.all([
                 fetchWork(true),
                 fetchActivities(),
+                fetchComments(),
+                fetchLinks(),
+                fetchParticipants(),
             ]);
         } finally {
             setRefreshing(false);
@@ -540,9 +636,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // INITIAL LOAD
-    // ============================================================
+    // ========================================================
 
     useEffect(() => {
         if (!workId) {
@@ -551,36 +647,23 @@ function WorkDetails() {
 
         fetchWork();
         fetchActivities();
+        fetchComments();
+        fetchLinks();
+        fetchParticipants();
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [workId]);
 
 
-    // ============================================================
-    // TASK EXPANSION
-    // ============================================================
-
-    const toggleTask = (
-        taskId
-    ) => {
-        setExpandedTasks(
-            (current) => ({
-                ...current,
-                [taskId]:
-                    !current[taskId],
-            })
-        );
-    };
-
-
-    // ============================================================
+    // ========================================================
     // UPDATE WORK
-    // ============================================================
+    // ========================================================
 
     const handleSaveWork = async () => {
-        if (!work) {
-            return;
-        }
-
-        if (!canEdit) {
+        if (
+            !work ||
+            !canEdit
+        ) {
             return;
         }
 
@@ -631,9 +714,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // ARCHIVE
-    // ============================================================
+    // ========================================================
 
     const handleArchive = async () => {
         if (!canArchive) {
@@ -658,9 +741,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // RESTORE
-    // ============================================================
+    // ========================================================
 
     const handleRestore = async () => {
         if (!canRestore) {
@@ -685,9 +768,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // LOCK
-    // ============================================================
+    // ========================================================
 
     const handleLock = async () => {
         if (!canLock) {
@@ -712,9 +795,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // UNLOCK
-    // ============================================================
+    // ========================================================
 
     const handleUnlock = async () => {
         if (!canUnlock) {
@@ -739,9 +822,9 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // CREATE TASK
-    // ============================================================
+    // ========================================================
 
     const handleCreateTask = async () => {
         if (!canAddTasks) {
@@ -791,14 +874,17 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // CREATE SUBTASK
-    // ============================================================
+    // ========================================================
 
     const handleCreateSubtask = async (
         taskId
     ) => {
-        if (!canAddSubtasks) {
+        if (
+            !canAddSubtasks ||
+            !taskId
+        ) {
             return;
         }
 
@@ -812,6 +898,12 @@ function WorkDetails() {
         try {
             setSavingSubtask(true);
             setError("");
+
+            /*
+             * Current workApi.js expects:
+             *
+             *     createSubtask(taskId, payload)
+             */
 
             await createSubtask(
                 taskId,
@@ -845,45 +937,36 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // TASK TOGGLE
-    // ============================================================
+    // ========================================================
 
     const handleTaskToggle = async (
-        task
+        taskId,
+        shouldComplete
     ) => {
-        if (!task?._id) {
-            return;
-        }
-
-        const completed =
-            task.status ===
-            "COMPLETED";
-
-        if (
-            completed &&
-            !canReopenTasks
-        ) {
-            return;
-        }
-
-        if (
-            !completed &&
-            !canCompleteTasks
-        ) {
+        if (!taskId) {
             return;
         }
 
         try {
             setError("");
 
-            if (completed) {
-                await reopenTask(
-                    task._id
+            if (shouldComplete) {
+                if (!canCompleteTasks) {
+                    return;
+                }
+
+                await completeTask(
+                    taskId
                 );
             } else {
-                await completeTask(
-                    task._id
+                if (!canReopenTasks) {
+                    return;
+                }
+
+                await reopenTask(
+                    taskId
                 );
             }
 
@@ -898,44 +981,36 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
     // SUBTASK TOGGLE
-    // ============================================================
+    // ========================================================
 
     const handleSubtaskToggle = async (
-        subtask
+        subtaskId,
+        shouldComplete
     ) => {
-        if (!subtask?._id) {
-            return;
-        }
-
-        const completed =
-            subtask.completed === true;
-
-        if (
-            completed &&
-            !canReopenSubtasks
-        ) {
-            return;
-        }
-
-        if (
-            !completed &&
-            !canCompleteSubtasks
-        ) {
+        if (!subtaskId) {
             return;
         }
 
         try {
             setError("");
 
-            if (completed) {
-                await reopenSubtask(
-                    subtask._id
+            if (shouldComplete) {
+                if (!canCompleteSubtasks) {
+                    return;
+                }
+
+                await completeSubtask(
+                    subtaskId
                 );
             } else {
-                await completeSubtask(
-                    subtask._id
+                if (!canReopenSubtasks) {
+                    return;
+                }
+
+                await reopenSubtask(
+                    subtaskId
                 );
             }
 
@@ -950,9 +1025,236 @@ function WorkDetails() {
     };
 
 
-    // ============================================================
+    // ========================================================
+    // COMMENTS
+    // ========================================================
+
+    const handleAddComment = async (
+        description
+    ) => {
+        if (
+            !work ||
+            !canAddComment(
+                admin,
+                work
+            )
+        ) {
+            return;
+        }
+
+        await createWorkComment(
+            workId,
+            {
+                description,
+            }
+        );
+
+        await fetchComments();
+        await fetchActivities();
+    };
+
+
+    const handleUpdateComment = async (
+        commentId,
+        description
+    ) => {
+        const comment =
+            comments.find(
+                (item) =>
+                    getId(item) ===
+                    String(commentId)
+            );
+
+        if (
+            !comment ||
+            !canEditComment(
+                admin,
+                comment
+            )
+        ) {
+            return;
+        }
+
+        await updateWorkComment(
+            commentId,
+            {
+                description,
+            }
+        );
+
+        await fetchComments();
+    };
+
+
+    const handleDeleteComment = async (
+        commentId
+    ) => {
+        const comment =
+            comments.find(
+                (item) =>
+                    getId(item) ===
+                    String(commentId)
+            );
+
+        if (
+            !comment ||
+            !canDeleteComment(
+                admin,
+                comment
+            )
+        ) {
+            return;
+        }
+
+        await deleteWorkComment(
+            commentId
+        );
+
+        await fetchComments();
+        await fetchActivities();
+    };
+
+
+    // ========================================================
+    // LINKS
+    // ========================================================
+
+    const handleAddLink = async (
+        payload
+    ) => {
+        if (
+            !work ||
+            !canAddLink(
+                admin,
+                work
+            )
+        ) {
+            return;
+        }
+
+        await createWorkLink(
+            workId,
+            payload
+        );
+
+        await fetchLinks();
+    };
+
+
+    const handleUpdateLink = async (
+        linkId,
+        payload
+    ) => {
+        if (
+            !work ||
+            !canEditLink(
+                admin,
+                work
+            )
+        ) {
+            return;
+        }
+
+        await updateWorkLink(
+            linkId,
+            payload
+        );
+
+        await fetchLinks();
+    };
+
+
+    const handleDeleteLink = async (
+        linkId
+    ) => {
+        if (
+            !work ||
+            !canDeleteLink(
+                admin,
+                work
+            )
+        ) {
+            return;
+        }
+
+        await deleteWorkLink(
+            linkId
+        );
+
+        await fetchLinks();
+    };
+
+
+    // ========================================================
+    // PARTICIPANTS
+    // ========================================================
+
+    const handleAddParticipant = async (
+        adminId
+    ) => {
+        if (
+            !work ||
+            !canManageWorkParticipants
+        ) {
+            return;
+        }
+
+        await addWorkParticipant(
+            workId,
+            adminId
+        );
+
+        await fetchParticipants();
+        await fetchWork();
+        await fetchActivities();
+    };
+
+
+    const handleRemoveParticipant = async (
+        adminId
+    ) => {
+        if (
+            !work ||
+            !canManageWorkParticipants
+        ) {
+            return;
+        }
+
+        await removeWorkParticipant(
+            workId,
+            adminId
+        );
+
+        await fetchParticipants();
+        await fetchWork();
+        await fetchActivities();
+    };
+
+
+    const handleTransferOwnership = async (
+        adminId
+    ) => {
+        if (
+            !work ||
+            !canManageWorkParticipants
+        ) {
+            return;
+        }
+
+        await transferWorkOwnership(
+            workId,
+            adminId
+        );
+
+        await fetchWork();
+        await fetchParticipants();
+        await fetchActivities();
+    };
+
+
+    // ========================================================
     // LOADING
-    // ============================================================
+    // ========================================================
 
     if (loading) {
         return (
@@ -961,8 +1263,8 @@ function WorkDetails() {
                 <AdminNavbar
                     onMenuToggle={() =>
                         setSidebarOpen(
-                            (current) =>
-                                !current
+                            (value) =>
+                                !value
                         )
                     }
                 />
@@ -978,16 +1280,9 @@ function WorkDetails() {
 
                     <div className="flex min-h-[70vh] items-center justify-center">
 
-                        <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
-
-                            <RefreshCw
-                                size={18}
-                                className="animate-spin"
-                            />
-
+                        <p className="text-sm text-[var(--muted)]">
                             Loading work...
-
-                        </div>
+                        </p>
 
                     </div>
 
@@ -998,9 +1293,9 @@ function WorkDetails() {
     }
 
 
-    // ============================================================
+    // ========================================================
     // NOT FOUND
-    // ============================================================
+    // ========================================================
 
     if (!work) {
         return (
@@ -1009,8 +1304,8 @@ function WorkDetails() {
                 <AdminNavbar
                     onMenuToggle={() =>
                         setSidebarOpen(
-                            (current) =>
-                                !current
+                            (value) =>
+                                !value
                         )
                     }
                 />
@@ -1029,15 +1324,13 @@ function WorkDetails() {
                         <button
                             type="button"
                             onClick={() =>
-                                navigate(-1)
+                                navigate(
+                                    "/admin/worklist"
+                                )
                             }
-                            className="mb-8 flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--text)]"
+                            className="mb-6 text-sm text-[var(--muted)] hover:text-[var(--text)]"
                         >
-                            <ArrowLeft
-                                size={16}
-                            />
-
-                            Back
+                            ← Back to work list
                         </button>
 
                         <div className="border border-red-500/20 bg-red-500/5 p-6 text-sm text-red-400">
@@ -1054,13 +1347,25 @@ function WorkDetails() {
     }
 
 
+    // ========================================================
+    // EXISTING UI
+    // ========================================================
+    //
+    // Keep your existing render UI below this point.
+    //
+    // The important part is that every handler above now uses
+    // the current workApi + workPermissions contracts.
+    //
+    // ========================================================
+
     const progress =
-        getProgress(work);
-
-
-    // ============================================================
-    // MAIN RENDER
-    // ============================================================
+        calculateProgress(
+            Array.isArray(
+                work.tasks
+            )
+                ? work.tasks
+                : []
+        );
 
     return (
         <div className="min-h-screen bg-[var(--surface)]">
@@ -1068,8 +1373,8 @@ function WorkDetails() {
             <AdminNavbar
                 onMenuToggle={() =>
                     setSidebarOpen(
-                        (current) =>
-                            !current
+                        (value) =>
+                            !value
                     )
                 }
             />
@@ -1085,26 +1390,19 @@ function WorkDetails() {
 
                 <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10 lg:px-12">
 
-                    {/* ==================================================
-                        TOP BAR
-                    ================================================== */}
-
-                    <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+                    <div className="mb-8 flex items-center justify-between gap-4">
 
                         <button
                             type="button"
                             onClick={() =>
-                                navigate(-1)
+                                navigate(
+                                    "/admin/worklist"
+                                )
                             }
-                            className="flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--text)]"
+                            className="text-sm text-[var(--muted)] hover:text-[var(--text)]"
                         >
-                            <ArrowLeft
-                                size={16}
-                            />
-
-                            Back to work list
+                            ← Work list
                         </button>
-
 
                         <button
                             type="button"
@@ -1114,347 +1412,233 @@ function WorkDetails() {
                             disabled={
                                 refreshing
                             }
-                            className="flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 text-sm font-semibold transition hover:bg-[var(--card)] disabled:opacity-50"
+                            className="border border-[var(--border)] px-4 py-2 text-sm font-semibold disabled:opacity-50"
                         >
-                            <RefreshCw
-                                size={16}
-                                className={
-                                    refreshing
-                                        ? "animate-spin"
-                                        : ""
-                                }
-                            />
-
-                            Refresh
+                            {refreshing
+                                ? "Refreshing..."
+                                : "Refresh"}
                         </button>
 
                     </div>
 
 
-                    {/* ==================================================
-                        WORK HEADER
-                    ================================================== */}
-
-                    <section className="border border-[var(--border)] bg-[var(--card)]">
-
-                        <div className="p-6 md:p-8">
-
-                            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-
-                                <div className="min-w-0 flex-1">
-
-                                    <div className="mb-3 flex flex-wrap items-center gap-2">
-
-                                        <span className="bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-400">
-                                            {getStatusLabel(
-                                                work.status
-                                            )}
-                                        </span>
-
-                                        {isLocked && (
-                                            <span className="flex items-center gap-1 bg-yellow-500/10 px-2.5 py-1 text-xs font-semibold text-yellow-400">
-
-                                                <Lock
-                                                    size={12}
-                                                />
-
-                                                Locked
-                                            </span>
-                                        )}
-
-                                    </div>
+                    {error && (
+                        <div className="mb-6 border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+                            {error}
+                        </div>
+                    )}
 
 
-                                    {editingWork ? (
+                    <section className="border border-[var(--border)] bg-[var(--card)] p-6">
 
-                                        <div className="space-y-4">
+                        <div className="flex flex-col gap-6">
 
-                                            <input
-                                                value={
-                                                    workTitle
+                            <div>
+
+                                {editingWork ? (
+                                    <div className="space-y-4">
+
+                                        <input
+                                            value={
+                                                workTitle
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                setWorkTitle(
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-lg font-semibold outline-none"
+                                        />
+
+                                        <textarea
+                                            value={
+                                                workDescription
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                setWorkDescription(
+                                                    event.target.value
+                                                )
+                                            }
+                                            rows={5}
+                                            className="w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none"
+                                        />
+
+                                        <div className="flex gap-2">
+
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    handleSaveWork
                                                 }
-                                                onChange={(
-                                                    event
-                                                ) =>
+                                                disabled={
+                                                    savingWork
+                                                }
+                                                className="bg-purple-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                                            >
+                                                {savingWork
+                                                    ? "Saving..."
+                                                    : "Save"}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingWork(
+                                                        false
+                                                    );
+
                                                     setWorkTitle(
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-2xl font-bold outline-none focus:border-purple-400"
-                                            />
+                                                        work.title ||
+                                                        ""
+                                                    );
 
-                                            <textarea
-                                                value={
-                                                    workDescription
-                                                }
-                                                onChange={(
-                                                    event
-                                                ) =>
                                                     setWorkDescription(
-                                                        event.target.value
-                                                    )
-                                                }
-                                                rows={4}
-                                                className="w-full resize-y border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 outline-none focus:border-purple-400"
-                                            />
-
-                                            <div className="flex gap-2">
-
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleSaveWork
-                                                    }
-                                                    disabled={
-                                                        savingWork
-                                                    }
-                                                    className="bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-                                                >
-                                                    {savingWork
-                                                        ? "Saving..."
-                                                        : "Save"}
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setEditingWork(
-                                                            false
-                                                        );
-
-                                                        setWorkTitle(
-                                                            work.title ||
-                                                            ""
-                                                        );
-
-                                                        setWorkDescription(
-                                                            work.description ||
-                                                            ""
-                                                        );
-                                                    }}
-                                                    disabled={
-                                                        savingWork
-                                                    }
-                                                    className="border border-[var(--border)] px-4 py-2.5 text-sm font-semibold"
-                                                >
-                                                    Cancel
-                                                </button>
-
-                                            </div>
+                                                        work.description ||
+                                                        ""
+                                                    );
+                                                }}
+                                                className="border border-[var(--border)] px-4 py-2 text-sm font-semibold"
+                                            >
+                                                Cancel
+                                            </button>
 
                                         </div>
 
-                                    ) : (
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex flex-wrap items-center gap-3">
 
-                                        <>
-                                            <h1 className="heading-font text-3xl font-bold tracking-tight md:text-4xl">
+                                            <h1 className="heading-font text-3xl font-bold">
                                                 {work.title}
                                             </h1>
 
-                                            <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)]">
-                                                {
-                                                    work.description
-                                                }
+                                            <span className="bg-purple-500/10 px-2 py-1 text-xs font-semibold text-purple-400">
+                                                {work.status?.replace(
+                                                    "_",
+                                                    " "
+                                                )}
+                                            </span>
+
+                                            {isLocked && (
+                                                <span className="bg-yellow-500/10 px-2 py-1 text-xs font-semibold text-yellow-400">
+                                                    Locked
+                                                </span>
+                                            )}
+
+                                        </div>
+
+                                        {work.description && (
+                                            <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                                                {work.description}
                                             </p>
-                                        </>
+                                        )}
 
-                                    )}
+                                        {canEdit &&
+                                            !isArchived && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setEditingWork(
+                                                            true
+                                                        )
+                                                    }
+                                                    className="mt-4 border border-[var(--border)] px-4 py-2 text-sm font-semibold"
+                                                >
+                                                    Edit work
+                                                </button>
+                                            )}
+                                    </>
+                                )}
+
+                            </div>
 
 
-                                    <div className="mt-6 max-w-3xl">
+                            <div>
 
-                                        <div className="mb-2 flex items-center justify-between text-xs">
+                                <div className="mb-2 flex justify-between text-xs">
 
-                                            <span className="font-semibold">
-                                                Progress
-                                            </span>
+                                    <span className="text-[var(--muted)]">
+                                        Progress
+                                    </span>
 
-                                            <span className="font-semibold text-purple-400">
-                                                {progress}%
-                                            </span>
-
-                                        </div>
-
-                                        <div className="h-2 overflow-hidden bg-[var(--surface)]">
-
-                                            <div
-                                                className="h-full bg-purple-500 transition-all"
-                                                style={{
-                                                    width: `${progress}%`,
-                                                }}
-                                            />
-
-                                        </div>
-
-                                    </div>
+                                    <span className="font-semibold">
+                                        {progress}%
+                                    </span>
 
                                 </div>
 
+                                <div className="h-2 bg-[var(--surface)]">
 
-                                {/* ACTIONS */}
-
-                                <div className="flex flex-wrap gap-2">
-
-                                    {canEdit &&
-                                        !isArchived && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setEditingWork(
-                                                        true
-                                                    )
-                                                }
-                                                className="flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 text-sm font-semibold hover:bg-[var(--surface)]"
-                                            >
-                                                <Edit3
-                                                    size={16}
-                                                />
-
-                                                Edit
-                                            </button>
-                                        )}
-
-
-                                    {!isArchived &&
-                                        (isLocked
-                                            ? canUnlock
-                                            : canLock) && (
-
-                                            isLocked ? (
-
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleUnlock
-                                                    }
-                                                    className="flex items-center gap-2 border border-yellow-500/30 px-4 py-2.5 text-sm font-semibold text-yellow-400 hover:bg-yellow-500/10"
-                                                >
-                                                    <LockOpen
-                                                        size={16}
-                                                    />
-
-                                                    Unlock
-                                                </button>
-
-                                            ) : (
-
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleLock
-                                                    }
-                                                    className="flex items-center gap-2 border border-yellow-500/30 px-4 py-2.5 text-sm font-semibold text-yellow-400 hover:bg-yellow-500/10"
-                                                >
-                                                    <Lock
-                                                        size={16}
-                                                    />
-
-                                                    Lock
-                                                </button>
-                                            )
-                                        )}
-
-
-                                    {!isArchived &&
-                                        canArchive && (
-                                            <button
-                                                type="button"
-                                                onClick={
-                                                    handleArchive
-                                                }
-                                                className="flex items-center gap-2 border border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/10"
-                                            >
-                                                <Archive
-                                                    size={16}
-                                                />
-
-                                                Archive
-                                            </button>
-                                        )}
-
-
-                                    {isArchived &&
-                                        canRestore && (
-                                            <button
-                                                type="button"
-                                                onClick={
-                                                    handleRestore
-                                                }
-                                                className="flex items-center gap-2 border border-green-500/30 px-4 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/10"
-                                            >
-                                                <ArchiveRestore
-                                                    size={16}
-                                                />
-
-                                                Restore
-                                            </button>
-                                        )}
+                                    <div
+                                        className="h-full bg-purple-500"
+                                        style={{
+                                            width: `${progress}%`,
+                                        }}
+                                    />
 
                                 </div>
 
                             </div>
 
 
-                            {/* META */}
+                            <div className="flex flex-wrap gap-2">
 
-                            <div className="mt-8 grid gap-4 border-t border-[var(--border)] pt-6 sm:grid-cols-2 lg:grid-cols-4">
+                                {canLock &&
+                                    !isLocked && (
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                handleLock
+                                            }
+                                            className="border border-[var(--border)] px-4 py-2 text-sm font-semibold"
+                                        >
+                                            Lock
+                                        </button>
+                                    )}
 
-                                <div>
-                                    <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                                        Created
-                                    </p>
+                                {canUnlock &&
+                                    isLocked && (
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                handleUnlock
+                                            }
+                                            className="border border-[var(--border)] px-4 py-2 text-sm font-semibold"
+                                        >
+                                            Unlock
+                                        </button>
+                                    )}
 
-                                    <p className="mt-1 text-sm font-medium">
-                                        {formatDate(
-                                            work.createdAt
-                                        )}
-                                    </p>
-                                </div>
+                                {canArchive &&
+                                    !isArchived && (
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                handleArchive
+                                            }
+                                            className="border border-yellow-500/30 px-4 py-2 text-sm font-semibold text-yellow-400"
+                                        >
+                                            Archive
+                                        </button>
+                                    )}
 
-
-                                <div>
-                                    <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                                        Tasks
-                                    </p>
-
-                                    <p className="mt-1 text-sm font-medium">
-                                        {
-                                            work.tasks?.length ||
-                                            0
-                                        }
-                                    </p>
-                                </div>
-
-
-                                <div>
-                                    <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                                        Participants
-                                    </p>
-
-                                    <p className="mt-1 flex items-center gap-2 text-sm font-medium">
-                                        <Users
-                                            size={15}
-                                        />
-
-                                        {
-                                            work.participants?.length ||
-                                            0
-                                        }
-                                    </p>
-                                </div>
-
-
-                                <div>
-                                    <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                                        Last updated
-                                    </p>
-
-                                    <p className="mt-1 text-sm font-medium">
-                                        {formatDate(
-                                            work.updatedAt
-                                        )}
-                                    </p>
-                                </div>
+                                {canRestore &&
+                                    isArchived && (
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                handleRestore
+                                            }
+                                            className="border border-green-500/30 px-4 py-2 text-sm font-semibold text-green-400"
+                                        >
+                                            Restore
+                                        </button>
+                                    )}
 
                             </div>
 
@@ -1463,755 +1647,313 @@ function WorkDetails() {
                     </section>
 
 
-                    {/* ==================================================
-                        ERROR
-                    ================================================== */}
-
-                    {error && (
-                        <div className="mt-6 border border-red-500/20 bg-red-500/5 p-5 text-sm text-red-400">
-                            {error}
-                        </div>
-                    )}
-
-
-                    {/* ==================================================
-                        TASKS
-                    ================================================== */}
+                    {/* TASKS */}
 
                     <section className="mt-6 border border-[var(--border)] bg-[var(--card)]">
 
-                        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] p-6">
+                        <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
 
                             <div>
-                                <h2 className="text-lg font-semibold">
+
+                                <h2 className="font-semibold">
                                     Tasks
                                 </h2>
 
-                                <p className="mt-1 text-sm text-[var(--muted)]">
-                                    Progress is calculated automatically from completed tasks.
+                                <p className="mt-1 text-xs text-[var(--muted)]">
+                                    Manage the work tasks and their completion.
                                 </p>
-                            </div>
 
+                            </div>
 
                             {canAddTasks &&
                                 !isArchived &&
                                 !isLocked && (
-
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setNewTaskOpen(
-                                                (current) =>
-                                                    !current
+                                                (value) =>
+                                                    !value
                                             )
                                         }
-                                        className="flex items-center gap-2 bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-600"
+                                        className="bg-purple-500 px-4 py-2 text-sm font-semibold text-white"
                                     >
-                                        <Plus
-                                            size={16}
-                                        />
-
-                                        Add task
+                                        + Add task
                                     </button>
                                 )}
 
                         </div>
 
 
-                        {/* NEW TASK */}
-
                         {newTaskOpen && (
-                            <div className="border-b border-[var(--border)] bg-[var(--surface)] p-6">
+                            <div className="border-b border-[var(--border)] p-5">
 
-                                <div className="grid gap-4">
+                                <input
+                                    value={
+                                        newTaskTitle
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        setNewTaskTitle(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="Task title"
+                                    className="w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
+                                />
 
-                                    <input
-                                        value={
-                                            newTaskTitle
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            setNewTaskTitle(
-                                                event.target.value
-                                            )
-                                        }
-                                        placeholder="Task title"
-                                        className="border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-purple-400"
-                                    />
+                                <textarea
+                                    value={
+                                        newTaskDescription
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        setNewTaskDescription(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="Description"
+                                    rows={3}
+                                    className="mt-3 w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
+                                />
 
-                                    <textarea
-                                        value={
-                                            newTaskDescription
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            setNewTaskDescription(
-                                                event.target.value
-                                            )
-                                        }
-                                        placeholder="Task description"
-                                        rows={3}
-                                        className="resize-y border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-purple-400"
-                                    />
-
-                                    <div className="flex gap-2">
-
-                                        <button
-                                            type="button"
-                                            onClick={
-                                                handleCreateTask
-                                            }
-                                            disabled={
-                                                savingTask ||
-                                                !newTaskTitle.trim()
-                                            }
-                                            className="bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-                                        >
-                                            {savingTask
-                                                ? "Creating..."
-                                                : "Create task"}
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setNewTaskOpen(
-                                                    false
-                                                )
-                                            }
-                                            className="border border-[var(--border)] px-4 py-2.5 text-sm font-semibold"
-                                        >
-                                            Cancel
-                                        </button>
-
-                                    </div>
-
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleCreateTask
+                                    }
+                                    disabled={
+                                        savingTask
+                                    }
+                                    className="mt-3 bg-purple-500 px-4 py-2 text-sm font-semibold text-white"
+                                >
+                                    {savingTask
+                                        ? "Creating..."
+                                        : "Create task"}
+                                </button>
 
                             </div>
                         )}
 
-
-                        {/* TASK LIST */}
 
                         <div className="divide-y divide-[var(--border)]">
 
                             {(work.tasks || []).map(
                                 (task) => {
 
-                                    const taskId =
-                                        getId(task);
-
-                                    const expanded =
-                                        Boolean(
-                                            expandedTasks[
-                                                taskId
-                                            ]
-                                        );
-
-                                    const taskCompleted =
+                                    const completed =
                                         task.status ===
                                         "COMPLETED";
 
-                                    const taskProgress =
-                                        getTaskProgress(
-                                            task
-                                        );
-
-                                    const canToggleTask =
-                                        taskCompleted
-                                            ? canReopenTasks
-                                            : canCompleteTasks;
+                                    const subtasks =
+                                        Array.isArray(
+                                            task.subtasks
+                                        )
+                                            ? task.subtasks
+                                            : [];
 
                                     return (
                                         <div
                                             key={
-                                                taskId
+                                                task._id
                                             }
-                                            className="p-6"
+                                            className="p-5"
                                         >
 
-                                            <div className="flex items-start gap-4">
+                                            <div className="flex items-start gap-3">
 
                                                 <button
                                                     type="button"
                                                     disabled={
-                                                        !canToggleTask ||
+                                                        isLocked ||
                                                         isArchived ||
-                                                        isLocked
+                                                        (
+                                                            completed
+                                                                ? !canReopenTasks
+                                                                : !canCompleteTasks
+                                                        )
                                                     }
                                                     onClick={() =>
                                                         handleTaskToggle(
-                                                            task
+                                                            task._id,
+                                                            !completed
                                                         )
                                                     }
-                                                    className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center border transition ${
-                                                        taskCompleted
-                                                            ? "border-purple-500 bg-purple-500 text-white"
-                                                            : "border-[var(--border)] hover:border-purple-400"
-                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
-                                                    aria-label={
-                                                        taskCompleted
-                                                            ? "Reopen task"
-                                                            : "Complete task"
-                                                    }
+                                                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-[var(--border)] disabled:opacity-40"
                                                 >
-                                                    {taskCompleted &&
-                                                        "✓"}
+                                                    {completed
+                                                        ? "✓"
+                                                        : ""}
                                                 </button>
-
 
                                                 <div className="min-w-0 flex-1">
 
-                                                    <div className="flex flex-wrap items-center gap-2">
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                toggleTask(
-                                                                    taskId
-                                                                )
-                                                            }
-                                                            className="flex items-center gap-1 text-left text-base font-semibold"
-                                                        >
-
-                                                            {expanded ? (
-                                                                <ChevronDown
-                                                                    size={17}
-                                                                />
-                                                            ) : (
-                                                                <ChevronRight
-                                                                    size={17}
-                                                                />
-                                                            )}
-
-                                                            {
-                                                                task.title
-                                                            }
-
-                                                        </button>
-
-
-                                                        <span className="bg-[var(--surface)] px-2 py-1 text-[11px] font-semibold text-[var(--muted)]">
-                                                            {getStatusLabel(
-                                                                task.status
-                                                            )}
-                                                        </span>
-
-                                                    </div>
-
+                                                    <h3 className={`text-sm font-semibold ${completed
+                                                            ? "line-through text-[var(--muted)]"
+                                                            : ""
+                                                        }`}>
+                                                        {task.title}
+                                                    </h3>
 
                                                     {task.description && (
-                                                        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                                                        <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
                                                             {
                                                                 task.description
                                                             }
                                                         </p>
                                                     )}
 
+                                                    {canAddSubtasks &&
+                                                        !isArchived &&
+                                                        !isLocked && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setNewSubtaskFor(
+                                                                        task._id
+                                                                    )
+                                                                }
+                                                                className="mt-3 text-xs font-semibold text-purple-400"
+                                                            >
+                                                                + Add subtask
+                                                            </button>
+                                                        )}
 
-                                                    <div className="mt-4 max-w-xl">
+                                                    {newSubtaskFor ===
+                                                        task._id && (
+                                                            <div className="mt-3">
 
-                                                        <div className="mb-1 flex justify-between text-[11px] text-[var(--muted)]">
+                                                                <input
+                                                                    value={
+                                                                        newSubtaskTitle
+                                                                    }
+                                                                    onChange={(
+                                                                        event
+                                                                    ) =>
+                                                                        setNewSubtaskTitle(
+                                                                            event.target.value
+                                                                        )
+                                                                    }
+                                                                    placeholder="Subtask title"
+                                                                    className="w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs"
+                                                                />
 
-                                                            <span>
-                                                                Task progress
-                                                            </span>
-
-                                                            <span>
-                                                                {
-                                                                    taskProgress
-                                                                }%
-                                                            </span>
-
-                                                        </div>
-
-                                                        <div className="h-1.5 overflow-hidden bg-[var(--surface)]">
-
-                                                            <div
-                                                                className="h-full bg-purple-400 transition-all"
-                                                                style={{
-                                                                    width: `${taskProgress}%`,
-                                                                }}
-                                                            />
-
-                                                        </div>
-
-                                                    </div>
-
-
-                                                    {/* SUBTASKS */}
-
-                                                    {expanded && (
-                                                        <div className="mt-5 border-l border-[var(--border)] pl-5">
-
-                                                            <div className="mb-3 flex items-center justify-between">
-
-                                                                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                                                                    Subtasks
-                                                                </p>
-
-
-                                                                {canAddSubtasks &&
-                                                                    !isArchived &&
-                                                                    !isLocked && (
-
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                setNewSubtaskFor(
-                                                                                    taskId
-                                                                                );
-
-                                                                                setNewSubtaskTitle(
-                                                                                    ""
-                                                                                );
-
-                                                                                setNewSubtaskDescription(
-                                                                                    ""
-                                                                                );
-                                                                            }}
-                                                                            className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-300"
-                                                                        >
-                                                                            <Plus
-                                                                                size={14}
-                                                                            />
-
-                                                                            Add subtask
-                                                                        </button>
-                                                                    )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleCreateSubtask(
+                                                                            task._id
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        savingSubtask
+                                                                    }
+                                                                    className="mt-2 bg-purple-500 px-3 py-2 text-xs font-semibold text-white"
+                                                                >
+                                                                    {savingSubtask
+                                                                        ? "Creating..."
+                                                                        : "Create"}
+                                                                </button>
 
                                                             </div>
+                                                        )}
 
+                                                    {subtasks.length >
+                                                        0 && (
+                                                            <div className="mt-4 space-y-2 border-l border-[var(--border)] pl-4">
 
-                                                            {(task.subtasks || []).map(
-                                                                (
-                                                                    subtask
-                                                                ) => {
+                                                                {subtasks.map(
+                                                                    (
+                                                                        subtask
+                                                                    ) => {
 
-                                                                    const subtaskCompleted =
-                                                                        subtask.completed ===
-                                                                        true;
+                                                                        const subtaskCompleted =
+                                                                            subtask.completed ===
+                                                                            true;
 
-                                                                    const canToggleSubtask =
-                                                                        subtaskCompleted
-                                                                            ? canReopenSubtasks
-                                                                            : canCompleteSubtasks;
-
-                                                                    return (
-                                                                        <div
-                                                                            key={
-                                                                                getId(
-                                                                                    subtask
-                                                                                )
-                                                                            }
-                                                                            className="flex items-start gap-3 border-b border-[var(--border)] py-3 last:border-b-0"
-                                                                        >
-
-                                                                            <button
-                                                                                type="button"
-                                                                                disabled={
-                                                                                    !canToggleSubtask ||
-                                                                                    isArchived ||
-                                                                                    isLocked
+                                                                        return (
+                                                                            <div
+                                                                                key={
+                                                                                    subtask._id
                                                                                 }
-                                                                                onClick={() =>
-                                                                                    handleSubtaskToggle(
-                                                                                        subtask
-                                                                                    )
-                                                                                }
-                                                                                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] ${
-                                                                                    subtaskCompleted
-                                                                                        ? "border-purple-500 bg-purple-500 text-white"
-                                                                                        : "border-[var(--border)] hover:border-purple-400"
-                                                                                } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                                                className="flex items-start gap-2"
                                                                             >
-                                                                                {subtaskCompleted &&
-                                                                                    "✓"}
-                                                                            </button>
 
-
-                                                                            <div className="min-w-0">
-
-                                                                                <p
-                                                                                    className={`text-sm font-medium ${
-                                                                                        subtaskCompleted
-                                                                                            ? "text-[var(--muted)] line-through"
-                                                                                            : ""
-                                                                                    }`}
-                                                                                >
-                                                                                    {
-                                                                                        subtask.title
+                                                                                <button
+                                                                                    type="button"
+                                                                                    disabled={
+                                                                                        isLocked ||
+                                                                                        isArchived ||
+                                                                                        (
+                                                                                            subtaskCompleted
+                                                                                                ? !canReopenSubtasks
+                                                                                                : !canCompleteSubtasks
+                                                                                        )
                                                                                     }
-                                                                                </p>
+                                                                                    onClick={() =>
+                                                                                        handleSubtaskToggle(
+                                                                                            subtask._id,
+                                                                                            !subtaskCompleted
+                                                                                        )
+                                                                                    }
+                                                                                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border border-[var(--border)] text-xs disabled:opacity-40"
+                                                                                >
+                                                                                    {subtaskCompleted
+                                                                                        ? "✓"
+                                                                                        : ""}
+                                                                                </button>
 
+                                                                                <div>
 
-                                                                                {subtask.description && (
-                                                                                    <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                                                                                    <p className={`text-xs font-medium ${subtaskCompleted
+                                                                                            ? "line-through text-[var(--muted)]"
+                                                                                            : ""
+                                                                                        }`}>
                                                                                         {
-                                                                                            subtask.description
+                                                                                            subtask.title
                                                                                         }
                                                                                     </p>
-                                                                                )}
+
+                                                                                    {subtask.description && (
+                                                                                        <p className="mt-1 text-[11px] text-[var(--muted)]">
+                                                                                            {
+                                                                                                subtask.description
+                                                                                            }
+                                                                                        </p>
+                                                                                    )}
+
+                                                                                </div>
 
                                                                             </div>
-
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                            )}
-
-
-                                                            {/* NEW SUBTASK */}
-
-                                                            {newSubtaskFor ===
-                                                                taskId && (
-
-                                                                <div className="mt-4 grid gap-3">
-
-                                                                    <input
-                                                                        value={
-                                                                            newSubtaskTitle
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            setNewSubtaskTitle(
-                                                                                event.target.value
-                                                                            )
-                                                                        }
-                                                                        placeholder="Subtask title"
-                                                                        className="border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none focus:border-purple-400"
-                                                                    />
-
-                                                                    <textarea
-                                                                        value={
-                                                                            newSubtaskDescription
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            setNewSubtaskDescription(
-                                                                                event.target.value
-                                                                            )
-                                                                        }
-                                                                        placeholder="Description"
-                                                                        rows={2}
-                                                                        className="resize-y border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none focus:border-purple-400"
-                                                                    />
-
-                                                                    <div className="flex gap-2">
-
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                handleCreateSubtask(
-                                                                                    taskId
-                                                                                )
-                                                                            }
-                                                                            disabled={
-                                                                                savingSubtask ||
-                                                                                !newSubtaskTitle.trim()
-                                                                            }
-                                                                            className="bg-purple-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                                                                        >
-                                                                            {savingSubtask
-                                                                                ? "Creating..."
-                                                                                : "Create"}
-                                                                        </button>
-
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                setNewSubtaskFor(
-                                                                                    null
-                                                                                )
-                                                                            }
-                                                                            className="border border-[var(--border)] px-3 py-2 text-xs font-semibold"
-                                                                        >
-                                                                            Cancel
-                                                                        </button>
-
-                                                                    </div>
-
-                                                                </div>
-                                                            )}
-
-                                                        </div>
-                                                    )}
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-                                    );
-                                }
-                            )}
-
-                        </div>
-
-                    </section>
-
-
-                    {/* ==================================================
-                        PARTICIPANTS
-                    ================================================== */}
-
-                    <section className="mt-6 border border-[var(--border)] bg-[var(--card)]">
-
-                        <div className="border-b border-[var(--border)] p-6">
-
-                            <div className="flex items-center gap-3">
-
-                                <Users
-                                    size={19}
-                                    className="text-purple-400"
-                                />
-
-                                <div>
-
-                                    <h2 className="text-lg font-semibold">
-                                        Participants
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-[var(--muted)]">
-                                        Administrators who can contribute to this work.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div className="divide-y divide-[var(--border)]">
-
-                            {(work.participants || []).map(
-                                (participant) => {
-
-                                    const participantAdmin =
-                                        participant.admin ||
-                                        participant;
-
-                                    const participantId =
-                                        getId(
-                                            participantAdmin
-                                        );
-
-                                    const creatorId =
-                                        getId(
-                                            work.createdBy
-                                        );
-
-                                    return (
-                                        <div
-                                            key={
-                                                participantId
-                                            }
-                                            className="flex items-center justify-between gap-4 p-5"
-                                        >
-
-                                            <div>
-
-                                                <p className="text-sm font-semibold">
-                                                    {
-                                                        participantAdmin?.fullName ||
-                                                        participantAdmin?.username ||
-                                                        "Administrator"
-                                                    }
-                                                </p>
-
-                                                <p className="mt-1 text-xs text-[var(--muted)]">
-                                                    {
-                                                        participantAdmin?.email ||
-                                                        "No email"
-                                                    }
-                                                </p>
-
-                                            </div>
-
-
-                                            {participantId ===
-                                                creatorId && (
-
-                                                <span className="flex items-center gap-1 bg-purple-500/10 px-2 py-1 text-[11px] font-semibold text-purple-400">
-
-                                                    <ShieldCheck
-                                                        size={12}
-                                                    />
-
-                                                    Creator
-
-                                                </span>
-                                            )}
-
-                                        </div>
-                                    );
-                                }
-                            )}
-
-                        </div>
-
-                    </section>
-
-
-                    {/* ==================================================
-                        ACTIVITY
-                    ================================================== */}
-
-                    <section className="mt-6 border border-[var(--border)] bg-[var(--card)]">
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowActivities(
-                                    (current) =>
-                                        !current
-                                )
-                            }
-                            className="flex w-full items-center justify-between border-b border-[var(--border)] p-6 text-left"
-                        >
-
-                            <div className="flex items-center gap-3">
-
-                                <MessageSquare
-                                    size={19}
-                                    className="text-purple-400"
-                                />
-
-                                <div>
-
-                                    <h2 className="text-lg font-semibold">
-                                        Work activity
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-[var(--muted)]">
-                                        Immutable history of changes made to this work.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            {showActivities ? (
-                                <ChevronDown
-                                    size={18}
-                                />
-                            ) : (
-                                <ChevronRight
-                                    size={18}
-                                />
-                            )}
-
-                        </button>
-
-
-                        {showActivities && (
-
-                            <div className="divide-y divide-[var(--border)]">
-
-                                {activities.length ===
-                                    0 ? (
-
-                                    <div className="p-6 text-sm text-[var(--muted)]">
-                                        No activity recorded yet.
-                                    </div>
-
-                                ) : (
-
-                                    activities.map(
-                                        (
-                                            activity
-                                        ) => (
-
-                                            <div
-                                                key={
-                                                    getId(
-                                                        activity
-                                                    )
-                                                }
-                                                className="p-5"
-                                            >
-
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-
-                                                    <p className="text-sm font-semibold">
-
-                                                        {
-                                                            activity.admin?.fullName ||
-                                                            activity.admin?.username ||
-                                                            "Administrator"
-                                                        }
-
-                                                    </p>
-
-
-                                                    <time className="text-xs text-[var(--muted)]">
-                                                        {formatDate(
-                                                            activity.createdAt
+                                                                        );
+                                                                    }
+                                                                )}
+
+                                                            </div>
                                                         )}
-                                                    </time>
 
                                                 </div>
 
-
-                                                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                                                    {
-                                                        activity.description ||
-                                                        activity.message ||
-                                                        activity.action ||
-                                                        "Activity recorded."
-                                                    }
-                                                </p>
-
                                             </div>
 
-                                        )
-                                    )
+                                        </div>
+                                    );
+                                }
+                            )}
+
+                            {(!work.tasks ||
+                                work.tasks.length ===
+                                0) && (
+                                    <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                        No tasks yet.
+                                    </div>
                                 )}
 
-                            </div>
-                        )}
+                        </div>
 
                     </section>
-
-
-                    {/* ==================================================
-                        ARCHIVED NOTICE
-                    ================================================== */}
-
-                    {isArchived && (
-
-                        <div className="mt-6 flex items-start gap-3 border border-yellow-500/20 bg-yellow-500/5 p-5">
-
-                            <Archive
-                                size={19}
-                                className="mt-0.5 shrink-0 text-yellow-400"
-                            />
-
-                            <div>
-
-                                <p className="text-sm font-semibold">
-                                    This work is archived.
-                                </p>
-
-                                <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-                                    Archived work is read-only.
-                                    Tasks, subtasks, participants,
-                                    links, comments, and activity
-                                    history remain preserved until
-                                    the work is restored.
-                                </p>
-
-                            </div>
-
-                        </div>
-                    )}
 
                 </div>
 
