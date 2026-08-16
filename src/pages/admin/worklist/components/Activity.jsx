@@ -1,14 +1,14 @@
 import {
-    Plus,
-    Pencil,
-    Trash2,
-    Check,
-    RotateCcw,
     Archive,
-    Lock,
-    Unlock,
-    Shield,
+    Check,
     Circle,
+    Lock,
+    Pencil,
+    Plus,
+    RotateCcw,
+    Shield,
+    Trash2,
+    Unlock,
 } from "lucide-react";
 
 const ACTION_CONFIG = {
@@ -30,6 +30,26 @@ const ACTION_CONFIG = {
     WORK_STATUS_CHANGED: {
         label: "changed the work status",
         icon: Circle,
+    },
+
+    WORK_LOCKED: {
+        label: "locked the work",
+        icon: Lock,
+    },
+
+    WORK_UNLOCKED: {
+        label: "unlocked the work",
+        icon: Unlock,
+    },
+
+    WORK_ARCHIVED: {
+        label: "archived the work",
+        icon: Archive,
+    },
+
+    WORK_RESTORED: {
+        label: "restored the work",
+        icon: RotateCcw,
     },
 
     TASK_CREATED: {
@@ -77,26 +97,6 @@ const ACTION_CONFIG = {
         icon: RotateCcw,
     },
 
-    WORK_LOCKED: {
-        label: "locked the work",
-        icon: Lock,
-    },
-
-    WORK_UNLOCKED: {
-        label: "unlocked the work",
-        icon: Unlock,
-    },
-
-    WORK_ARCHIVED: {
-        label: "archived the work",
-        icon: Archive,
-    },
-
-    WORK_RESTORED: {
-        label: "restored the work",
-        icon: RotateCcw,
-    },
-
     PARTICIPANT_ADDED: {
         label: "added a participant",
         icon: Shield,
@@ -119,33 +119,58 @@ const formatDate = (value) => {
         return "Unknown date";
     }
 
-    return date.toLocaleString(
-        "en-US",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-        }
-    );
+    return date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    });
 };
 
 const getAdminName = (activity) => {
-    if (!activity?.admin) {
+    const admin = activity?.admin;
+
+    if (!admin) {
         return "Unknown admin";
     }
 
     return (
-        activity.admin.fullName ||
-        activity.admin.username ||
+        admin.fullName ||
+        admin.username ||
         "Unknown admin"
     );
+};
+
+const formatMetadataValue = (value) => {
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    if (
+        typeof value === "object"
+    ) {
+        try {
+            return JSON.stringify(
+                value,
+                null,
+                2
+            );
+        } catch {
+            return String(value);
+        }
+    }
+
+    return String(value);
 };
 
 function Activity({
     activities = [],
     loading = false,
+    error = "",
 }) {
     if (loading) {
         return (
@@ -178,9 +203,22 @@ function Activity({
                 </p>
             </div>
 
+            {error && (
+                <div className="border-b border-red-500/20 bg-red-500/5 p-5">
+                    <p className="text-sm text-red-400">
+                        {error}
+                    </p>
+                </div>
+            )}
+
             {activities.length === 0 ? (
                 <div className="p-10 text-center">
-                    <p className="text-sm text-[var(--muted)]">
+                    <Circle
+                        size={24}
+                        className="mx-auto text-[var(--muted)]"
+                    />
+
+                    <p className="mt-3 text-sm text-[var(--muted)]">
                         No activity recorded yet.
                     </p>
                 </div>
@@ -190,7 +228,7 @@ function Activity({
                         (activity, index) => {
                             const config =
                                 ACTION_CONFIG[
-                                    activity.action
+                                    activity?.action
                                 ] || {
                                     label:
                                         "performed an action",
@@ -200,11 +238,15 @@ function Activity({
                             const Icon =
                                 config.icon;
 
+                            const metadata =
+                                activity?.metadata || {};
+
                             return (
                                 <div
                                     key={
-                                        activity._id ||
-                                        `${activity.action}-${index}`
+                                        activity?._id ||
+                                        activity?.id ||
+                                        `${activity?.action}-${index}`
                                     }
                                     className="flex gap-4 p-5"
                                 >
@@ -218,15 +260,16 @@ function Activity({
                                                 {getAdminName(
                                                     activity
                                                 )}
-                                            </span>{" "}
+                                            </span>
+
+                                            {" "}
+
                                             <span className="text-[var(--muted)]">
-                                                {
-                                                    config.label
-                                                }
+                                                {config.label}
                                             </span>
                                         </p>
 
-                                        {activity.description && (
+                                        {activity?.description && (
                                             <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
                                                 {
                                                     activity.description
@@ -234,64 +277,46 @@ function Activity({
                                             </p>
                                         )}
 
-                                        {activity.metadata
-                                            ?.before ||
-                                        activity.metadata
-                                            ?.after ? (
+                                        {(metadata.before !==
+                                            undefined ||
+                                            metadata.after !==
+                                                undefined) && (
                                             <div className="mt-3 border border-[var(--border)] bg-[var(--surface)] p-3 text-xs">
-                                                {activity
-                                                    .metadata
-                                                    ?.before && (
+                                                {metadata.before !==
+                                                    undefined && (
                                                     <div>
                                                         <span className="font-semibold">
                                                             Before:
-                                                        </span>{" "}
-                                                        {
-                                                            typeof activity
-                                                                .metadata
-                                                                .before ===
-                                                            "object"
-                                                                ? JSON.stringify(
-                                                                    activity
-                                                                        .metadata
-                                                                        .before
-                                                                )
-                                                                : activity
-                                                                    .metadata
-                                                                    .before
-                                                        }
+                                                        </span>
+
+                                                        <pre className="mt-1 whitespace-pre-wrap break-words text-[var(--muted)]">
+                                                            {formatMetadataValue(
+                                                                metadata.before
+                                                            )}
+                                                        </pre>
                                                     </div>
                                                 )}
 
-                                                {activity
-                                                    .metadata
-                                                    ?.after && (
-                                                    <div className="mt-2">
+                                                {metadata.after !==
+                                                    undefined && (
+                                                    <div className="mt-3">
                                                         <span className="font-semibold">
                                                             After:
-                                                        </span>{" "}
-                                                        {
-                                                            typeof activity
-                                                                .metadata
-                                                                .after ===
-                                                            "object"
-                                                                ? JSON.stringify(
-                                                                    activity
-                                                                        .metadata
-                                                                        .after
-                                                                )
-                                                                : activity
-                                                                    .metadata
-                                                                    .after
-                                                        }
+                                                        </span>
+
+                                                        <pre className="mt-1 whitespace-pre-wrap break-words text-[var(--muted)]">
+                                                            {formatMetadataValue(
+                                                                metadata.after
+                                                            )}
+                                                        </pre>
                                                     </div>
                                                 )}
                                             </div>
-                                        ) : null}
+                                        )}
 
                                         <p className="mt-2 text-xs text-[var(--muted)]">
                                             {formatDate(
-                                                activity.createdAt
+                                                activity?.createdAt
                                             )}
                                         </p>
                                     </div>
