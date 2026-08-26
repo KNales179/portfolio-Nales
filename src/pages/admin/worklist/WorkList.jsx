@@ -166,7 +166,7 @@ const getStatusClasses = (
 
 function WorkList() {
     const { admin: currentAdmin } = useAuth();
-    
+
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
@@ -525,7 +525,7 @@ function WorkList() {
         }
 
         window.location.href =
-            `/portfolio-Nales/admin/worklist/${workId}`;
+            `/admin/worklist/${workId}`;
     };
 
 

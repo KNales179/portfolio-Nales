@@ -24,7 +24,7 @@ function ProtectedRoute({ children }) {
     if (!admin) {
         return (
             <Navigate
-                to="/portfolio-Nales/login"
+                to="/login"
                 state={{
                     from: location,
                 }}
@@ -39,7 +39,7 @@ function ProtectedRoute({ children }) {
 
     const isSecurityPage =
         location.pathname ===
-        "/portfolio-Nales/admin/settings/security";
+        "/admin/settings/security";
 
     if (
         !admin.twoFactorEnabled &&
@@ -47,7 +47,7 @@ function ProtectedRoute({ children }) {
     ) {
         return (
             <Navigate
-                to="/portfolio-Nales/admin/settings/security"
+                to="/admin/settings/security"
                 replace
             />
         );

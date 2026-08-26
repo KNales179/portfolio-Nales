@@ -16,7 +16,7 @@ function AdminNavbar({ onMenuToggle }) {
         try {
             await logout();
         } finally {
-            navigate("/portfolio-Nales/login", {
+            navigate("/login", {
                 replace: true,
             });
         }
@@ -45,7 +45,7 @@ function AdminNavbar({ onMenuToggle }) {
                     <button
                         type="button"
                         onClick={() =>
-                            navigate("/portfolio-Nales/admin/dashboard")
+                            navigate("/admin/dashboard")
                         }
                         className="group flex shrink-0 items-center gap-3"
                     >
@@ -97,7 +97,7 @@ function AdminNavbar({ onMenuToggle }) {
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() =>
-                            navigate("/portfolio-Nales/admin/profile")
+                            navigate("/admin/profile")
                         }
                         className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)]/70 text-[var(--text)] transition hover:bg-purple-500/10"
                         aria-label="Profile"
