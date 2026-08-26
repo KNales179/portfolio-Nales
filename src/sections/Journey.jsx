@@ -32,7 +32,7 @@ const milestones = [
     year: "2026",
     title: "Completed Major Systems",
     description:
-      "Completed TODA-GO and the Tricycle Integration Record System, presented the projects, participated in research activities, and graduated from the BSIT program.",
+      "Completed TODA-GO and the Tricycle Integration Record System, presented the projects, participated in research activities, and graduated from the BSIT program. Since then, I’ve continued learning by building various web and mobile applications, experimenting with new technologies, and embracing the world of vibe coding.",
   },
 ];
 

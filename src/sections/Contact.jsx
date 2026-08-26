@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Download,
@@ -13,12 +14,13 @@ import {
   FaGithub,
   FaWhatsapp,
 } from "react-icons/fa";
+import { sendContactEmail } from "../services/contactApi";
 
 
 const contacts = [
   {
     label: "Email",
-    href: "mailto:labaynales@gmail.com",
+    href: "mailto:ibelldev179@gmail.com",
     icon: Mail,
   },
   {
@@ -29,7 +31,7 @@ const contacts = [
   },
   {
     label: "Instagram",
-    href: "https://www.instagram.com/YOUR_USERNAME",
+    href: "https://www.instagram.com/levi.cohen179?igsi=MWdjMmZrNTJzNXJrdQ==",
     icon: FaInstagram,
     external: true,
   },
@@ -48,13 +50,63 @@ const contacts = [
   },
   {
     label: "Resume",
-    href: `${import.meta.env.BASE_URL}resume.pdf`,
+    href: `${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`,
     icon: Download,
     download: true,
   },
 ];
 
 function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const [sending, setSending] = useState(false);
+
+  const [status, setStatus] = useState({
+    type: "",
+    message: "",
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setSending(true);
+    setStatus({
+      type: "",
+      message: "",
+    });
+
+    try {
+      await sendContactEmail(formData);
+
+      setStatus({
+        type: "success",
+        message: "Message sent successfully! I'll get back to you soon.",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Contact form error:", error);
+
+      setStatus({
+        type: "error",
+        message:
+          error.message || "Something went wrong. Please try again.",
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <section
       id="contact"
@@ -227,7 +279,7 @@ function Contact() {
             </div>
 
             {/* No backend yet — visual form only */}
-            <form className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
 
               {/* Name + Email */}
               <div className="grid gap-5 sm:grid-cols-2">
@@ -245,6 +297,14 @@ function Contact() {
                     type="text"
                     name="name"
                     placeholder="Your name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        name: e.target.value,
+                      })
+                    }
+                    required
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition-all duration-300 placeholder:text-[var(--muted)] focus:border-[var(--accent)]/60 focus:ring-2 focus:ring-[var(--accent)]/10"
                   />
                 </div>
@@ -262,6 +322,14 @@ function Contact() {
                     type="email"
                     name="email"
                     placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        email: e.target.value,
+                      })
+                    }
+                    required
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition-all duration-300 placeholder:text-[var(--muted)] focus:border-[var(--accent)]/60 focus:ring-2 focus:ring-[var(--accent)]/10"
                   />
                 </div>
@@ -281,6 +349,14 @@ function Contact() {
                   type="text"
                   name="subject"
                   placeholder="What would you like to talk about?"
+                  value={formData.subject}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      subject: e.target.value,
+                    })
+                  }
+                  required
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition-all duration-300 placeholder:text-[var(--muted)] focus:border-[var(--accent)]/60 focus:ring-2 focus:ring-[var(--accent)]/10"
                 />
               </div>
@@ -299,13 +375,33 @@ function Contact() {
                   name="message"
                   rows={6}
                   placeholder="Tell me about your project, idea, or opportunity..."
+                  value={formData.message}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      message: e.target.value,
+                    })
+                  }
+                  required
                   className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 outline-none transition-all duration-300 placeholder:text-[var(--muted)] focus:border-[var(--accent)]/60 focus:ring-2 focus:ring-[var(--accent)]/10"
                 />
               </div>
 
+              {status.message && (
+                <div
+                  className={`rounded-xl border px-4 py-3 text-sm ${status.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : "border-red-500/30 bg-red-500/10 text-red-400"
+                    }`}
+                >
+                  {status.message}
+                </div>
+              )}
+
               {/* Send button */}
               <motion.button
                 type="submit"
+                disabled={sending}
                 whileHover={{
                   y: -2,
                 }}
@@ -314,7 +410,7 @@ function Contact() {
                 }}
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:opacity-90"
               >
-                Send Message
+                {sending ? "Sending..." : "Send Message"}
 
                 <Send
                   size={16}
@@ -342,14 +438,14 @@ function Contact() {
 
               <div>
                 <a
-                  href="mailto:labaynales@gmail.com"
+                  href="mailto:ibelldev179@gmail.com"
                   className="font-medium transition-colors hover:text-purple-400"
                 >
                   Ivhel
                 </a>
 
                 <p className="text-sm text-[var(--muted)]">
-                  labaynales@gmail.com
+                  ibelldev179@gmail.com
                 </p>
 
                 <p className="mt-1 text-xs text-[var(--muted)]">
@@ -366,7 +462,7 @@ function Contact() {
 
               <div className="flex items-center gap-3">
                 <a
-                  href="https://github.com/YOUR_USERNAME"
+                  href="https://github.com/KNales179"
                   target="_blank"
                   rel="noreferrer"
                   aria-label="GitHub"
