@@ -6,23 +6,23 @@ import { NavLink, useNavigate } from "react-router-dom";
 const navigationLinks = [
   {
     label: "Home",
-    path: "/",
+    path: "/portfolio-Nales",
   },
   {
     label: "Projects",
-    path: "/projects",
+    path: "/portfolio-Nales/projects",
   },
   {
     label: "Certificates",
-    path: "/certificates",
+    path: "/portfolio-Nales/certificates",
   },
   {
     label: "About Me",
-    path: "/about",
+    path: "/portfolio-Nales/about",
   },
   {
     label: "Contact",
-    path: "/contact",
+    path: "/portfolio-Nales/contact",
   },
 ];
 
@@ -79,7 +79,7 @@ function Navbar() {
         ========================== */}
         <button
           type="button"
-          onClick={() => handleNavigation("/")}
+          onClick={() => handleNavigation("/portfolio-Nales")}
           className="group flex shrink-0 items-center gap-3"
         >
           <img
@@ -107,7 +107,7 @@ function Navbar() {
             <NavLink
               key={link.path}
               to={link.path}
-              end={link.path === "/"}
+              end={link.path === "/portfolio-Nales"}
               onClick={() => {
                 window.scrollTo({
                   top: 0,
@@ -232,7 +232,7 @@ function Navbar() {
                 <NavLink
                   key={link.path}
                   to={link.path}
-                  end={link.path === "/"}
+                  end={link.path === "/portfolio-Nales"}
                   onClick={() => {
                     setMenuOpen(false);
 

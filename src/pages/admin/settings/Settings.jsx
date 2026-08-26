@@ -28,7 +28,7 @@ function Settings() {
             description:
                 "Manage your personal information and profile image.",
             icon: User,
-            path: "/admin/profile",
+            path: "/portfolio-Nales/admin/profile",
         },
 
         {
@@ -36,7 +36,7 @@ function Settings() {
             description:
                 "Manage your password and administrator account security.",
             icon: Shield,
-            path: "/admin/settings/security",
+            path: "/portfolio-Nales/admin/settings/security",
         },
 
         {
@@ -44,7 +44,7 @@ function Settings() {
             description:
                 "Protect your administrator account with an authenticator app.",
             icon: Smartphone,
-            path: "/admin/settings/two-factor",
+            path: "/portfolio-Nales/admin/settings/two-factor",
         },
 
         {
@@ -52,7 +52,7 @@ function Settings() {
             description:
                 "View and manage devices that are trusted for your account.",
             icon: KeyRound,
-            path: "/admin/settings/trusted-devices",
+            path: "/portfolio-Nales/admin/settings/trusted-devices",
         },
     ];
 
@@ -266,7 +266,7 @@ function Settings() {
                             type="button"
                             onClick={() =>
                                 navigate(
-                                    "/admin/settings/account"
+                                    "/portfolio-Nales/admin/settings/account"
                                 )
                             }
                             className="mt-5 flex items-center gap-2 text-sm font-semibold text-purple-400 transition hover:text-purple-300"

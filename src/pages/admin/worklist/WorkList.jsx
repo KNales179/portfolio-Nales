@@ -15,7 +15,6 @@ import {
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
-import { useAuth } from "../../../context/AuthContext";
 
 import {
     getWorks,
@@ -164,9 +163,9 @@ const getStatusClasses = (
 // COMPONENT
 // ============================================================
 
-function WorkList() {
-    const { admin: currentAdmin } = useAuth();
-
+function WorkList({
+    currentAdmin = null,
+}) {
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
@@ -525,7 +524,7 @@ function WorkList() {
         }
 
         window.location.href =
-            `/admin/worklist/${workId}`;
+            `/portfolio-Nales/admin/worklist/${workId}`;
     };
 
 

@@ -62,7 +62,7 @@ function Header({
     onRestore,
     onLock,
     onUnlock,
-    workListPath = "/admin/dashboard/worklist",
+    workListPath = "/portfolio-Nales/admin/dashboard/worklist",
     loading = false,
 }) {
     if (!work) {

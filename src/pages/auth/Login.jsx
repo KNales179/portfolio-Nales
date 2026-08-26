@@ -58,7 +58,7 @@ function Login() {
     const redirectAfterLogin = (admin) => {
         if (!admin.twoFactorEnabled) {
             navigate(
-                "/admin/security",
+                "/portfolio-Nales/admin/security",
                 {
                     replace: true,
                 }
@@ -68,7 +68,7 @@ function Login() {
         }
 
         navigate(
-            "/admin/dashboard",
+            "/portfolio-Nales/admin/dashboard",
             {
                 replace: true,
             }
@@ -148,7 +148,7 @@ function Login() {
 
             if (admin.mustChangePassword) {
                 navigate(
-                    "/admin/profile",
+                    "/portfolio-Nales/admin/profile",
                     {
                         replace: true,
                         state: {
@@ -241,7 +241,7 @@ function Login() {
 
                 if (admin.mustChangePassword) {
                     navigate(
-                        "/admin/profile",
+                        "/portfolio-Nales/admin/profile",
                         {
                             replace: true,
                             state: {
@@ -258,7 +258,7 @@ function Login() {
                 // =================================================
 
                 navigate(
-                    "/admin/dashboard",
+                    "/portfolio-Nales/admin/dashboard",
                     {
                         replace: true,
                     }

@@ -211,14 +211,14 @@ function CreateWork() {
 
             if (createdWorkId) {
                 navigate(
-                    `/admin/worklist/${createdWorkId}`
+                    `/portfolio-Nales/admin/worklist/${createdWorkId}`
                 );
 
                 return;
             }
 
             navigate(
-                "/admin/worklist"
+                "/portfolio-Nales/admin/worklist"
             );
 
         } catch (error) {
@@ -356,7 +356,7 @@ function CreateWork() {
                             type="button"
                             onClick={() =>
                                 navigate(
-                                    "/admin/worklist"
+                                    "/portfolio-Nales/admin/worklist"
                                 )
                             }
                             className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--text)]"
@@ -807,7 +807,7 @@ function CreateWork() {
                                 type="button"
                                 onClick={() =>
                                     navigate(
-                                        "/admin/worklist"
+                                        "/portfolio-Nales/admin/worklist"
                                     )
                                 }
                                 disabled={
