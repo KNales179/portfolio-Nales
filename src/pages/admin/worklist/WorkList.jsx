@@ -15,6 +15,7 @@ import {
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
+import { useAuth } from "../../../context/AuthContext";
 
 import {
     getWorks,
@@ -163,9 +164,9 @@ const getStatusClasses = (
 // COMPONENT
 // ============================================================
 
-function WorkList({
-    currentAdmin = null,
-}) {
+function WorkList() {
+    const { admin: currentAdmin } = useAuth();
+    
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
