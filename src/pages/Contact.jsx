@@ -13,7 +13,7 @@ import {
   FaGithub,
   FaWhatsapp,
 } from "react-icons/fa";
-import { sendContactEmail } from "../services/contactApi";
+import { sendContactMessage } from "../services/contactApi";
 
 const contacts = [
   {
