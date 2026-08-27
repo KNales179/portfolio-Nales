@@ -62,7 +62,7 @@ function AccountSection() {
                         type="button"
                         onClick={() =>
                             navigate(
-                                "/portfolio-Nales/admin/settings"
+                                "/admin/settings"
                             )
                         }
                         className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--text)]"

@@ -45,27 +45,27 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales"
+                            path="/"
                             element={<Home />}
                         />
 
                         <Route
-                            path="/portfolio-Nales/projects"
+                            path="/projects"
                             element={<Projects />}
                         />
 
                         <Route
-                            path="/portfolio-Nales/certificates"
+                            path="/certificates"
                             element={<Certificates />}
                         />
 
                         <Route
-                            path="/portfolio-Nales/about"
+                            path="/about"
                             element={<About />}
                         />
 
                         <Route
-                            path="/portfolio-Nales/contact"
+                            path="/contact"
                             element={<Contact />}
                         />
 
@@ -74,7 +74,7 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales/login"
+                            path="/login"
                             element={<Login />}
                         />
 
@@ -83,7 +83,7 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales/admin/dashboard"
+                            path="/admin/dashboard"
                             element={
                                 <ProtectedRoute>
                                     <Dashboard />
@@ -96,7 +96,7 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales/admin/worklist"
+                            path="/admin/worklist"
                             element={
                                 <ProtectedRoute>
                                     <WorkList />
@@ -105,7 +105,7 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/worklist/:workId"
+                            path="/admin/worklist/:workId"
                             element={
                                 <ProtectedRoute>
                                     <WorkDetail />
@@ -118,7 +118,7 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales/admin/profile"
+                            path="/admin/profile"
                             element={
                                 <ProtectedRoute>
                                     <Profile />
@@ -131,7 +131,7 @@ function App() {
                         ========================================= */}
 
                         <Route
-                            path="/portfolio-Nales/admin/settings"
+                            path="/admin/settings"
                             element={
                                 <ProtectedRoute>
                                     <Settings />
@@ -140,7 +140,7 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/settings/security"
+                            path="/admin/settings/security"
                             element={
                                 <ProtectedRoute>
                                     <Security />
@@ -149,7 +149,7 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/settings/trusted-devices"
+                            path="/admin/settings/trusted-devices"
                             element={
                                 <ProtectedRoute>
                                     <TrustedDevices />
@@ -158,7 +158,7 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/settings/account"
+                            path="/admin/settings/account"
                             element={
                                 <ProtectedRoute>
                                     <AccountSection />
@@ -167,7 +167,7 @@ function App() {
                         />
 
                         <Route
-                            path="/portfolio-Nales/admin/settings/two-factor"
+                            path="/admin/settings/two-factor"
                             element={
                                 <ProtectedRoute>
                                     <TwoFactor />

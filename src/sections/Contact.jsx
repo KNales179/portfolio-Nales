@@ -81,7 +81,7 @@ function Contact() {
     });
 
     try {
-      await sendContactEmail(formData);
+      await sendContactMessage(formData);
 
       setStatus({
         type: "success",

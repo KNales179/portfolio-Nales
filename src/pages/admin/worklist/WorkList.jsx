@@ -524,7 +524,7 @@ function WorkList({
         }
 
         window.location.href =
-            `/portfolio-Nales/admin/worklist/${workId}`;
+            `/admin/worklist/${workId}`;
     };
 
 

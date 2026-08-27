@@ -24,42 +24,42 @@ import { useEffect, useRef, useState } from "react";
 const navigation = [
     {
         label: "Dashboard",
-        path: "/portfolio-Nales/admin/dashboard",
+        path: "/admin/dashboard",
         icon: LayoutDashboard,
     },
     {
         label: "Projects",
-        path: "/portfolio-Nales/admin/dashboard/projects",
+        path: "/admin/dashboard/projects",
         icon: FolderKanban,
     },
     {
         label: "Skills",
-        path: "/portfolio-Nales/admin/dashboard/skills",
+        path: "/admin/dashboard/skills",
         icon: BookOpen,
     },
     {
         label: "Journey",
-        path: "/portfolio-Nales/admin/dashboard/journey",
+        path: "/admin/dashboard/journey",
         icon: Route,
     },
     {
         label: "Certificates",
-        path: "/portfolio-Nales/admin/dashboard/certificates",
+        path: "/admin/dashboard/certificates",
         icon: FileBadge,
     },
     {
         label: "Awards",
-        path: "/portfolio-Nales/admin/dashboard/awards",
+        path: "/admin/dashboard/awards",
         icon: Award,
     },
     {
         label: "Hobbies",
-        path: "/portfolio-Nales/admin/dashboard/hobbies",
+        path: "/admin/dashboard/hobbies",
         icon: Heart,
     },
     {
         label: "Messages",
-        path: "/portfolio-Nales/admin/dashboard/messages",
+        path: "/admin/dashboard/messages",
         icon: Mail,
     },
 ];
@@ -314,7 +314,7 @@ function AdminSidebar({ open, onClose }) {
                                             }
                                             end={
                                                 item.path ===
-                                                "/portfolio-Nales/admin/dashboard"
+                                                "/admin/dashboard"
                                             }
                                             onClick={
                                                 onClose
@@ -370,7 +370,7 @@ function AdminSidebar({ open, onClose }) {
                         <div className="space-y-1">
 
                             <NavLink
-                                to="/portfolio-Nales/admin/worklist"
+                                to="/admin/worklist"
                                 onClick={onClose}
                                 title="Work List"
                             >
@@ -411,7 +411,7 @@ function AdminSidebar({ open, onClose }) {
                         <div className="space-y-1">
 
                             <NavLink
-                                to="/portfolio-Nales/admin/profile"
+                                to="/admin/profile"
                                 onClick={onClose}
                                 title="Profile"
                             >
@@ -438,7 +438,7 @@ function AdminSidebar({ open, onClose }) {
                             </NavLink>
 
                             <NavLink
-                                to="/portfolio-Nales/admin/settings"
+                                to="/admin/settings"
                                 onClick={onClose}
                                 title="Settings"
                             >
@@ -477,7 +477,7 @@ function AdminSidebar({ open, onClose }) {
                                 <div className="space-y-1">
 
                                     <NavLink
-                                        to="/portfolio-Nales/admin/manage-admins"
+                                        to="/admin/manage-admins"
                                         onClick={
                                             onClose
                                         }
@@ -508,7 +508,7 @@ function AdminSidebar({ open, onClose }) {
                                     </NavLink>
 
                                     <NavLink
-                                        to="/portfolio-Nales/admin/audit-logs"
+                                        to="/admin/audit-logs"
                                         onClick={
                                             onClose
                                         }
