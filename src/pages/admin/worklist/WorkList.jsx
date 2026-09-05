@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Archive,
@@ -6,15 +7,19 @@ import {
     ChevronRight,
     ClipboardList,
     Loader2,
+    Lock,
     Plus,
     RefreshCw,
     RotateCcw,
+    ShieldCheck,
+    Unlock,
     Users,
     X,
 } from "lucide-react";
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
+import { useAuth } from "../../../context/AuthContext";
 
 import {
     getWorks,
@@ -163,9 +168,10 @@ const getStatusClasses = (
 // COMPONENT
 // ============================================================
 
-function WorkList({
-    currentAdmin = null,
-}) {
+function WorkList() {
+    const navigate = useNavigate();
+    const { admin: currentAdmin } = useAuth();
+
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
 
@@ -197,6 +203,12 @@ function WorkList({
         useState("");
 
     const [newWorkDescription, setNewWorkDescription] =
+        useState("");
+
+    const [accessMode, setAccessMode] =
+        useState("COLLABORATIVE");
+
+    const [workPassword, setWorkPassword] =
         useState("");
 
     const [actionLoadingId, setActionLoadingId] =
@@ -317,6 +329,8 @@ function WorkList({
 
         setNewWorkTitle("");
         setNewWorkDescription("");
+        setAccessMode("COLLABORATIVE");
+        setWorkPassword("");
         setCreateError("");
         setCreateModalOpen(true);
     };
@@ -330,6 +344,21 @@ function WorkList({
         setCreateModalOpen(false);
         setNewWorkTitle("");
         setNewWorkDescription("");
+        setAccessMode("COLLABORATIVE");
+        setWorkPassword("");
+        setCreateError("");
+    };
+
+
+    const handleAccessModeChange = (
+        nextAccessMode
+    ) => {
+        setAccessMode(nextAccessMode);
+
+        if (nextAccessMode !== "PASSWORD_PROTECTED") {
+            setWorkPassword("");
+        }
+
         setCreateError("");
     };
 
@@ -365,6 +394,31 @@ function WorkList({
             return;
         }
 
+        const trimmedPassword =
+            workPassword.trim();
+
+        if (
+            accessMode === "PASSWORD_PROTECTED" &&
+            !trimmedPassword
+        ) {
+            setCreateError(
+                "A work password is required for password-protected access."
+            );
+
+            return;
+        }
+
+        if (
+            accessMode === "PASSWORD_PROTECTED" &&
+            trimmedPassword.length < 8
+        ) {
+            setCreateError(
+                "The work password must contain at least 8 characters."
+            );
+
+            return;
+        }
+
         try {
             setCreateLoading(true);
             setCreateError("");
@@ -372,11 +426,17 @@ function WorkList({
             await createWork({
                 title,
                 description,
+                accessMode,
+                ...(accessMode === "PASSWORD_PROTECTED"
+                    ? { password: trimmedPassword }
+                    : {}),
             });
 
             setCreateModalOpen(false);
             setNewWorkTitle("");
             setNewWorkDescription("");
+            setAccessMode("COLLABORATIVE");
+            setWorkPassword("");
 
             await fetchWorks(true);
 
@@ -523,8 +583,9 @@ function WorkList({
             return;
         }
 
-        window.location.href =
-            `/admin/worklist/${workId}`;
+        navigate(
+            `/admin/worklist/${workId}`
+        );
     };
 
 
@@ -680,7 +741,7 @@ function WorkList({
                                 <p className="text-sm font-semibold">
                                     {visibleWorks.length} work
                                     {visibleWorks.length ===
-                                    1
+                                        1
                                         ? ""
                                         : "s"}
                                 </p>
@@ -702,11 +763,10 @@ function WorkList({
                                         !current
                                 )
                             }
-                            className={`flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition ${
-                                showArchived
+                            className={`flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition ${showArchived
                                     ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
                                     : "border-[var(--border)] hover:bg-[var(--surface)]"
-                            }`}
+                                }`}
                         >
 
                             <Archive
@@ -923,11 +983,10 @@ function WorkList({
                                                             index *
                                                             0.03,
                                                     }}
-                                                    className={`border bg-[var(--card)] ${
-                                                        isArchived
+                                                    className={`border bg-[var(--card)] ${isArchived
                                                             ? "border-zinc-500/20"
                                                             : "border-[var(--border)]"
-                                                    }`}
+                                                        }`}
                                                 >
 
                                                     <div className="p-6">
@@ -1007,7 +1066,7 @@ function WorkList({
                                                                         }{" "}
                                                                         participant
                                                                         {participants.length ===
-                                                                        1
+                                                                            1
                                                                             ? ""
                                                                             : "s"}
 
@@ -1153,14 +1212,13 @@ function WorkList({
                                                                         duration:
                                                                             0.55,
                                                                     }}
-                                                                    className={`h-full ${
-                                                                        isArchived
+                                                                    className={`h-full ${isArchived
                                                                             ? "bg-zinc-500"
                                                                             : progress ===
                                                                                 100
                                                                                 ? "bg-green-500"
                                                                                 : "bg-purple-500"
-                                                                    }`}
+                                                                        }`}
                                                                 />
 
                                                             </div>
@@ -1205,7 +1263,7 @@ function WorkList({
                             scale: 1,
                             y: 0,
                         }}
-                        className="w-full max-w-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
+                        className="w-full max-w-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl max-h-[90vh] overflow-y-auto"
                     >
 
                         <div className="flex items-start justify-between border-b border-[var(--border)] p-6">
@@ -1324,6 +1382,113 @@ function WorkList({
 
                             </div>
 
+                            <div className="mt-5">
+
+                                <label className="mb-2 block text-sm font-medium">
+                                    Access
+                                </label>
+
+                                <div className="space-y-3">
+
+                                    <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-3 transition hover:bg-[var(--surface)]">
+
+                                        <input
+                                            type="radio"
+                                            name="accessMode"
+                                            value="OPEN_VIEW"
+                                            checked={accessMode === "OPEN_VIEW"}
+                                            onChange={() =>
+                                                handleAccessModeChange("OPEN_VIEW")
+                                            }
+                                            disabled={createLoading}
+                                            className="mt-1"
+                                        />
+
+                                        <div className="min-w-0">
+                                            <p className="flex items-center gap-2 text-sm font-semibold">
+                                                <Unlock size={15} className="text-green-400" />
+                                                Open view
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                                                Any admin can view this work.
+                                            </p>
+                                        </div>
+
+                                    </label>
+
+                                    <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-3 transition hover:bg-[var(--surface)]">
+
+                                        <input
+                                            type="radio"
+                                            name="accessMode"
+                                            value="COLLABORATIVE"
+                                            checked={accessMode === "COLLABORATIVE"}
+                                            onChange={() =>
+                                                handleAccessModeChange("COLLABORATIVE")
+                                            }
+                                            disabled={createLoading}
+                                            className="mt-1"
+                                        />
+
+                                        <div className="min-w-0">
+                                            <p className="flex items-center gap-2 text-sm font-semibold">
+                                                <ShieldCheck size={15} className="text-purple-400" />
+                                                Collaborative
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                                                Authorized admins can contribute.
+                                            </p>
+                                        </div>
+
+                                    </label>
+
+                                    <label className="flex cursor-pointer items-start gap-3 border border-[var(--border)] p-3 transition hover:bg-[var(--surface)]">
+
+                                        <input
+                                            type="radio"
+                                            name="accessMode"
+                                            value="PASSWORD_PROTECTED"
+                                            checked={accessMode === "PASSWORD_PROTECTED"}
+                                            onChange={() =>
+                                                handleAccessModeChange("PASSWORD_PROTECTED")
+                                            }
+                                            disabled={createLoading}
+                                            className="mt-1"
+                                        />
+
+                                        <div className="min-w-0 flex-1">
+                                            <p className="flex items-center gap-2 text-sm font-semibold">
+                                                <Lock size={15} className="text-yellow-400" />
+                                                Password protected
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                                                Requires a password to access this work.
+                                            </p>
+
+                                            {accessMode === "PASSWORD_PROTECTED" && (
+                                                <input
+                                                    type="password"
+                                                    value={workPassword}
+                                                    onChange={(event) => {
+                                                        setWorkPassword(event.target.value);
+                                                        setCreateError("");
+                                                    }}
+                                                    minLength={8}
+                                                    maxLength={128}
+                                                    placeholder="Work password"
+                                                    disabled={createLoading}
+                                                    className="mt-3 w-full border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-purple-400"
+                                                />
+                                            )}
+
+                                        </div>
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
                             {createError && (
                                 <p
                                     className="mt-4 text-sm text-red-400"
@@ -1355,7 +1520,14 @@ function WorkList({
                                     disabled={
                                         createLoading ||
                                         !newWorkTitle.trim() ||
-                                        !newWorkDescription.trim()
+                                        !newWorkDescription.trim() ||
+                                        (
+                                            accessMode === "PASSWORD_PROTECTED" &&
+                                            (
+                                                !workPassword.trim() ||
+                                                workPassword.trim().length < 8
+                                            )
+                                        )
                                     }
                                     className="flex items-center justify-center gap-2 bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >

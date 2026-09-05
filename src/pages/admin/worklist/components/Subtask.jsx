@@ -94,6 +94,12 @@ function Subtask({
                     return;
                 }
 
+                // Stop this from bubbling up to the parent Task's
+                // onDragStart — Task's <article> is also draggable,
+                // and nested draggables otherwise fight over the
+                // same drag gesture.
+                event.stopPropagation();
+
                 event.dataTransfer.setData(
                     "text/plain",
                     String(subtask._id)
@@ -102,6 +108,7 @@ function Subtask({
 
             onDragOver={(event) => {
                 if (draggable) {
+                    event.stopPropagation();
                     event.preventDefault();
                 }
             }}
@@ -111,6 +118,9 @@ function Subtask({
                     return;
                 }
 
+                // Prevent the parent Task's onDrop from also
+                // firing for this same drop (see onDragStart note).
+                event.stopPropagation();
                 event.preventDefault();
 
                 const sourceId =
@@ -130,11 +140,10 @@ function Subtask({
                 }
             }}
 
-            className={`flex items-start gap-3 border-b border-[var(--border)] p-4 last:border-b-0 ${
-                archived
-                    ? "opacity-60"
-                    : ""
-            }`}
+            className={`flex items-start gap-3 border-b border-[var(--border)] p-4 last:border-b-0 ${archived
+                ? "opacity-60"
+                : ""
+                }`}
         >
 
             {draggable && (
@@ -148,11 +157,10 @@ function Subtask({
                 type="button"
                 onClick={handleToggle}
                 disabled={!canToggle}
-                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] transition ${
-                    completed
-                        ? "border-purple-500 bg-purple-500 text-white"
-                        : "border-[var(--border)] hover:border-purple-400"
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] transition ${completed
+                    ? "border-purple-500 bg-purple-500 text-white"
+                    : "border-[var(--border)] hover:border-purple-400"
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
                 aria-label={
                     completed
                         ? "Reopen subtask"
@@ -166,16 +174,15 @@ function Subtask({
 
             <div className="min-w-0 flex-1">
 
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
 
                         <p
-                            className={`text-sm font-medium ${
-                                completed
-                                    ? "text-[var(--muted)] line-through"
-                                    : ""
-                            }`}
+                            className={`text-sm font-medium ${completed
+                                ? "text-[var(--muted)] line-through"
+                                : ""
+                                }`}
                         >
                             {subtask.title ||
                                 "Untitled subtask"}
@@ -189,7 +196,7 @@ function Subtask({
 
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap">
 
                         {archived && (
                             <button

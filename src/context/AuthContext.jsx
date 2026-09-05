@@ -18,11 +18,9 @@ const AuthContext =
 export const AuthProvider = ({
     children,
 }) => {
-    const [admin, setAdmin] =
-        useState(null);
+    const [admin, setAdmin] = useState(null);
 
-    const [loading, setLoading] =
-        useState(true);
+    const [loading, setLoading] = useState(true);
 
     // ========================================================
     // RESTORE LOGIN SESSION

@@ -32,9 +32,54 @@ function Task({
     onReorder,
 
     renderSubtask,
+
+    // Optional — when provided, replaces the "+ Add subtask" button
+    // with this content (used to render the inline add-subtask form
+    // directly under THIS task instead of at the bottom of the list).
+    subtaskFormSlot = null,
 }) {
+    const storageKey =
+        task?._id
+            ? `work-task-expanded:${task._id}`
+            : null;
+
     const [expanded, setExpanded] =
-        useState(true);
+        useState(() => {
+            if (!storageKey) {
+                return false;
+            }
+
+            try {
+                return (
+                    localStorage.getItem(
+                        storageKey
+                    ) === "true"
+                );
+            } catch {
+                return false;
+            }
+        });
+
+    const toggleExpanded = () => {
+        setExpanded(
+            (current) => {
+                const next = !current;
+
+                if (storageKey) {
+                    try {
+                        localStorage.setItem(
+                            storageKey,
+                            String(next)
+                        );
+                    } catch {
+                        // ignore storage errors (e.g. private mode)
+                    }
+                }
+
+                return next;
+            }
+        );
+    };
 
     if (!task) {
         return null;
@@ -211,18 +256,15 @@ function Task({
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
 
                             <div className="flex items-center gap-2">
 
                                 {hasSubtasks && (
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setExpanded(
-                                                (current) =>
-                                                    !current
-                                            )
+                                        onClick={
+                                            toggleExpanded
                                         }
                                         className="shrink-0 text-[var(--muted)] transition hover:text-[var(--text)]"
                                         aria-label={
@@ -264,7 +306,7 @@ function Task({
 
                         </div>
 
-                        <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        <div className="flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap">
 
                             <span className="text-xs font-semibold text-[var(--muted)]">
                                 {progress}%
@@ -370,18 +412,22 @@ function Task({
 
                     <div className="border-t border-[var(--border)] px-5 py-3">
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                onAddSubtask?.(
-                                    task
-                                )
-                            }
-                            className="flex items-center gap-1.5 text-xs font-semibold text-purple-400 transition hover:text-purple-300"
-                        >
-                            <Plus size={14} />
-                            Add subtask
-                        </button>
+                        {subtaskFormSlot ? (
+                            subtaskFormSlot
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onAddSubtask?.(
+                                        task
+                                    )
+                                }
+                                className="flex items-center gap-1.5 text-xs font-semibold text-purple-400 transition hover:text-purple-300"
+                            >
+                                <Plus size={14} />
+                                Add subtask
+                            </button>
+                        )}
 
                     </div>
                 )}

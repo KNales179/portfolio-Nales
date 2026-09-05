@@ -3,12 +3,16 @@ import {
     Check,
     Circle,
     Lock,
+    MessageSquare,
     Pencil,
     Plus,
     RotateCcw,
     Shield,
     Trash2,
     Unlock,
+    UserCog,
+    Link as LinkIcon,
+    ArrowUpDown,
 } from "lucide-react";
 
 const ACTION_CONFIG = {
@@ -20,16 +24,6 @@ const ACTION_CONFIG = {
     WORK_UPDATED: {
         label: "updated the work",
         icon: Pencil,
-    },
-
-    WORK_DELETED: {
-        label: "permanently deleted the work",
-        icon: Trash2,
-    },
-
-    WORK_STATUS_CHANGED: {
-        label: "changed the work status",
-        icon: Circle,
     },
 
     WORK_LOCKED: {
@@ -52,6 +46,26 @@ const ACTION_CONFIG = {
         icon: RotateCcw,
     },
 
+    WORK_REORDERED: {
+        label: "reordered the work",
+        icon: ArrowUpDown,
+    },
+
+    WORK_OWNER_CHANGED: {
+        label: "transferred ownership",
+        icon: UserCog,
+    },
+
+    PARTICIPANT_ADDED: {
+        label: "added a participant",
+        icon: Shield,
+    },
+
+    PARTICIPANT_REMOVED: {
+        label: "removed a participant",
+        icon: Shield,
+    },
+
     TASK_CREATED: {
         label: "created a task",
         icon: Plus,
@@ -62,14 +76,29 @@ const ACTION_CONFIG = {
         icon: Pencil,
     },
 
-    TASK_DELETED: {
+    TASK_COMPLETED: {
+        label: "completed a task",
+        icon: Check,
+    },
+
+    TASK_REOPENED: {
+        label: "reopened a task",
+        icon: RotateCcw,
+    },
+
+    TASK_ARCHIVED: {
         label: "archived a task",
         icon: Archive,
     },
 
-    TASK_STATUS_CHANGED: {
-        label: "changed a task status",
-        icon: Circle,
+    TASK_RESTORED: {
+        label: "restored a task",
+        icon: RotateCcw,
+    },
+
+    TASK_REORDERED: {
+        label: "reordered tasks",
+        icon: ArrowUpDown,
     },
 
     SUBTASK_CREATED: {
@@ -82,29 +111,59 @@ const ACTION_CONFIG = {
         icon: Pencil,
     },
 
-    SUBTASK_DELETED: {
-        label: "archived a subtask",
-        icon: Archive,
-    },
-
     SUBTASK_COMPLETED: {
         label: "completed a subtask",
         icon: Check,
     },
 
-    SUBTASK_UNCOMPLETED: {
+    SUBTASK_REOPENED: {
         label: "reopened a subtask",
         icon: RotateCcw,
     },
 
-    PARTICIPANT_ADDED: {
-        label: "added a participant",
-        icon: Shield,
+    SUBTASK_ARCHIVED: {
+        label: "archived a subtask",
+        icon: Archive,
     },
 
-    PARTICIPANT_REMOVED: {
-        label: "removed a participant",
-        icon: Shield,
+    SUBTASK_RESTORED: {
+        label: "restored a subtask",
+        icon: RotateCcw,
+    },
+
+    SUBTASK_REORDERED: {
+        label: "reordered subtasks",
+        icon: ArrowUpDown,
+    },
+
+    COMMENT_CREATED: {
+        label: "added a comment",
+        icon: MessageSquare,
+    },
+
+    COMMENT_UPDATED: {
+        label: "edited a comment",
+        icon: Pencil,
+    },
+
+    COMMENT_DELETED: {
+        label: "deleted a comment",
+        icon: Trash2,
+    },
+
+    LINK_CREATED: {
+        label: "added a link",
+        icon: LinkIcon,
+    },
+
+    LINK_UPDATED: {
+        label: "edited a link",
+        icon: Pencil,
+    },
+
+    LINK_DELETED: {
+        label: "removed a link",
+        icon: Trash2,
     },
 };
 

@@ -94,7 +94,7 @@ function Navbar() {
             </p>
 
             <p className="mt-1 text-xs text-purple-400/80">
-              Ivhel
+              Ivhel Nales
             </p>
           </div>
         </button>

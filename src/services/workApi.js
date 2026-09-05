@@ -227,7 +227,7 @@ export const unlockWork = async (
 // ============================================================
 
 export const reorderWorks = async (
-    orders
+    orderedIds
 ) => {
     return apiRequest(
         "/api/work/reorder",
@@ -235,7 +235,7 @@ export const reorderWorks = async (
             method: "PATCH",
 
             body: JSON.stringify({
-                orders,
+                orderedIds,
             }),
         }
     );
@@ -416,7 +416,7 @@ export const restoreTask = async (
 
 export const reorderTasks = async (
     workId,
-    orders
+    orderedIds
 ) => {
     return apiRequest(
         `/api/work/${encodeURIComponent(
@@ -426,7 +426,7 @@ export const reorderTasks = async (
             method: "PATCH",
 
             body: JSON.stringify({
-                orders,
+                orderedIds,
             }),
         }
     );
@@ -537,7 +537,7 @@ export const restoreSubtask = async (
 
 export const reorderSubtasks = async (
     taskId,
-    orders
+    orderedIds
 ) => {
     return apiRequest(
         `/api/work/tasks/${encodeURIComponent(
@@ -547,7 +547,7 @@ export const reorderSubtasks = async (
             method: "PATCH",
 
             body: JSON.stringify({
-                orders,
+                orderedIds,
             }),
         }
     );

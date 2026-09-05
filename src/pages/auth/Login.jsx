@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { motion } from "framer-motion";
 
@@ -22,7 +22,36 @@ import {
 function Login() {
     const navigate = useNavigate();
 
-    const { login } = useAuth();
+    const { admin, login } = useAuth();
+
+    useEffect(() => {
+        if (!admin) {
+            return;
+        }
+
+        if (admin.mustChangePassword) {
+            navigate("/admin/profile", {
+                replace: true,
+                state: {
+                    firstLogin: true,
+                },
+            });
+
+            return;
+        }
+
+        if (!admin.twoFactorEnabled) {
+            navigate("/admin/security", {
+                replace: true,
+            });
+
+            return;
+        }
+
+        navigate("/admin/dashboard", {
+            replace: true,
+        });
+    }, [admin, navigate]);
 
     // ============================================================
     // LOGIN FORM
