@@ -1,4 +1,5 @@
 const projects = [
+  // =====================================TodaGo Mobile=============================================================================
   {
     name: "TODA-GO Mobile",
     type: "Passenger & Driver Mobile Application",
@@ -15,10 +16,50 @@ const projects = [
       "Socket.IO",
       "OpenRouteService",
     ],
+
+    notes: {
+      learned: [
+        "Learned how to develop mobile applications using React Native and gained practical experience across the full application stack, including MongoDB database design, backend development, REST APIs, authentication, data management, and connecting mobile applications to backend services."
+      ],
+
+      challenges: [
+        "When we started our capstone project in third year, I had no prior experience with React Native. The framework was only introduced to us during fourth year, so I had to learn mobile development from scratch while actively building the project.",
+
+        "Rather than simply following tutorials, I began modifying and adapting the examples to fit our actual system. This meant experimenting with the framework, restructuring tutorial implementations, and learning through trial and error.",
+
+        "Looking back at the project today, I can see that my early code organization was far from ideal. Some parts became messy as I was learning and developing at the same time, but that experience taught me the importance of planning architecture, maintaining consistency, and writing code that remains understandable as a project grows."
+      ],
+
+      technical: [
+        "React Native was used to develop the mobile application and provide a cross-platform development environment.",
+
+        "Node.js and Express were used to build the backend and REST API services responsible for handling application requests and business logic.",
+
+        "MongoDB was used as the database for storing and managing application data.",
+
+        "Authentication and authorization were implemented to control access to different parts of the system.",
+
+        "The mobile application communicates with the backend through REST APIs for retrieving and managing system data.",
+
+        "The project required integrating mobile interfaces, backend services, database operations, and API communication into a single working system."
+      ],
+
+      reflection: [
+        "This project made me realize how much I enjoy taking on challenges that initially seem impossible and turning them into something that actually works.",
+
+        "I was repeatedly told that choosing React Native for our capstone was a mistake and that the project would be too difficult. My group was the only capstone group that chose to take on the challenges of mobile development with React Native, which made the project even more demanding.",
+
+        "I never doubted that I could eventually learn it, but I did have a different kind of fear: the fear of letting my groupmates down. I knew that choosing an unfamiliar technology meant that there was a real possibility that I could become the reason our project failed.",
+
+        "Instead of allowing that fear to stop me, I kept learning, experimenting, and building. Looking back now, the project represents more than just my first experience with mobile development. It is proof that unfamiliar technology becomes manageable when I am willing to learn what I do not know and keep pushing until I figure it out."
+      ]
+    },
     image: `${import.meta.env.BASE_URL}projects/TodaGo.jpg`,
     status: "complete",
   },
 
+
+  // =====================================TodaGo Admin=============================================================================
   {
     name: "TODA-GO Admin",
     type: "Web-Based Administration Platform",
@@ -26,6 +67,82 @@ const projects = [
     github: "https://github.com/KNales179/TODAGO-Admin",
     description:
       "The web administration platform supporting the TODA-GO system, providing tools for managing users, drivers, records, and transportation operations.",
+    descriptions: [
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Home.png`,
+        ],
+        texts: [
+          "The Dashboard provides administrators with a centralized overview of the TODA-Go platform, presenting key information about registered drivers, passengers, trips, driver activity, and passenger reports. The page gives administrators a quick view of the current state of the platform without requiring them to open each management section individually.",
+
+          "The dashboard displays summary metrics for registered drivers, registered users, and trips for the current month, with trend indicators and visual summaries based on available platform data. Administrators can switch between monthly and weekly visualizations to monitor changes in trip activity, user growth, and driver activity over time. The dashboard also provides a breakdown of driver availability, showing the number of online and offline drivers.",
+
+          "Additional dashboard sections provide operational and service-quality information, including the highest-rated drivers, passenger report categories, and recent reports submitted through the platform. Report records display the reporter or booking information, report type, submission date, and current resolution status, while administrators can access the complete report management page when further action is required. This allows the dashboard to function as both a monitoring interface and an entry point for managing important platform activity."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Live.png`,
+        ],
+        texts: [
+          "The Live Monitor page provides administrators with a real-time overview of active TODA-Go operations. It combines a live map with current driver locations, TODA locations, and ongoing booking transactions, allowing administrators to monitor activity across the platform from a single interface.",
+
+          "The live map displays active or online drivers together with registered TODA locations and active booking information. Live driver and booking data are retrieved from the backend and periodically refreshed while the page is visible, allowing the monitoring interface to reflect changes in driver availability and booking status. Administrators can also manually refresh the displayed information when needed.",
+
+          "The page includes a Driver Monitoring table showing active drivers, their franchise numbers, passenger ratings, TODA affiliations, and current online status. An Ongoing Booking Transactions table provides additional details about active bookings, including the passenger, assigned driver, pickup and drop-off locations, booking status, and creation time. Together with the live map, these monitoring tools give administrators a centralized view of current driver activity and ongoing passenger transactions."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Driver.png`,
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Passenger.png`,
+        ],
+        texts: [
+          "The Drivers and Passengers pages provide administrators with centralized tools for managing the users of the TODA-Go platform. Both pages use searchable and paginated records to allow administrators to locate accounts efficiently while providing access to detailed user information and account management actions.",
+
+          "The Drivers page focuses on driver registration and verification. Administrators can search and filter driver records by verification status, register new drivers, view driver information and submitted documents, verify or reject driver applications, send notifications, apply or remove account restrictions, and designate a driver as a TODA president when applicable. Driver records include information such as the driver's name, franchise number, plate number, TODA affiliation, contact information, rating, experience, verification state, and submitted identification or payment-related documents.",
+
+          "The Passengers page manages registered passenger accounts and their verification-related information. Administrators can search passenger records and filter them by account verification and discount verification status. Passenger details can be reviewed through the account view, while eligible discount applications can be approved or rejected with the corresponding discount type or rejection reason. Administrators can also apply or remove account restrictions when necessary. Together, these pages provide separate but complementary management interfaces for maintaining driver compliance and passenger account records across the TODA-Go platform."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Trips.png`,
+        ],
+        texts: [
+          "The Trips page provides administrators with a centralized view of TODA-Go booking and trip records. It brings together pending, accepted, enroute, canceled, and completed transactions in a single table, allowing administrators to review the history and current state of passenger bookings without switching between different management sections.",
+
+          "Administrators can search trip records using information such as the passenger or rider name, assigned driver, pickup and drop-off locations, booking ID, date, booking type, and payment method. The page also provides filters for trip status and booking type, including Classic, Solo (VIP), and Group bookings. This allows specific types of transactions to be isolated when reviewing platform activity or investigating individual bookings.",
+
+          "Each trip record contains important transaction details such as the passenger and rider information, assigned driver, pickup and destination locations, fare, booking type, group size, payment method and status, as well as relevant booking timestamps. Administrators can open an individual trip to view its complete information through the trip details modal, providing a more detailed reference for reviewing completed rides, canceled bookings, and ongoing transactions."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Configure.png`,
+        ],
+        texts: [
+          "The Configuration Panel provides administrators with centralized controls for managing configurable aspects of the TODA-Go platform. The page brings together fare configuration, tricycle scheduling, TODA location management, and administrative development utilities, allowing system settings and operational data to be maintained from a single interface.",
+
+          "The Fare Configuration tools allow administrators to manage the fare rules applied by the platform, including regular and special fare rates, included distances, additional charges per kilometer, charging modes, and passenger discount settings. Discount configuration includes the discount percentage and the passenger categories to which the discount applies. The Tricycle Scheduling tools provide additional operational controls by allowing administrators to define weekly time segments and specify which tricycle color groups are permitted to operate during each period. The schedule editor validates time ranges and prevents overlapping segments before configuration changes are saved.",
+
+          "The panel also provides management of TODA location records used throughout the platform. Administrators can add, edit, and delete TODA locations while maintaining the location information used by other administrative and mapping features. A separate development tools section provides controlled utilities for tasks such as seeding ride history and test driver or passenger records, as well as removing generated records by month. These utilities are separated from the main configuration controls and are intended for administrative development and data-management purposes."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Report.png`,
+          `${import.meta.env.BASE_URL}Manus/TodaGoAdmin/Appeal.png`,
+        ],
+        texts: [
+          "The Reports & Feedback and Appeals pages provide administrators with tools for reviewing passenger-submitted concerns, service feedback, and user appeals related to account restrictions. These pages centralize records that require administrative review and provide the appropriate actions for resolving reports, communicating with users, applying restrictions, and processing appeals.",
+
+          "The Reports & Feedback page separates submitted reports from passenger feedback through dedicated tabs. Reports include information about the reporter, reported driver, report subject, details, status, and resolution date, while administrators can open individual reports to review the associated user profiles and take administrative actions. Depending on the case, administrators can resolve a report, send a warning notification to the reported user, or apply an account restriction. The page also refreshes records automatically while visible and provides PDF export options for reports, feedback, or both records together.",
+
+          "The Appeals page focuses on requests submitted by users to contest account restrictions. Administrators can search appeals using user information, restriction details, appeal messages, and administrative notes, while filtering records by pending, approved, rejected, or resolved status. Each appeal is linked with the corresponding passenger or driver record and its restriction information. Pending appeals can be opened for review, after which administrators can approve the appeal and lift the restriction or reject it with a required administrative reason. The page also recognizes restrictions that have already expired or been lifted, allowing resolved appeals to remain identifiable in the administrative records."
+        ],
+      }
+    ],
     technologies: [
       "React",
       "Node.js",
@@ -34,10 +151,57 @@ const projects = [
       "Socket.IO",
       "MapTiler",
     ],
+    notes: {
+      learned: [
+        "Built upon my existing web development experience while learning how to analyze system requirements and design an administrative interface around the needs of an actual operational system.",
+
+        "Learned how to connect two separate applications through a shared backend, allowing the mobile application and web-based administrative system to communicate and work with the same data.",
+
+        "Gained a better understanding of administrative system design, including how information should be organized, managed, reviewed, and presented to administrators.",
+
+        "Learned to be more creative with frontend development by taking the initial design and requirements provided by my groupmates and turning them into a more complete and functional user interface."
+      ],
+
+      challenges: [
+        "Unlike the mobile application, I already had prior experience with web development, so the main challenge was not learning the technology from scratch but understanding how to design an administrative system that could properly support another application.",
+
+        "The project required the web admin and mobile application to communicate through the backend. This introduced challenges beyond normal frontend development because changes made through one system needed to be properly reflected and managed across the other.",
+
+        "The project was also developed alongside the mobile application as part of the same capstone, which meant that the administrative system had to evolve together with the functionality and requirements of the mobile application."
+      ],
+
+      technical: [
+        "React and Vite were used to develop the web-based administrative interface.",
+
+        "Node.js and Express were used to build the backend and REST APIs that connected the administrative system with the mobile application.",
+
+        "MongoDB was used as the database for storing and managing shared system data.",
+
+        "The admin system communicates with the mobile application through backend APIs, allowing both applications to work with the same underlying data.",
+
+        "The interface was designed around administrative workflows, including managing records, reviewing information, and organizing data for easier administration.",
+
+        "Frontend components and layouts were developed with a focus on making complex administrative information easier to understand and manage."
+      ],
+
+      reflection: [
+        "This project gave me a better understanding of what it means to build an administrative system rather than simply building a website. The interface has to reflect how information is actually managed and how different parts of a system interact with each other.",
+
+        "One of the most valuable things I learned was how two different applications can become part of the same system through a shared backend. The mobile application handled one side of the experience while the web admin provided the tools needed to manage the information behind it.",
+
+        "Our capstone was also more demanding than most of the other groups. While many groups were developing a single project, our team was effectively building two connected applications: a mobile application and a web-based administrative system.",
+
+        "The administrative system was not completely finished, but the experience gave me a much clearer understanding of how I would approach a similar system today. I now have a better idea of how to structure an admin interface, how different applications should communicate, and how frontend design can support the actual workflow of the people using the system.",
+
+        "Looking back, I am proud that our team took on the additional complexity instead of reducing the project to a single application. Building both the mobile application and its administrative counterpart was difficult, but we managed to bring the two sides together into a working system."
+      ]
+    },
     image: `${import.meta.env.BASE_URL}projects/TodaGoAdmin.jpg`,
     status: "complete",
   },
 
+
+  // =====================================TIRS=============================================================================
   {
     name: "TIRS",
     type: "Tricycle Integrated Records System",
@@ -107,10 +271,55 @@ const projects = [
       "MongoDB",
       "Cloudinary",
     ],
+    notes: {
+      learned: [
+        "Learned how to design and develop a management-oriented web application focused on maintaining operational records, particularly driver information, violations, and related transactions.",
+
+        "Learned how administrative systems differ from typical websites, where the primary goal is not simply presenting information but allowing users to create, update, review, organize, and manage records efficiently.",
+
+        "Learned how to design workflows around driver management and violation records, including how information needs to be structured so administrators can easily monitor and maintain it.",
+
+        "Learned how application architecture can evolve as project requirements change. TIRS was initially designed as a locally hosted system using local storage, but the project later transitioned toward a backend and MongoDB-based architecture."
+      ],
+
+      challenges: [
+        "The initial plan for TIRS was for it to operate as a locally hosted system rather than relying on a cloud-based service. This meant approaching the project as a system that could run within a local environment and initially managing application data through local storage.",
+
+        "As the project evolved, the limitations of keeping the system primarily local became more apparent. The architecture eventually moved toward a backend and MongoDB-based approach, requiring the application to handle persistent data through a proper database rather than relying only on browser-side storage.",
+
+        "Another challenge was understanding how to translate real administrative requirements into an interface and workflow that could actually be used to manage drivers, violations, and other operational records."
+      ],
+
+      technical: [
+        "The project was initially developed as a locally hosted management system, with local storage used during the early stages of development.",
+
+        "The system later transitioned to a backend-based architecture with Node.js and Express handling server-side operations and API communication.",
+
+        "MongoDB was introduced as the primary database as the project evolved from its original local-storage approach.",
+
+        "The system focuses on structured management of driver records, vehicle information, violations, and related administrative data.",
+
+        "The administrative interface was designed around CRUD-based workflows, allowing authorized users to create, view, update, and manage operational records.",
+
+        "The architecture evolved during development as the requirements of the system became clearer, moving from a primarily local implementation toward a more scalable database-backed system."
+      ],
+
+      reflection: [
+        "TIRS gave me a better understanding of what it means to build software for actual management and administrative workflows. Instead of focusing primarily on what the user sees, I had to think about how information is created, maintained, reviewed, and used by administrators.",
+
+        "One of the most valuable lessons from the project was seeing how the architecture of a system can change as its requirements become clearer. TIRS started with the idea of being a locally hosted system with local data storage, but eventually evolved toward a backend and MongoDB architecture.",
+
+        "The project also helped me understand that management systems require a different approach to frontend design. A good administrative interface needs to make large amounts of information understandable while keeping common tasks such as managing records and reviewing violations efficient.",
+
+        "Looking back, TIRS gave me a stronger foundation for developing business-oriented applications. It taught me to think beyond individual pages and components and instead consider the complete workflow of the organization that will actually use the system."
+      ]
+    },
     image: `${import.meta.env.BASE_URL}projects/TIRS.jpg`,
     status: "incomplete",
   },
 
+
+  // =====================================Fare Check Lucena=============================================================================
   {
     name: "FareCheck Lucena",
     type: "Offline Mobile Fare Calculator",
@@ -162,10 +371,57 @@ const projects = [
       "MongoDB",
       "NativeWind",
     ],
+    notes: {
+      learned: [
+        "Learned how to design an offline-first mobile application and how to make core functionality work without continuously relying on a backend or database connection.",
+
+        "Learned how to determine which data needs to be available locally and how to store that data on the device so the application can continue functioning without an internet connection.",
+
+        "Learned how to use locally stored data alongside remotely managed data, including the process of saving necessary information locally while still allowing the application to receive updated data from the backend when a connection is available.",
+
+        "Learned how to embed essential static data directly into the application so that critical functionality remains available even when no external service can be reached."
+      ],
+
+      challenges: [
+        "The main challenge was that I had no prior experience developing an offline mobile application. I was familiar with building applications that communicate with a backend, but designing one that could continue functioning when that connection was unavailable required a completely different way of thinking about data and application architecture.",
+
+        "I had to learn how to decide what information should come from the backend, what should be stored locally, and what could be embedded directly into the application. This required treating local data as an important part of the system rather than simply using it as a fallback when the internet was unavailable."
+      ],
+
+      technical: [
+        "React Native and Expo were used to develop the mobile application.",
+
+        "MapLibre React Native was used for map rendering, including offline map data.",
+
+        "GraphHopper was integrated for offline route calculation, allowing routes to be calculated locally without depending on an online routing service.",
+
+        "AsyncStorage was used to store application data locally on the device, including the latest available fare matrix and other necessary information.",
+
+        "Essential offline map and routing data were embedded with the application so core functionality remained available without an internet connection.",
+
+        "The application uses a local-first data approach where necessary information is available on the device while the backend is used for updating and synchronizing data when connectivity is available.",
+
+        "Node.js and Express provide the backend API used for retrieving updated fare and application data when an internet connection is available.",
+
+        "MongoDB Atlas is used as the remote database for managing the application's server-side data."
+      ],
+
+      reflection: [
+        "FareCheck Lucena changed how I think about application architecture. Before this project, I was more accustomed to applications depending heavily on the backend and database. Building an offline application taught me that a mobile system can be designed to remain useful even when those services are unavailable.",
+
+        "The biggest lesson was understanding that offline functionality is not simply a feature that can be added at the end of development. It affects how data is stored, how the application retrieves information, and how the backend and mobile application work together.",
+
+        "This project also taught me to be more deliberate about deciding which data is actually necessary for the application to function. Instead of sending every request to the backend, the application can keep essential information locally and only communicate with the server when it actually needs updated data.",
+
+        "Coming into the project without prior knowledge of offline mobile development made the process challenging, but it gave me experience with a type of application architecture I had never worked with before. It also helped me understand that building for unreliable connectivity requires designing around the possibility that the network simply will not be there."
+      ]
+    },
     image: `${import.meta.env.BASE_URL}projects/FareCheck.jpg`,
     status: "complete",
   },
 
+
+  // =====================================Personal Portfolio=============================================================================
   {
     name: "Personal Portfolio",
     title: "Interactive Developer Portfolio",
@@ -177,17 +433,6 @@ const projects = [
     description:
       "A personal portfolio designed to showcase my projects, skills, experience, and development work through an interactive and responsive web experience.",
 
-    technologies: [
-      "React",
-      "Vite",
-      "TypeScript",
-      "Tailwind CSS",
-      "Framer Motion",
-    ],
-
-    image: `${import.meta.env.BASE_URL}projects/PortfolioL.jpg`,
-
-    status: "incomplete",
 
     descriptions: [
       {
@@ -257,7 +502,69 @@ const projects = [
           "Beyond portfolio management and analytics, the Admin interface includes a personal to-do system that I use to keep track of ongoing development work and side projects. The goal is to make the Admin area a personal workspace where I can manage my portfolio, review visitor activity, and organize the projects I am currently working on.",
         ],
       },
-    ]
+    ],
+
+    technologies: [
+      "React",
+      "Vite",
+      "TypeScript",
+      "Tailwind CSS",
+      "Framer Motion",
+    ],
+
+    image: `${import.meta.env.BASE_URL}projects/PortfolioL.jpg`,
+
+    status: "incomplete",
+
+    notes: {
+      learned: [
+        "Learned how to apply practical security measures to a web application, including brute-force protection, account locking, two-factor authentication, authentication controls, and other measures designed to protect user accounts and administrative functionality.",
+
+        "Learned how to think about security as part of the application's architecture rather than something added only after development is complete.",
+
+        "Improved my frontend development and design skills through this project. Since I have traditionally been more focused on backend development, building the portfolio gave me an opportunity to experiment more with visual design, interactions, animations, and user experience.",
+
+        "Learned how to develop a more intentional visual identity by moving away from randomly selected design elements and establishing a consistent theme based around minimalism."
+      ],
+
+      challenges: [
+        "The initial plan for the portfolio was relatively simple: a single long landing page that presented my projects, skills, and information. As development progressed, I realized that a basic portfolio did not represent the type of developer or work I wanted to showcase.",
+
+        "The project gradually became more complex and interactive, requiring me to think more carefully about navigation, layouts, animations, project presentation, and how information is revealed to visitors.",
+
+        "Another challenge was stepping outside my usual backend-focused development approach. I had to spend more time thinking about visual hierarchy, composition, interaction design, and how the frontend feels rather than focusing only on whether the underlying system works."
+      ],
+
+      technical: [
+        "React and Vite are used as the foundation of the portfolio application.",
+
+        "TypeScript is used for type-safe application development.",
+
+        "Tailwind CSS is used for styling and building the responsive interface.",
+
+        "Framer Motion is used to create animations and interactive transitions throughout the portfolio.",
+
+        "The portfolio includes a backend-powered administrative system rather than functioning only as a static frontend.",
+
+        "Authentication security includes brute-force protection, account-locking mechanisms, and two-factor authentication for administrative access.",
+
+        "The system separates the public visitor experience from administrative functionality, allowing portfolio content and other information to be managed through a protected interface.",
+
+        "The portfolio was designed with a consistent minimal visual language while allowing room for future customization of layouts and presentation."
+      ],
+
+      reflection: [
+        "This project became much more than a portfolio for me. It started as a simple one-page landing page, but as I continued developing it, I realized that I wanted the portfolio itself to demonstrate the kind of applications I am capable of building.",
+
+        "One of the biggest changes was moving from a random collection of design ideas toward an intentional visual identity. I chose minimalism as the foundation because I wanted the interface to feel clean and refined while keeping the focus on the actual work.",
+
+        "The project also pushed me outside my usual comfort zone. I have traditionally been more comfortable working on the backend, but developing this portfolio gave me a reason to improve my frontend skills and become more creative with layouts, interactions, animations, and presentation.",
+
+        "Security was another important part of the project. While it may seem late to be learning these concepts through a portfolio, this was actually one of the first projects where I deliberately implemented multiple security measures such as brute-force protection, account locking, and two-factor authentication. It helped me understand that even a relatively small web application should be designed with security in mind.",
+
+        "The portfolio is still evolving. My current goal is to move beyond the traditional idea of an online portfolio and eventually allow visitors to experience different layouts and presentation styles. I want the portfolio to feel less like a static resume on a webpage and more like an interactive experience that reflects my creativity as a developer."
+      ]
+    }
   }
 ];
 

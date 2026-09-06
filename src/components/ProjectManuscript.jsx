@@ -576,6 +576,108 @@ function ProjectManuscript({ project, onClose }) {
                                 </section>
                             )}
 
+                            {/* NOTES & LEARNINGS */}
+
+                            {project.notes && (
+                                <section className="mt-20 border-t border-[var(--border)] pt-10">
+
+                                    <div className="mb-8">
+                                        <p className="text-[9px] tracking-[0.2em] text-[var(--accent)]">
+                                            NOTES & LEARNINGS
+                                        </p>
+
+                                        <h3 className="heading-font mt-2 text-2xl font-bold md:text-3xl">
+                                            What I learned
+                                        </h3>
+
+                                        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
+                                            Personal notes, technical observations, challenges, and
+                                            lessons learned while developing this project.
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-10">
+
+                                        {project.notes.learned?.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-[var(--text)]">
+                                                    Things I Learned
+                                                </p>
+
+                                                <ul className="mt-4 space-y-3">
+                                                    {project.notes.learned.map((note, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="border-l-2 border-[var(--accent)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                                                        >
+                                                            {note}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {project.notes.challenges?.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-[var(--text)]">
+                                                    Challenges
+                                                </p>
+
+                                                <ul className="mt-4 space-y-3">
+                                                    {project.notes.challenges.map((note, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                                                        >
+                                                            {note}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {project.notes.technical?.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-[var(--text)]">
+                                                    Technical Notes
+                                                </p>
+
+                                                <ul className="mt-4 space-y-3">
+                                                    {project.notes.technical.map((note, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                                                        >
+                                                            {note}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {project.notes.reflection?.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-[var(--text)]">
+                                                    Reflection
+                                                </p>
+
+                                                <ul className="mt-4 space-y-3">
+                                                    {project.notes.reflection.map((note, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                                                        >
+                                                            {note}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                    </div>
+                                </section>
+                            )}
+
                             {/* END */}
 
                             <div className="mt-20 border-t border-[var(--border)] pt-6 text-center">
