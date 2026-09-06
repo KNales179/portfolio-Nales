@@ -15,6 +15,10 @@ function Projects() {
     (project) => project.status === "incomplete"
   );
 
+  const plannedProjects = projects.filter(
+    (project) => project.status === "planned"
+  );
+
   return (
     <section className="min-h-screen px-6 py-32 md:px-10 lg:px-16">
       <div className="mx-auto max-w-[1200px]">
@@ -110,6 +114,40 @@ function Projects() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {incompleteProjects.map((project, index) => (
+                <ProjectListCard
+                  key={project.name}
+                  project={project}
+                  index={index}
+                  onViewProject={setSelectedProject}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* =========================
+            PLANNED
+        ========================== */}
+        {plannedProjects.length > 0 && (
+          <section className="mt-20">
+            <div className="mb-8">
+              <div className="flex items-center gap-3">
+                <h2 className="heading-font text-3xl font-bold">
+                  Planned
+                </h2>
+
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--muted)]">
+                  {plannedProjects.length}
+                </span>
+              </div>
+
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Projects I am planning to design and develop in the future.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {plannedProjects.map((project, index) => (
                 <ProjectListCard
                   key={project.name}
                   project={project}

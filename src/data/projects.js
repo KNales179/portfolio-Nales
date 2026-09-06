@@ -565,7 +565,40 @@ const projects = [
         "The portfolio is still evolving. My current goal is to move beyond the traditional idea of an online portfolio and eventually allow visitors to experience different layouts and presentation styles. I want the portfolio to feel less like a static resume on a webpage and more like an interactive experience that reflects my creativity as a developer."
       ]
     }
-  }
+  },
+
+  // =====================================FiCo=============================================================================
+  {
+    name: "FiCo",
+    title: "Your Everyday Financial Companion",
+    type: "Personal & Shared Finance Management Application",
+    status: "planned",
+
+    description:
+      "A personal and shared finance application designed to help users record incoming and outgoing money, track their available funds, manage planned purchases, and understand their financial activity through organized records, visualizations, and offline-first functionality with online synchronization.",
+  },
+
+  // =====================================BEYA=============================================================================
+  {
+    name: "BEYA",
+    title: "Bridging Education Through Your Assistant",
+    type: "AI-Powered Teacher Academic Assistance Application",
+    status: "planned",
+
+    description:
+      "A teacher-focused application designed to help educators better observe and understand student progress through academic data while reducing repetitive work through examinations, grading, student records, sections, and customizable academic management. An AI assistant helps teachers interpret academic information, identify student performance patterns, and provide useful insights to support more informed teaching and student monitoring.",
+  },
+
+  // =====================================CORA=============================================================================
+  {
+    name: "CORA",
+    title: "Cherry's Organized Records & Actions",
+    type: "Personal & Collaborative Work Management Application",
+    status: "planned",
+
+    description:
+      "A flexible work management application designed for both personal and collaborative use, allowing users to organize tasks, track progress, record activities, and keep a history of who did what. Built with offline-first interaction in mind, users can continue creating, updating, and completing work without an internet connection, with records synchronized when connectivity becomes available.",
+  },
 ];
 
 export default projects;

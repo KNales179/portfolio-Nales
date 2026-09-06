@@ -193,14 +193,19 @@ function Projects() {
       Web #3 → rows 5-6
   */
 
-  const mobileProjects = projects.filter(
-    (project) => project.layout === "portrait",
+  const showcaseProjects = projects.filter(
+    (project) =>
+      project.status === "complete" ||
+      project.status === "incomplete"
   );
 
-  const webProjects = projects.filter(
-    (project) => project.layout === "landscape",
+  const mobileProjects = showcaseProjects.filter(
+    (project) => project.layout === "portrait"
   );
 
+  const webProjects = showcaseProjects.filter(
+    (project) => project.layout === "landscape"
+  );
   return (
     <section
       id="projects"
@@ -223,35 +228,35 @@ function Projects() {
           {/* Mobile #1 */}
           <ProjectCard
             project={mobileProjects[0]}
-            index={projects.indexOf(mobileProjects[0])}
+            index={showcaseProjects.indexOf(mobileProjects[0])}
             className="col-start-1 row-span-3 row-start-1"
           />
 
           {/* Mobile #2 */}
           <ProjectCard
             project={mobileProjects[1]}
-            index={projects.indexOf(mobileProjects[1])}
+            index={showcaseProjects.indexOf(mobileProjects[1])}
             className="col-start-1 row-span-3 row-start-4"
           />
 
           {/* Web #1 */}
           <ProjectCard
             project={webProjects[0]}
-            index={projects.indexOf(webProjects[0])}
+            index={showcaseProjects.indexOf(webProjects[0])}
             className="col-start-2 col-span-2 row-start-1 row-span-2"
           />
 
           {/* Web #2 */}
           <ProjectCard
             project={webProjects[1]}
-            index={projects.indexOf(webProjects[1])}
+            index={showcaseProjects.indexOf(webProjects[1])}
             className="col-start-2 col-span-2 row-start-3 row-span-2"
           />
 
           {/* Web #3 */}
           <ProjectCard
             project={webProjects[2]}
-            index={projects.indexOf(webProjects[2])}
+            index={showcaseProjects.indexOf(webProjects[2])}
             className="col-start-2 col-span-2 row-start-5 row-span-2"
           />
         </div>
