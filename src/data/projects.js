@@ -3,6 +3,7 @@ const projects = [
     name: "TODA-GO Mobile",
     type: "Passenger & Driver Mobile Application",
     layout: "portrait",
+    github: "https://github.com/KNales179/toda-go-frontend2",
     description:
       "A mobile transportation application built for passengers and tricycle drivers, supporting ride booking, location-based services, and ride management.",
     technologies: [
@@ -22,6 +23,7 @@ const projects = [
     name: "TODA-GO Admin",
     type: "Web-Based Administration Platform",
     layout: "landscape",
+    github: "https://github.com/KNales179/TODAGO-Admin",
     description:
       "The web administration platform supporting the TODA-GO system, providing tools for managing users, drivers, records, and transportation operations.",
     technologies: [
@@ -40,6 +42,7 @@ const projects = [
     name: "TIRS",
     type: "Tricycle Integrated Records System",
     layout: "landscape",
+    github: "https://github.com/KNales179/TIRS-Frontend",
     demoLink: "https://youtu.be/hs3MF7IALmQ",
     description:
       "A records and transaction management system designed to organize driver, vehicle, franchise, violation, impoundment, and transaction records.",
@@ -92,7 +95,7 @@ const projects = [
         ],
         texts: [
           "The System Configuration page serves as the central configuration area of the Tricycle Integrated Records System. It provides administrators with tools for managing system-wide configuration, violation types and penalties, incentive rates, and the barangay and TODA directory.",
-          "The General section provides account creation tools for super admin users, allowing authorized system users to be given a username, temporary password, and assigned role. The page also includes planned preferences for features such as dark mode, default table size, print layout, and system labels, which are currently marked as coming soon.",
+          "The General section provides account creation tools for super administrators, allowing authorized system users to be given a username, temporary password, and assigned role. The page also includes planned preferences for features such as dark mode, default table size, print layout, and system labels, which are currently marked as coming soon.",
           "The Violations & Penalties section allows administrators to create, edit, and deactivate violation types while defining their violation code, group, offense level, and penalty amount. The Barangay & TODA section manages TODA organizations assigned to Lucena barangays, including their officers and members, with tools for adding, editing, and removing records. System data is loaded and updated through the backend API, keeping these configuration records synchronized with the rest of TIRS."
         ],
       },
@@ -112,12 +115,46 @@ const projects = [
     name: "FareCheck Lucena",
     type: "Offline Mobile Fare Calculator",
     layout: "portrait",
+    github: "https://github.com/KNales179/FareCheckLucena",
     description:
-      "An offline mobile application for calculating tricycle fares within Lucena City using local route data, offline maps, and an official fare matrix.",
+      "An offline mobile application for calculating and verifying tricycle fares within Lucena City using local route data, offline maps, and an official fare matrix.",
+    descriptions: [
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/FareCheck/Map.jpg`,
+        ],
+        texts: [
+          "The Map page provides the main interface for selecting the origin and destination of a tricycle trip within Lucena City. Users can manually set their starting point and destination through the offline map or available location search, allowing the application to determine the trip without requiring an active internet connection or GPS for the selected starting point.",
+          "After both locations are selected, the application validates that the points are within Lucena City and calculates the appropriate road route between them using locally available routing data. The calculated route is displayed directly on the map as a route line, giving users a visual representation of the path used to determine the trip distance.",
+          "The map and routing functionality are designed to operate offline, with the necessary map tiles, location data, and routing resources stored locally on the device. This allows users to select locations and generate a route even when an internet connection is unavailable, providing the distance information required for the fare calculation process."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/FareCheck/FareCheck.jpg`,
+        ],
+        texts: [
+          "The FareCheck page calculates the estimated tricycle fare based on the route selected from the map. Users can choose between the applicable Regular and Special fare types and indicate whether the passenger is eligible for the available discount. These selections determine which fare rules are applied to the calculated trip.",
+          "The application uses the route distance together with the locally stored fare matrix to calculate the corresponding fare. For regular fares, the calculation applies the official base fare, included distance, and additional fare per kilometer, while the Special fare uses its corresponding rates. Eligible passengers can also have the applicable discount automatically reflected in the calculation.",
+          "The resulting fare is presented through a detailed fare breakdown showing the trip distance, base or included fare, additional distance charges, discount, and final amount. Once a fare has been generated, the result is locked to prevent the active route information from changing the displayed calculation until the user chooses to generate another fare."
+        ],
+      },
+      {
+        images: [
+          `${import.meta.env.BASE_URL}Manus/FareCheck/FareMatrix.jpg`,
+        ],
+        texts: [
+          "The Fare Matrix page provides users with the official reference information used by FareCheck Lucena when calculating tricycle fares. It presents the applicable fare rates and explains the basic computation used to determine the passenger's fare based on the distance of the trip.",
+          "The page also provides the official source of the fare information, including the relevant Lucena City fare ordinance and TFRO reference materials. Users can view the official fare matrix and supporting information directly within the application, allowing them to understand the basis of the calculation rather than relying only on the final amount displayed by the fare calculator.",
+          "For additional verification or concerns regarding tricycle fares, the page provides the official TFRO contact information and relevant reference links. This gives users a direct way to consult the responsible office and verify the fare information used by the application."
+        ],
+      },
+    ],
     technologies: [
       "React Native",
       "Expo",
       "TypeScript",
+      "Native Android Integration",
       "MapLibre",
       "GraphHopper",
       "AsyncStorage",
@@ -134,6 +171,8 @@ const projects = [
     title: "Interactive Developer Portfolio",
     type: "Interactive Developer Portfolio",
     layout: "landscape",
+
+    github: "https://github.com/KNales179/portfolio-Nales",
 
     description:
       "A personal portfolio designed to showcase my projects, skills, experience, and development work through an interactive and responsive web experience.",

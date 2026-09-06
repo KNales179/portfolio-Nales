@@ -1,10 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, X } from "lucide-react";
+import { ArrowUpRight, GitBranch, ExternalLink, X } from "lucide-react";
 
 function ProjectManuscript({ project, onClose }) {
     if (!project) return null;
 
+    const hasLiveView = Boolean(project.liveLink);
     const hasDemo = Boolean(project.demoLink);
+    const hasSource = Boolean(project.github);
 
     const getImageGridClass = (imageCount) => {
         if (imageCount === 1) {
@@ -229,12 +231,15 @@ function ProjectManuscript({ project, onClose }) {
                                 </div>
                             )}
 
-                            {/* VIDEO DEMO */}
+                            {/* PROJECT LINKS */}
 
-                            <div className="mt-5">
-                                {hasDemo ? (
+                            <div className="mt-5 flex flex-wrap items-center gap-3">
+
+                                {/* LIVE VIEW */}
+
+                                {hasLiveView ? (
                                     <a
-                                        href={project.demoLink}
+                                        href={project.liveLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="
@@ -252,6 +257,54 @@ function ProjectManuscript({ project, onClose }) {
                                             transition-all
                                             hover:-translate-y-0.5
                                             hover:brightness-105
+                                        "
+                                    >
+                                        Live View
+                                        <ExternalLink size={14} />
+                                    </a>
+                                ) : (
+                                    <div
+                                        className="
+                                            inline-flex
+                                            items-center
+                                            rounded-lg
+                                            border
+                                            border-[var(--border)]
+                                            bg-[var(--surface)]
+                                            px-4
+                                            py-2.5
+                                            text-xs
+                                            text-[var(--muted)]
+                                        "
+                                    >
+                                        Live View Unavailable
+                                    </div>
+                                )}
+
+                                {/* VIDEO DEMO */}
+
+                                {hasDemo ? (
+                                    <a
+                                        href={project.demoLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="
+                                            inline-flex
+                                            items-center
+                                            gap-2
+                                            rounded-lg
+                                            border
+                                            border-[var(--border)]
+                                            bg-[var(--surface)]
+                                            px-4
+                                            py-2.5
+                                            text-xs
+                                            font-semibold
+                                            text-[var(--text)]
+                                            transition-all
+                                            hover:-translate-y-0.5
+                                            hover:border-[var(--accent)]
+                                            hover:text-[var(--accent)]
                                         "
                                     >
                                         Watch Video Demo
@@ -275,6 +328,55 @@ function ProjectManuscript({ project, onClose }) {
                                         Video Demo Unavailable
                                     </div>
                                 )}
+
+                                {/* SOURCE */}
+
+                                {hasSource ? (
+                                    <a
+                                        href={project.github}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="
+                                            inline-flex
+                                            items-center
+                                            gap-2
+                                            rounded-lg
+                                            border
+                                            border-[var(--border)]
+                                            bg-[var(--surface)]
+                                            px-4
+                                            py-2.5
+                                            text-xs
+                                            font-semibold
+                                            text-[var(--text)]
+                                            transition-all
+                                            hover:-translate-y-0.5
+                                            hover:border-[var(--accent)]
+                                            hover:text-[var(--accent)]
+                                        "
+                                    >
+                                        <GitBranch size={14} />
+                                        Source
+                                    </a>
+                                ) : (
+                                    <div
+                                        className="
+                                            inline-flex
+                                            items-center
+                                            rounded-lg
+                                            border
+                                            border-[var(--border)]
+                                            bg-[var(--surface)]
+                                            px-4
+                                            py-2.5
+                                            text-xs
+                                            text-[var(--muted)]
+                                        "
+                                    >
+                                        Source Unavailable
+                                    </div>
+                                )}
+
                             </div>
 
                             {/* MANUSCRIPT */}
@@ -301,16 +403,16 @@ function ProjectManuscript({ project, onClose }) {
                                                     section.images
                                                 )
                                                     ? section.images.filter(
-                                                          Boolean
-                                                      )
+                                                        Boolean
+                                                    )
                                                     : [];
 
                                                 const texts = Array.isArray(
                                                     section.texts
                                                 )
                                                     ? section.texts.filter(
-                                                          Boolean
-                                                      )
+                                                        Boolean
+                                                    )
                                                     : [];
 
                                                 return (
@@ -377,13 +479,11 @@ function ProjectManuscript({ project, onClose }) {
                                                                                 src={
                                                                                     image
                                                                                 }
-                                                                                alt={`${project.name} section ${
-                                                                                    index +
+                                                                                alt={`${project.name} section ${index +
                                                                                     1
-                                                                                } image ${
-                                                                                    imageIndex +
+                                                                                    } image ${imageIndex +
                                                                                     1
-                                                                                }`}
+                                                                                    }`}
                                                                                 loading="lazy"
                                                                                 className="
                                                                                     block
@@ -408,7 +508,7 @@ function ProjectManuscript({ project, onClose }) {
                                                             <div
                                                                 className={
                                                                     images.length >
-                                                                    0
+                                                                        0
                                                                         ? "mt-7 space-y-5"
                                                                         : "space-y-5"
                                                                 }
