@@ -265,7 +265,7 @@ function Projects() {
             MOBILE LAYOUT
         ================================= */}
         <div className="mt-8 grid gap-3 md:hidden">
-          {projects.map((project, index) => (
+          {showcaseProjects.map((project, index) => (
             <div
               key={project.name}
               className={
