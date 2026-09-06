@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, X } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
 import projects from "../data/projects";
+import ProjectManuscript from "../components/ProjectManuscript";
 
 
 function ProjectCard({ project, index, className = "" }) {
   const [isActive, setIsActive] = useState(false);
+  const [showManuscript, setShowManuscript] = useState(false);
 
   return (
     <motion.article
@@ -107,8 +109,8 @@ function ProjectCard({ project, index, className = "" }) {
           ease: [0.22, 1, 0.36, 1],
         }}
         className={`absolute inset-3 flex items-center justify-center ${isActive
-            ? "pointer-events-auto"
-            : "pointer-events-none"
+          ? "pointer-events-auto"
+          : "pointer-events-none"
           }`}
       >
         <div className="relative w-full rounded-lg border border-white/15 bg-black/35 p-4 text-white shadow-2xl backdrop-blur-xl">
@@ -155,12 +157,22 @@ function ProjectCard({ project, index, className = "" }) {
             ))}
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-[10px] font-medium text-purple-300">
+          <button
+            type="button"
+            onClick={() => setShowManuscript(true)}
+            className="mt-3 flex items-center gap-1.5 text-[10px] font-medium text-purple-300 transition-colors hover:text-purple-200"
+          >
             View project
             <ArrowUpRight size={12} />
-          </div>
+          </button>
         </div>
       </motion.div>
+      {showManuscript && (
+        <ProjectManuscript
+          project={project}
+          onClose={() => setShowManuscript(false)}
+        />
+      )}
     </motion.article>
   );
 }

@@ -5,20 +5,29 @@ const certificates = [
   {
     title: "Introduction to Cybersecurity",
     issuer: "Cisco",
-    badgeId: "1684af74-8fc0-4df3-8d9e-37d20b80b174",
+    verifyUrl:
+      "https://www.credly.com/badges/1684af74-8fc0-4df3-8d9e-37d20b80b174",
     image: `${import.meta.env.BASE_URL}certificates/Cybersecurity_intro.png`,
   },
   {
     title: "Ethical Hacker",
     issuer: "Cisco",
-    badgeId: "f1498d56-a6c0-4009-954f-d8fea6586fd1",
+    verifyUrl:
+      "https://www.credly.com/badges/f1498d56-a6c0-4009-954f-d8fea6586fd1",
     image: `${import.meta.env.BASE_URL}certificates/Ethical_hacker.png`,
   },
   {
     title: "Networking Basics",
     issuer: "Cisco",
-    badgeId: "453b327a-9810-4a01-b85f-e1ffc5c6ae60",
+    verifyUrl:
+      "https://www.credly.com/badges/453b327a-9810-4a01-b85f-e1ffc5c6ae60",
     image: `${import.meta.env.BASE_URL}certificates/Networking_basics.png`,
+  },
+  {
+    title: "Python Developer",
+    issuer: "SoloLearn",
+    verifyUrl: "https://www.sololearn.com/certificates/CC-YIFBLQFD",
+    image: `${import.meta.env.BASE_URL}certificates/PythonDev.jpg`,
   },
 ];
 
@@ -109,7 +118,7 @@ function Certificates() {
 
                   {/* VERIFY */}
                   <a
-                    href={`https://www.credly.com/badges/${certificate.badgeId}`}
+                    href={certificate.verifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Verify ${certificate.title}`}

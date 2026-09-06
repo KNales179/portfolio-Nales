@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import ProjectListCard from "../components/ProjectListCard";
+import ProjectManuscript from "../components/ProjectManuscript";
 import projects from "../data/projects";
 
 function Projects() {
+  const [selectedProject, setSelectedProject] = useState(null);
+
   const completedProjects = projects.filter(
     (project) => project.status === "complete"
   );
@@ -75,6 +79,7 @@ function Projects() {
                   key={project.name}
                   project={project}
                   index={index}
+                  onViewProject={setSelectedProject}
                 />
               ))}
             </div>
@@ -109,6 +114,7 @@ function Projects() {
                   key={project.name}
                   project={project}
                   index={index}
+                  onViewProject={setSelectedProject}
                 />
               ))}
             </div>
@@ -127,6 +133,12 @@ function Projects() {
         )}
 
       </div>
+      {selectedProject && (
+        <ProjectManuscript
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+        />
+      )}
     </section>
   );
 }

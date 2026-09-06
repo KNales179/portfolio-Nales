@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
   Clock3,
 } from "lucide-react";
 
-function ProjectListCard({ project, index = 0 }) {
+function ProjectListCard({ project, index = 0, onViewProject }) {
   const isComplete = project.status === "complete";
 
   return (
@@ -47,8 +48,8 @@ function ProjectListCard({ project, index = 0 }) {
         <div className="absolute left-4 top-4">
           <span
             className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${isComplete
-                ? "border-emerald-400/30 bg-emerald-950/80 text-emerald-300"
-                : "border-amber-400/30 bg-amber-950/80 text-amber-300"
+              ? "border-emerald-400/30 bg-emerald-950/80 text-emerald-300"
+              : "border-amber-400/30 bg-amber-950/80 text-amber-300"
               }`}
           >
             {isComplete ? (
@@ -100,6 +101,7 @@ function ProjectListCard({ project, index = 0 }) {
         <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-5">
           <button
             type="button"
+            onClick={() => onViewProject?.(project)}
             className="group/button flex items-center gap-2 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300"
           >
             View Project
