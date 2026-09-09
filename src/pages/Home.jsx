@@ -2,6 +2,7 @@ import Hero from "../sections/Hero";
 import Skills from "../sections/Skills";
 import Projects from "../sections/Projects";
 import Journey from "../sections/Journey";
+import Insights from "../sections/Insights";
 import Contact from "../sections/Contact";
 
 function Home() {
@@ -11,6 +12,7 @@ function Home() {
       <Skills />
       <Projects />
       <Journey />
+      <Insights />
       <Contact />
     </>
   );

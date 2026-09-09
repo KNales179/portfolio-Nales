@@ -23,10 +23,6 @@ const navigationLinks = [
     path: "/about",
   },
   {
-    label: "Insights",
-    path: "/analytics",
-  },
-  {
     label: "Contact",
     path: "/contact",
   },
