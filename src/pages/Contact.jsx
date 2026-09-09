@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Mail,
@@ -14,6 +14,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { sendContactMessage } from "../services/contactApi";
+import { trackInteraction, trackLink } from "../analytics/track";
 
 const contacts = [
   {
@@ -67,6 +68,10 @@ function Contact() {
     message: "",
   });
 
+  useEffect(() => {
+    trackInteraction("CONTACT_FORM_OPENED", "contact-page");
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -78,6 +83,8 @@ function Contact() {
 
     try {
       await sendContactMessage(formData);
+
+      trackInteraction("CONTACT_FORM_SUBMITTED", "contact-page");
 
       setStatus({
         type: "success",
@@ -203,6 +210,12 @@ function Contact() {
                     <motion.a
                       key={contact.label}
                       href={contact.href}
+                      onClick={() =>
+                        trackLink(
+                          contact.href,
+                          contact.label
+                        )
+                      }
                       target={
                         contact.external
                           ? "_blank"
@@ -265,6 +278,12 @@ function Contact() {
               <a
                 href={`${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`}
                 download
+                onClick={() =>
+                  trackInteraction(
+                    "RESUME_DOWNLOAD",
+                    "contact-page"
+                  )
+                }
                 className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/40 px-5 py-3 text-sm font-semibold transition-all duration-300 hover:border-[var(--accent)]/50 hover:bg-[var(--accent-soft)]"
               >
                 <Download size={17} />
@@ -546,6 +565,12 @@ function Contact() {
 
                 <a
                   href="https://github.com/KNales179"
+                  onClick={() =>
+                    trackLink(
+                      "https://github.com/KNales179",
+                      "GitHub"
+                    )
+                  }
                   target="_blank"
                   rel="noreferrer"
                   aria-label="GitHub"
@@ -556,6 +581,12 @@ function Contact() {
 
                 <a
                   href="https://www.linkedin.com/in/ivhel-nales-996189419"
+                  onClick={() =>
+                    trackLink(
+                      "https://www.linkedin.com/in/ivhel-nales-996189419",
+                      "LinkedIn"
+                    )
+                  }
                   target="_blank"
                   rel="noreferrer"
                   aria-label="LinkedIn"

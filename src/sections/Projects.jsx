@@ -4,6 +4,7 @@ import { ArrowUpRight, X } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
 import projects from "../data/projects";
 import ProjectManuscript from "../components/ProjectManuscript";
+import { trackInteraction } from "../analytics/track";
 
 
 function ProjectCard({ project, index, className = "" }) {
@@ -159,7 +160,14 @@ function ProjectCard({ project, index, className = "" }) {
 
           <button
             type="button"
-            onClick={() => setShowManuscript(true)}
+            onClick={() => {
+              trackInteraction(
+                "PROJECT_OPENED",
+                project.name
+              );
+
+              setShowManuscript(true);
+            }}
             className="mt-3 flex items-center gap-1.5 text-[10px] font-medium text-purple-300 transition-colors hover:text-purple-200"
           >
             View project

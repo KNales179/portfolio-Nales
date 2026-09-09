@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
+import { trackInteraction } from "../analytics/track";
+
 const navigationLinks = [
   {
     label: "Home",
@@ -109,6 +111,8 @@ function Navbar() {
               to={link.path}
               end={link.path === "/"}
               onClick={() => {
+                trackInteraction("NAV_CLICK", link.label);
+
                 window.scrollTo({
                   top: 0,
                   behavior: "smooth",
@@ -234,6 +238,8 @@ function Navbar() {
                   to={link.path}
                   end={link.path === "/"}
                   onClick={() => {
+                    trackInteraction("NAV_CLICK", link.label);
+
                     setMenuOpen(false);
 
                     window.scrollTo({

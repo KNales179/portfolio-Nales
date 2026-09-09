@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
   Clock3,
 } from "lucide-react";
+
+import { trackInteraction } from "../analytics/track";
 
 function ProjectListCard({ project, index = 0, onViewProject }) {
   const isComplete = project.status === "complete";
@@ -101,7 +102,14 @@ function ProjectListCard({ project, index = 0, onViewProject }) {
         <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-5">
           <button
             type="button"
-            onClick={() => onViewProject?.(project)}
+            onClick={() => {
+              trackInteraction(
+                "PROJECT_OPENED",
+                project.name
+              );
+
+              onViewProject?.(project);
+            }}
             className="group/button flex items-center gap-2 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300"
           >
             View Project

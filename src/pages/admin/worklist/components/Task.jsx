@@ -37,6 +37,10 @@ function Task({
     // with this content (used to render the inline add-subtask form
     // directly under THIS task instead of at the bottom of the list).
     subtaskFormSlot = null,
+
+    // Optional — a "show archived subtasks" toggle + list, rendered
+    // below the add-subtask area for this specific task.
+    archivedSubtasksSlot = null,
 }) {
     const storageKey =
         task?._id
@@ -431,6 +435,8 @@ function Task({
 
                     </div>
                 )}
+
+            {archivedSubtasksSlot}
 
         </article>
     );

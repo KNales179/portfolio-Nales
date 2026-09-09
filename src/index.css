@@ -18,6 +18,11 @@
 
   --shadow: rgba(88, 28, 135, 0.08);
   --grid-line: rgba(88, 28, 135, 0.055);
+
+  --skeleton-base: rgba(124, 58, 237, 0.10);
+  --skeleton-shine: rgba(124, 58, 237, 0.22);
+
+  --work-bg: #ece7f4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,6 +44,11 @@
 
     --shadow: rgba(0, 0, 0, 0.22);
     --grid-line: rgba(255, 255, 255, 0.045);
+
+    --skeleton-base: rgba(216, 180, 254, 0.09);
+    --skeleton-shine: rgba(216, 180, 254, 0.20);
+
+    --work-bg: #2c2637;
   }
 }
 
@@ -171,6 +181,54 @@ button:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* ========================================
+   SKELETON LOADING
+======================================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--skeleton-base);
+}
+
+.skeleton::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--skeleton-shine) 50%,
+      transparent 100%);
+
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ============================================================
+   WORK SYSTEM SURFACES
+   Scoped to .work-shell / .work-panel — used only by the
+   work list + work detail pages. Does not affect other pages.
+   ============================================================ */
+
+.work-shell {
+  background: var(--work-bg);
+}
+
+.work-panel {
+  box-shadow:
+    0 1px 2px -1px var(--shadow),
+    0 18px 36px -28px var(--shadow);
 }
 
 /* ========================================

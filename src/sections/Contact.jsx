@@ -15,6 +15,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { sendContactMessage } from "../services/contactApi";
+import { trackInteraction, trackLink } from "../analytics/track";
 
 
 const contacts = [
@@ -82,6 +83,8 @@ function Contact() {
 
     try {
       await sendContactMessage(formData);
+
+      trackInteraction("CONTACT_FORM_SUBMITTED", "home-contact");
 
       setStatus({
         type: "success",
@@ -186,6 +189,17 @@ function Contact() {
                     <motion.a
                       key={contact.label}
                       href={contact.href}
+                      onClick={() =>
+                        contact.download
+                          ? trackInteraction(
+                              "RESUME_DOWNLOAD",
+                              "home-contact"
+                            )
+                          : trackLink(
+                              contact.href,
+                              contact.label
+                            )
+                      }
                       target={
                         contact.external
                           ? "_blank"

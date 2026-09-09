@@ -36,6 +36,7 @@ const getTaskProgress = (task) => {
 function Progress({
     work,
     tasks = [],
+    progress: progressProp,
 }) {
     const safeTasks = Array.isArray(tasks)
         ? tasks
@@ -48,17 +49,20 @@ function Progress({
             getTaskProgress
         );
 
+    // Use the canonical value from the parent (matches the
+    // backend's task-equal-weight formula) when available.
     const progress =
-        taskProgresses.length > 0
-            ? Math.round(
-                taskProgresses.reduce(
-                    (sum, value) =>
-                        sum + value,
-                    0
-                ) /
-                taskProgresses.length
-            )
-            : 0;
+        typeof progressProp === "number"
+            ? Math.min(100, Math.max(0, Math.round(progressProp)))
+            : taskProgresses.length > 0
+                ? Math.round(
+                    (taskProgresses.filter(
+                        (value) => value === 100
+                    ).length /
+                        taskProgresses.length) *
+                    100
+                )
+                : 0;
 
     const completedTasks =
         taskProgresses.filter(
@@ -74,7 +78,7 @@ function Progress({
             : "UNKNOWN";
 
     return (
-        <section className="border border-[var(--border)] bg-[var(--card)]">
+        <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
 
             <div className="border-b border-[var(--border)] p-5">
 
@@ -99,11 +103,10 @@ function Progress({
                 <div className="mt-5 h-3 overflow-hidden bg-[var(--surface)]">
 
                     <div
-                        className={`h-full transition-all duration-500 ${
-                            progress === 100
+                        className={`h-full transition-all duration-500 ${progress === 100
                                 ? "bg-green-500"
                                 : "bg-purple-500"
-                        }`}
+                            }`}
                         style={{
                             width: `${progress}%`,
                         }}
@@ -177,11 +180,10 @@ function Progress({
                                         <div className="mt-2 h-1.5 overflow-hidden bg-[var(--surface)]">
 
                                             <div
-                                                className={`h-full transition-all duration-300 ${
-                                                    completed
+                                                className={`h-full transition-all duration-300 ${completed
                                                         ? "bg-green-400"
                                                         : "bg-purple-400"
-                                                }`}
+                                                    }`}
                                                 style={{
                                                     width: `${value}%`,
                                                 }}

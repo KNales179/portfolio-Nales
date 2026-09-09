@@ -12,6 +12,7 @@ import {
     RefreshCw,
     RotateCcw,
     ShieldCheck,
+    Trash2,
     Unlock,
     Users,
     X,
@@ -23,15 +24,18 @@ import { useAuth } from "../../../context/AuthContext";
 
 import {
     getWorks,
+    getArchivedWorks,
     createWork,
     archiveWork,
     restoreWork,
+    deleteWork,
 } from "../../../services/workApi";
 
 import {
     canCreateWork,
     canArchiveWork,
     canRestoreWork,
+    isSuperAdmin,
 } from "../../../utils/workPermissions";
 
 
@@ -165,6 +169,69 @@ const getStatusClasses = (
 
 
 // ============================================================
+// LOADING SKELETON
+// ============================================================
+
+const WorkCardSkeleton = () => {
+    return (
+        <div className="work-panel border border-[var(--border)] bg-[var(--card)] p-6">
+
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+
+                <div className="min-w-0 flex-1">
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="skeleton h-5 w-48" />
+                        <div className="skeleton h-5 w-20" />
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                        <div className="skeleton h-3.5 w-full max-w-3xl" />
+                        <div className="skeleton h-3.5 w-2/3" />
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <div className="skeleton h-3 w-40" />
+                        <div className="skeleton h-3 w-28" />
+                    </div>
+
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <div className="skeleton h-10 w-24" />
+                    <div className="skeleton h-10 w-24" />
+                </div>
+
+            </div>
+
+            <div className="mt-6">
+
+                <div className="mb-2 flex items-center justify-between gap-4">
+                    <div className="skeleton h-3 w-24" />
+                    <div className="skeleton h-3 w-10" />
+                </div>
+
+                <div className="skeleton h-2 w-full" />
+
+            </div>
+
+        </div>
+    );
+};
+
+
+const WorkListSkeleton = ({ count = 4 }) => {
+    return (
+        <div className="mt-6 space-y-4">
+            {Array.from({ length: count }).map((_, index) => (
+                <WorkCardSkeleton key={`work-skeleton-${index}`} />
+            ))}
+        </div>
+    );
+};
+
+
+// ============================================================
 // COMPONENT
 // ============================================================
 
@@ -242,25 +309,32 @@ function WorkList() {
 
                 setPageError("");
 
-                const response =
-                    await getWorks({
-                        includeArchived:
-                            showArchived,
-                    });
+                const [
+                    activeResponse,
+                    archivedResponse,
+                ] = await Promise.all([
+                    getWorks(),
+                    getArchivedWorks(),
+                ]);
 
-                const fetchedWorks =
-                    response?.data?.works ??
-                    response?.works ??
-                    response?.data ??
+                const activeWorks =
+                    activeResponse?.data?.works ??
+                    activeResponse?.works ??
                     [];
 
-                setWorks(
-                    Array.isArray(
-                        fetchedWorks
-                    )
-                        ? fetchedWorks
-                        : []
-                );
+                const archivedWorks =
+                    archivedResponse?.data?.works ??
+                    archivedResponse?.works ??
+                    [];
+
+                setWorks([
+                    ...(Array.isArray(activeWorks)
+                        ? activeWorks
+                        : []),
+                    ...(Array.isArray(archivedWorks)
+                        ? archivedWorks
+                        : []),
+                ]);
 
             } catch (error) {
                 console.error(
@@ -570,6 +644,53 @@ function WorkList() {
 
 
     // ========================================================
+    // PERMANENT DELETE (Superadmin only, archived works only)
+    // ========================================================
+
+    const handleDeleteWork = async (
+        work
+    ) => {
+        const workId =
+            getWorkId(work);
+
+        if (
+            !workId ||
+            !isSuperAdmin(currentAdmin) ||
+            work?.status !== "ARCHIVED"
+        ) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                `Permanently delete "${work.title}"? This cannot be undone.`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setActionLoadingId(workId);
+            setPageError("");
+
+            await deleteWork(workId);
+
+            await fetchWorks(true);
+
+        } catch (error) {
+            setPageError(
+                error?.message ||
+                "Unable to delete work."
+            );
+
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+
+    // ========================================================
     // WORK NAVIGATION
     // ========================================================
 
@@ -594,7 +715,7 @@ function WorkList() {
     // ========================================================
 
     return (
-        <div className="min-h-screen bg-[var(--surface)]">
+        <div className="work-shell min-h-screen">
 
             <AdminNavbar
                 onMenuToggle={() =>
@@ -726,7 +847,7 @@ function WorkList() {
                             duration: 0.4,
                             delay: 0.05,
                         }}
-                        className="mt-8 flex flex-col gap-4 border border-[var(--border)] bg-[var(--card)] p-4 sm:flex-row sm:items-center sm:justify-between"
+                        className="work-panel mt-8 flex flex-col gap-4 border border-[var(--border)] bg-[var(--card)] p-4 sm:flex-row sm:items-center sm:justify-between"
                     >
 
                         <div className="flex items-center gap-3">
@@ -764,8 +885,8 @@ function WorkList() {
                                 )
                             }
                             className={`flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition ${showArchived
-                                    ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
-                                    : "border-[var(--border)] hover:bg-[var(--surface)]"
+                                ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
+                                : "border-[var(--border)] hover:bg-[var(--surface)]"
                                 }`}
                         >
 
@@ -817,20 +938,7 @@ function WorkList() {
 
                     {loading ? (
 
-                        <div className="mt-6 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] p-14">
-
-                            <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
-
-                                <Loader2
-                                    size={20}
-                                    className="animate-spin"
-                                />
-
-                                Loading works...
-
-                            </div>
-
-                        </div>
+                        <WorkListSkeleton />
 
                     ) : visibleWorks.length === 0 ? (
 
@@ -843,7 +951,7 @@ function WorkList() {
                                 opacity: 1,
                                 y: 0,
                             }}
-                            className="mt-6 border border-[var(--border)] bg-[var(--card)] p-12 text-center"
+                            className="work-panel mt-6 border border-[var(--border)] bg-[var(--card)] p-12 text-center"
                         >
 
                             <ClipboardList
@@ -983,9 +1091,9 @@ function WorkList() {
                                                             index *
                                                             0.03,
                                                     }}
-                                                    className={`border bg-[var(--card)] ${isArchived
-                                                            ? "border-zinc-500/20"
-                                                            : "border-[var(--border)]"
+                                                    className={`work-panel border bg-[var(--card)] ${isArchived
+                                                        ? "border-zinc-500/20"
+                                                        : "border-[var(--border)]"
                                                         }`}
                                                 >
 
@@ -1158,6 +1266,27 @@ function WorkList() {
                                                                         </button>
                                                                     )}
 
+                                                                {isArchived &&
+                                                                    isSuperAdmin(currentAdmin) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                handleDeleteWork(
+                                                                                    work
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                actionLoading
+                                                                            }
+                                                                            className="flex items-center gap-2 border border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                        >
+                                                                            <Trash2
+                                                                                size={16}
+                                                                            />
+                                                                            Delete
+                                                                        </button>
+                                                                    )}
+
                                                             </div>
 
                                                         </div>
@@ -1213,11 +1342,11 @@ function WorkList() {
                                                                             0.55,
                                                                     }}
                                                                     className={`h-full ${isArchived
-                                                                            ? "bg-zinc-500"
-                                                                            : progress ===
-                                                                                100
-                                                                                ? "bg-green-500"
-                                                                                : "bg-purple-500"
+                                                                        ? "bg-zinc-500"
+                                                                        : progress ===
+                                                                            100
+                                                                            ? "bg-green-500"
+                                                                            : "bg-purple-500"
                                                                         }`}
                                                                 />
 

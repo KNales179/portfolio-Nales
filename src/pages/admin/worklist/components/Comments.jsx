@@ -240,7 +240,7 @@ function Comments({
     };
 
     return (
-        <section className="border border-[var(--border)] bg-[var(--card)]">
+        <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
             <div className="flex items-center gap-3 border-b border-[var(--border)] p-5">
                 <MessageSquare
                     size={19}

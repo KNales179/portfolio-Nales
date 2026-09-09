@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ScrollProgress from "./components/ScrollProgress";
 
+import AnalyticsProvider from "./analytics/AnalyticsProvider";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
@@ -29,6 +31,8 @@ import Login from "./pages/auth/Login";
 function App() {
     return (
         <div className="relative min-h-screen overflow-x-clip">
+
+            <AnalyticsProvider />
 
             <AnimatedBackground />
             <ScrollProgress />

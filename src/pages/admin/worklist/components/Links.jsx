@@ -158,7 +158,7 @@ function Links({
     };
 
     return (
-        <section className="border border-[var(--border)] bg-[var(--card)]">
+        <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
 
             {/* HEADER */}
 

@@ -89,7 +89,7 @@ function Header({
         );
 
     return (
-        <header className="border border-[var(--border)] bg-[var(--card)]">
+        <header className="work-panel border border-[var(--border)] bg-[var(--card)]">
             <div className="p-6 md:p-8">
                 <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between gap-4">

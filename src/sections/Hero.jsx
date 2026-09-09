@@ -10,6 +10,8 @@ import {
   Download,
 } from "lucide-react";
 
+import { trackInteraction } from "../analytics/track";
+
 function Hero() {
   const sectionRef = useRef(null);
 
@@ -235,6 +237,9 @@ function Hero() {
             <a
               href={`${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`}
               download
+              onClick={() =>
+                trackInteraction("RESUME_DOWNLOAD", "hero")
+              }
               className="group inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-5 py-3 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               Download Resume

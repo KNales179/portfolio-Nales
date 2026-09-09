@@ -233,7 +233,7 @@ function Activity({
 }) {
     if (loading) {
         return (
-            <section className="border border-[var(--border)] bg-[var(--card)]">
+            <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
                 <div className="border-b border-[var(--border)] p-5">
                     <h2 className="text-base font-semibold">
                         Activity
@@ -250,7 +250,7 @@ function Activity({
     }
 
     return (
-        <section className="border border-[var(--border)] bg-[var(--card)]">
+        <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
             <div className="border-b border-[var(--border)] p-5">
                 <h2 className="text-base font-semibold">
                     Activity

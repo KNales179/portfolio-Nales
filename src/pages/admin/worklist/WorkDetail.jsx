@@ -18,6 +18,7 @@ import {
     restoreWork,
     lockWork,
     unlockWork,
+    deleteWork,
 
     createTask,
     updateTask,
@@ -26,6 +27,9 @@ import {
     archiveTask,
     restoreTask,
     reorderTasks,
+    getArchivedTasksForWork,
+    getArchivedSubtasksForTask,
+    deleteTaskPermanently,
 
     createSubtask,
     updateSubtask,
@@ -34,6 +38,7 @@ import {
     archiveSubtask,
     restoreSubtask,
     reorderSubtasks,
+    deleteSubtaskPermanently,
 
     getWorkActivities,
 
@@ -63,13 +68,16 @@ import {
     canCompleteTask,
     canReopenTask,
     canArchiveTask,
+    canRestoreTask,
 
     canAddSubtask,
     canCompleteSubtask,
     canReopenSubtask,
     canArchiveSubtask,
+    canRestoreSubtask,
 
     canManageParticipants,
+    isSuperAdmin,
 } from "../../../utils/workPermissions";
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
@@ -129,9 +137,9 @@ const calculateLocalProgress = (
         return 0;
     }
 
-    const completedCount =
-        activeTasks.filter(
-            (task) => {
+    const totalProgress =
+        activeTasks.reduce(
+            (sum, task) => {
                 const subtaskList =
                     Array.isArray(
                         task.subtasks
@@ -146,22 +154,32 @@ const calculateLocalProgress = (
                     subtaskList.length === 0
                 ) {
                     return (
-                        task.status ===
-                        "COMPLETED"
+                        sum +
+                        (task.status === "COMPLETED"
+                            ? 100
+                            : 0)
                     );
                 }
 
-                return subtaskList.every(
-                    (subtask) =>
-                        subtask.completed
+                const completedCount =
+                    subtaskList.filter(
+                        (subtask) =>
+                            subtask.completed
+                    ).length;
+
+                return (
+                    sum +
+                    (completedCount /
+                        subtaskList.length) *
+                    100
                 );
-            }
-        ).length;
+            },
+            0
+        );
 
     return Math.round(
-        (completedCount /
-            activeTasks.length) *
-        100
+        totalProgress /
+        activeTasks.length
     );
 };
 
@@ -183,129 +201,133 @@ const normalizeArrayResponse = (
 
 
 // ============================================================
+// LOADING SKELETON
+// ============================================================
+
+const SkeletonBar = ({ className = "" }) => {
+    return (
+        <div
+            className={`skeleton ${className}`}
+        />
+    );
+};
+
+
+const WorkDetailSkeleton = () => {
+    return (
+        <div className="mx-auto max-w-[1440px] space-y-6 px-5 py-8 md:px-10 lg:px-12">
+
+            {/* Toolbar */}
+            <div className="flex items-center justify-end gap-2">
+                <SkeletonBar className="h-9 w-36" />
+                <SkeletonBar className="h-9 w-28" />
+            </div>
+
+            {/* Header */}
+            <div className="work-panel border border-[var(--border)] bg-[var(--card)] p-6">
+                <SkeletonBar className="h-3 w-24" />
+                <SkeletonBar className="mt-3 h-7 w-2/3 max-w-md" />
+                <div className="mt-4 space-y-2">
+                    <SkeletonBar className="h-3.5 w-full max-w-2xl" />
+                    <SkeletonBar className="h-3.5 w-3/4 max-w-xl" />
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                    <SkeletonBar className="h-9 w-24" />
+                    <SkeletonBar className="h-9 w-24" />
+                    <SkeletonBar className="h-9 w-20" />
+                </div>
+            </div>
+
+            {/* Progress */}
+            <div className="work-panel border border-[var(--border)] bg-[var(--card)] p-6">
+                <div className="mb-3 flex items-center justify-between">
+                    <SkeletonBar className="h-3 w-20" />
+                    <SkeletonBar className="h-3 w-10" />
+                </div>
+                <SkeletonBar className="h-2 w-full" />
+            </div>
+
+            {/* Tasks */}
+            <div className="work-panel border border-[var(--border)] bg-[var(--card)]">
+                <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
+                    <div className="space-y-2">
+                        <SkeletonBar className="h-4 w-20" />
+                        <SkeletonBar className="h-3 w-56" />
+                    </div>
+                    <div className="flex gap-2">
+                        <SkeletonBar className="h-9 w-28" />
+                        <SkeletonBar className="h-9 w-24" />
+                    </div>
+                </div>
+
+                {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                        key={`task-skeleton-${index}`}
+                        className="flex items-start gap-3 border-b border-[var(--border)] p-5 last:border-b-0"
+                    >
+                        <SkeletonBar className="mt-0.5 h-4 w-4 shrink-0" />
+                        <div className="min-w-0 flex-1 space-y-2">
+                            <SkeletonBar className="h-4 w-1/2" />
+                            <SkeletonBar className="h-3 w-3/4" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+        </div>
+    );
+};
+
+
+// ============================================================
 // COMPONENT
 // ============================================================
 
 function WorkDetails() {
-    const navigate =
-        useNavigate();
-
-    const { workId } =
-        useParams();
-
-    const { admin } =
-        useAuth();
-
-    const [sidebarOpen, setSidebarOpen] =
-        useState(false);
-
-    const [work, setWork] =
-        useState(null);
-
-    // ------------------------------------------------------
-    // NOTE: tasks live in response.data.tasks, NOT nested
-    // inside `work` (Work has no `tasks` field — WorkTask
-    // documents just reference `work`). Tracked separately.
-    // ------------------------------------------------------
-
-    const [tasks, setTasks] =
-        useState([]);
-
-    const [progress, setProgress] =
-        useState(0);
-
-    const [activities, setActivities] =
-        useState([]);
-
-    const [comments, setComments] =
-        useState([]);
-
-    const [links, setLinks] =
-        useState([]);
-
-    const [participants, setParticipants] =
-        useState([]);
-
-    const [admins, setAdmins] =
-        useState([]);
-
-    const [loading, setLoading] =
-        useState(true);
-
-    const [refreshing, setRefreshing] =
-        useState(false);
-
-    const [activityLoading, setActivityLoading] =
-        useState(false);
-
-    const [activityError, setActivityError] =
-        useState("");
-
-    const [error, setError] =
-        useState("");
-
-    const [editingWork, setEditingWork] =
-        useState(false);
-
-    const [workTitle, setWorkTitle] =
-        useState("");
-
-    const [workDescription, setWorkDescription] =
-        useState("");
-
-    const [savingWork, setSavingWork] =
-        useState(false);
-
-    const [newTaskOpen, setNewTaskOpen] =
-        useState(false);
-
-    const [newTaskTitle, setNewTaskTitle] =
-        useState("");
-
-    const [newTaskDescription, setNewTaskDescription] =
-        useState("");
-
-    const [savingTask, setSavingTask] =
-        useState(false);
-
-    const [newSubtaskFor, setNewSubtaskFor] =
-        useState(null);
-
-    const [newSubtaskTitle, setNewSubtaskTitle] =
-        useState("");
-
-    const [newSubtaskDescription, setNewSubtaskDescription] =
-        useState("");
-
-    const [savingSubtask, setSavingSubtask] =
-        useState(false);
-
-    const [editingTask, setEditingTask] =
-        useState(null);
-
-    const [editTaskTitle, setEditTaskTitle] =
-        useState("");
-
-    const [editTaskDescription, setEditTaskDescription] =
-        useState("");
-
-    const [savingTaskEdit, setSavingTaskEdit] =
-        useState(false);
-
-    const [editingSubtask, setEditingSubtask] =
-        useState(null);
-
-    const [editSubtaskTitle, setEditSubtaskTitle] =
-        useState("");
-
-    const [editSubtaskDescription, setEditSubtaskDescription] =
-        useState("");
-
-    const [savingSubtaskEdit, setSavingSubtaskEdit] =
-        useState(false);
-
-    const [activityModalOpen, setActivityModalOpen] =
-        useState(false);
+    const navigate = useNavigate();
+    const { workId } = useParams();
+    const { admin } = useAuth();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [work, setWork] = useState(null);
+    const [tasks, setTasks] = useState([]);
+    const [progress, setProgress] = useState(0);
+    const [activities, setActivities] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [links, setLinks] = useState([]);
+    const [participants, setParticipants] = useState([]);
+    const [admins, setAdmins] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [activityLoading, setActivityLoading] = useState(false);
+    const [activityError, setActivityError] = useState("");
+    const [error, setError] = useState("");
+    const [editingWork, setEditingWork] = useState(false);
+    const [workTitle, setWorkTitle] = useState("");
+    const [workDescription, setWorkDescription] = useState("");
+    const [savingWork, setSavingWork] = useState(false);
+    const [newTaskOpen, setNewTaskOpen] = useState(false);
+    const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [newTaskDescription, setNewTaskDescription] = useState("");
+    const [savingTask, setSavingTask] = useState(false);
+    const [newSubtaskFor, setNewSubtaskFor] = useState(null);
+    const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+    const [newSubtaskDescription, setNewSubtaskDescription] = useState("");
+    const [savingSubtask, setSavingSubtask] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+    const [editTaskTitle, setEditTaskTitle] = useState("");
+    const [editTaskDescription, setEditTaskDescription] = useState("");
+    const [savingTaskEdit, setSavingTaskEdit] = useState(false);
+    const [editingSubtask, setEditingSubtask] = useState(null);
+    const [editSubtaskTitle, setEditSubtaskTitle] = useState("");
+    const [editSubtaskDescription, setEditSubtaskDescription] = useState("");
+    const [savingSubtaskEdit, setSavingSubtaskEdit] = useState(false);
+    const [activityModalOpen, setActivityModalOpen] = useState(false);
+    const [archivedTasksOpen, setArchivedTasksOpen] = useState(false);
+    const [archivedTasks, setArchivedTasks] = useState([]);
+    const [loadingArchivedTasks, setLoadingArchivedTasks] = useState(false);
+    const [archivedSubtasksOpen, setArchivedSubtasksOpen] = useState({});
+    const [archivedSubtasksByTask, setArchivedSubtasksByTask] = useState({});
+    const [archivedSubtasksLoading, setArchivedSubtasksLoading] = useState({});
 
 
     // ========================================================
@@ -437,6 +459,24 @@ function WorkDetails() {
         Boolean(
             work &&
             canArchiveSubtask(
+                admin,
+                work
+            )
+        );
+
+    const canRestoreTaskPerm =
+        Boolean(
+            work &&
+            canRestoreTask(
+                admin,
+                work
+            )
+        );
+
+    const canRestoreSubtaskPerm =
+        Boolean(
+            work &&
+            canRestoreSubtask(
                 admin,
                 work
             )
@@ -1487,6 +1527,316 @@ function WorkDetails() {
     };
 
 
+    // ========================================================
+    // ARCHIVED TASKS (view / restore / permanent delete)
+    // ========================================================
+
+    const fetchArchivedTasks = async () => {
+        if (!workId) {
+            return;
+        }
+
+        try {
+            setLoadingArchivedTasks(true);
+
+            const response =
+                await getArchivedTasksForWork(
+                    workId
+                );
+
+            const list =
+                response?.data?.tasks ||
+                response?.tasks ||
+                [];
+
+            setArchivedTasks(
+                Array.isArray(list)
+                    ? list
+                    : []
+            );
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to load archived tasks."
+            );
+        } finally {
+            setLoadingArchivedTasks(false);
+        }
+    };
+
+    const toggleArchivedTasks = () => {
+        setArchivedTasksOpen(
+            (current) => {
+                const next = !current;
+
+                if (next) {
+                    fetchArchivedTasks();
+                }
+
+                return next;
+            }
+        );
+    };
+
+    const handleRestoreTaskAction = async (
+        task
+    ) => {
+        if (!canRestoreTaskPerm) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await restoreTask(
+                task._id
+            );
+
+            await fetchArchivedTasks();
+            await fetchWork(true);
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to restore task."
+            );
+        }
+    };
+
+    const handleDeleteTaskAction = async (
+        task
+    ) => {
+        if (!isSuperAdmin(admin)) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                `Permanently delete task "${task.title}"? This cannot be undone.`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await deleteTaskPermanently(
+                task._id
+            );
+
+            await fetchArchivedTasks();
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to delete task."
+            );
+        }
+    };
+
+    const handleDeleteSubtaskAction = async (
+        subtask
+    ) => {
+        if (!isSuperAdmin(admin)) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                `Permanently delete subtask "${subtask.title}"? This cannot be undone.`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await deleteSubtaskPermanently(
+                subtask._id
+            );
+
+            await fetchArchivedTasks();
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to delete subtask."
+            );
+        }
+    };
+
+    const handleDeleteWorkAction = async () => {
+        if (!isSuperAdmin(admin)) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                `Permanently delete "${work.title}"? This cannot be undone.`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await deleteWork(workId);
+
+            navigate("/admin/worklist");
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to delete work."
+            );
+        }
+    };
+
+
+    const fetchArchivedSubtasksForTask = async (
+        taskId
+    ) => {
+        try {
+            setArchivedSubtasksLoading(
+                (current) => ({
+                    ...current,
+                    [taskId]: true,
+                })
+            );
+
+            const response =
+                await getArchivedSubtasksForTask(
+                    taskId
+                );
+
+            const items =
+                response?.data?.subtasks ||
+                response?.subtasks ||
+                [];
+
+            setArchivedSubtasksByTask(
+                (current) => ({
+                    ...current,
+                    [taskId]:
+                        Array.isArray(items)
+                            ? items
+                            : [],
+                })
+            );
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to load archived subtasks."
+            );
+        } finally {
+            setArchivedSubtasksLoading(
+                (current) => ({
+                    ...current,
+                    [taskId]: false,
+                })
+            );
+        }
+    };
+
+
+    const toggleArchivedSubtasksForTask = (
+        taskId
+    ) => {
+        setArchivedSubtasksOpen(
+            (current) => {
+                const next =
+                    !current[taskId];
+
+                if (next) {
+                    fetchArchivedSubtasksForTask(
+                        taskId
+                    );
+                }
+
+                return {
+                    ...current,
+                    [taskId]: next,
+                };
+            }
+        );
+    };
+
+
+    const handleRestoreSubtaskAction = async (
+        subtask,
+        taskId
+    ) => {
+        if (!canRestoreSubtaskPerm) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await restoreSubtask(
+                subtask._id
+            );
+
+            await fetchArchivedSubtasksForTask(
+                taskId
+            );
+
+            await fetchWork(true);
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to restore subtask."
+            );
+        }
+    };
+
+
+    const handleDeleteArchivedSubtaskUnderTask = async (
+        subtask,
+        taskId
+    ) => {
+        if (!isSuperAdmin(admin)) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                `Permanently delete subtask "${subtask.title}"? This cannot be undone.`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await deleteSubtaskPermanently(
+                subtask._id
+            );
+
+            await fetchArchivedSubtasksForTask(
+                taskId
+            );
+
+        } catch (err) {
+            setError(
+                err?.message ||
+                "Unable to delete subtask."
+            );
+        }
+    };
+
+
     const handleReorderSubtasks = async (
         taskId,
         sourceId,
@@ -1831,7 +2181,7 @@ function WorkDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[var(--surface)]">
+            <div className="work-shell min-h-screen">
 
                 <AdminNavbar
                     onMenuToggle={() =>
@@ -1851,13 +2201,7 @@ function WorkDetails() {
 
                 <main className="min-h-screen pt-20 lg:pl-[var(--admin-sidebar-width)]">
 
-                    <div className="flex min-h-[70vh] items-center justify-center">
-
-                        <p className="text-sm text-[var(--muted)]">
-                            Loading work...
-                        </p>
-
-                    </div>
+                    <WorkDetailSkeleton />
 
                 </main>
 
@@ -1872,7 +2216,7 @@ function WorkDetails() {
 
     if (!work) {
         return (
-            <div className="min-h-screen bg-[var(--surface)]">
+            <div className="work-shell min-h-screen">
 
                 <AdminNavbar
                     onMenuToggle={() =>
@@ -1925,7 +2269,7 @@ function WorkDetails() {
     // ========================================================
 
     return (
-        <div className="min-h-screen bg-[var(--surface)]">
+        <div className="work-shell min-h-screen">
 
             <AdminNavbar
                 onMenuToggle={() =>
@@ -2010,12 +2354,38 @@ function WorkDetails() {
 
 
                     {/* ==================================================
+                        DANGER ZONE — PERMANENT DELETE (Superadmin only)
+                    ================================================== */}
+
+                    {isArchived &&
+                        isSuperAdmin(admin) && (
+                            <div className="border border-red-500/20 bg-red-500/5 p-5">
+                                <p className="text-sm font-semibold text-red-400">
+                                    Permanently delete this work
+                                </p>
+                                <p className="mt-1 text-sm text-[var(--muted)]">
+                                    This removes the work and all of its tasks,
+                                    subtasks, comments, links, and history.
+                                    This cannot be undone.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteWorkAction}
+                                    className="mt-4 border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+                                >
+                                    Delete permanently
+                                </button>
+                            </div>
+                        )}
+
+
+                    {/* ==================================================
                         EDIT WORK
                     ================================================== */}
 
                     {canEdit &&
                         !isArchived && (
-                            <div className="border border-[var(--border)] bg-[var(--card)] p-5">
+                            <div className="work-panel border border-[var(--border)] bg-[var(--card)] p-5">
 
                                 {editingWork ? (
                                     <div className="space-y-4">
@@ -2116,6 +2486,7 @@ function WorkDetails() {
                     <Progress
                         work={work}
                         tasks={tasks}
+                        progress={progress}
                     />
 
 
@@ -2123,7 +2494,7 @@ function WorkDetails() {
                         TASKS
                     ================================================== */}
 
-                    <section className="border border-[var(--border)] bg-[var(--card)]">
+                    <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
 
                         <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
 
@@ -2136,24 +2507,39 @@ function WorkDetails() {
                                     Manage the work tasks and their completion.
                                 </p>
                             </div>
+                            <div className="flex items-center gap-2">
 
-                            {canAddTasks &&
-                                !isArchived &&
-                                !isLocked && (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setNewTaskOpen(
-                                                (value) =>
-                                                    !value
-                                            )
-                                        }
-                                        className="flex items-center gap-2 bg-purple-500 px-4 py-2 text-sm font-semibold text-white"
-                                    >
-                                        <Plus size={15} />
-                                        Add task
-                                    </button>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={
+                                        toggleArchivedTasks
+                                    }
+                                    className="flex items-center gap-2 border border-[var(--border)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--surface)]"
+                                >
+                                    {archivedTasksOpen
+                                        ? "Hide archived"
+                                        : "Show archived"}
+                                </button>
+
+                                {canAddTasks &&
+                                    !isArchived &&
+                                    !isLocked && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setNewTaskOpen(
+                                                    (value) =>
+                                                        !value
+                                                )
+                                            }
+                                            className="flex items-center gap-2 bg-purple-500 px-4 py-2 text-sm font-semibold text-white"
+                                        >
+                                            <Plus size={15} />
+                                            Add task
+                                        </button>
+                                    )}
+
+                            </div>
 
                         </div>
 
@@ -2242,6 +2628,96 @@ function WorkDetails() {
                                         }
                                         onArchive={handleArchiveTask}
                                         onReorder={handleReorderTasks}
+                                        archivedSubtasksSlot={
+                                            <div className="border-t border-[var(--border)] px-5 py-3">
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleArchivedSubtasksForTask(
+                                                            task._id
+                                                        )
+                                                    }
+                                                    className="text-xs font-semibold text-[var(--muted)] transition hover:text-[var(--text)]"
+                                                >
+                                                    {archivedSubtasksOpen[task._id]
+                                                        ? "Hide archived subtasks"
+                                                        : "Show archived subtasks"}
+                                                </button>
+
+                                                {archivedSubtasksOpen[task._id] && (
+
+                                                    <div className="mt-3 space-y-2">
+
+                                                        {archivedSubtasksLoading[task._id] ? (
+                                                            <p className="text-xs text-[var(--muted)]">
+                                                                Loading...
+                                                            </p>
+                                                        ) : (archivedSubtasksByTask[task._id] || []).length === 0 ? (
+                                                            <p className="text-xs text-[var(--muted)]">
+                                                                No archived subtasks.
+                                                            </p>
+                                                        ) : (
+                                                            (archivedSubtasksByTask[task._id] || []).map(
+                                                                (subtask) => (
+                                                                    <div
+                                                                        key={subtask._id}
+                                                                        className="flex items-center justify-between gap-3 text-xs"
+                                                                    >
+                                                                        <span
+                                                                            className={
+                                                                                subtask.completed
+                                                                                    ? "text-[var(--muted)] line-through"
+                                                                                    : "text-[var(--muted)]"
+                                                                            }
+                                                                        >
+                                                                            {subtask.title}
+                                                                        </span>
+
+                                                                        <div className="flex shrink-0 items-center gap-2">
+
+                                                                            {canRestoreSubtaskPerm && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() =>
+                                                                                        handleRestoreSubtaskAction(
+                                                                                            subtask,
+                                                                                            task._id
+                                                                                        )
+                                                                                    }
+                                                                                    className="font-semibold text-green-400"
+                                                                                >
+                                                                                    Restore
+                                                                                </button>
+                                                                            )}
+
+                                                                            {isSuperAdmin(admin) && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() =>
+                                                                                        handleDeleteArchivedSubtaskUnderTask(
+                                                                                            subtask,
+                                                                                            task._id
+                                                                                        )
+                                                                                    }
+                                                                                    className="font-semibold text-red-400"
+                                                                                >
+                                                                                    Delete
+                                                                                </button>
+                                                                            )}
+
+                                                                        </div>
+
+                                                                    </div>
+                                                                )
+                                                            )
+                                                        )}
+
+                                                    </div>
+                                                )}
+
+                                            </div>
+                                        }
                                         subtaskFormSlot={
                                             newSubtaskFor === task._id ? (
                                                 <div>
@@ -2345,6 +2821,139 @@ function WorkDetails() {
                         )}
 
                     </section>
+
+
+                    {/* ==================================================
+                        ARCHIVED TASKS
+                    ================================================== */}
+
+                    {archivedTasksOpen && (
+
+                        <section className="work-panel border border-[var(--border)] bg-[var(--card)]">
+
+                            <div className="border-b border-[var(--border)] p-5">
+                                <h2 className="font-semibold">
+                                    Archived tasks
+                                </h2>
+                                <p className="mt-1 text-xs text-[var(--muted)]">
+                                    Restore a task to bring it back to the active list.
+                                </p>
+                            </div>
+
+                            {loadingArchivedTasks ? (
+
+                                <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                    Loading archived tasks...
+                                </div>
+
+                            ) : archivedTasks.length === 0 ? (
+
+                                <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                    No archived tasks.
+                                </div>
+
+                            ) : (
+
+                                archivedTasks.map(
+                                    (task) => (
+                                        <div
+                                            key={task._id}
+                                            className="border-b border-[var(--border)] p-5 opacity-75 last:border-b-0"
+                                        >
+
+                                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="text-sm font-semibold">
+                                                        {task.title}
+                                                    </h3>
+
+                                                    {task.description && (
+                                                        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                                                            {task.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex shrink-0 flex-nowrap items-center gap-2">
+
+                                                    {canRestoreTaskPerm && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleRestoreTaskAction(task)
+                                                            }
+                                                            className="flex items-center gap-1.5 text-xs font-semibold text-green-400"
+                                                        >
+                                                            Restore
+                                                        </button>
+                                                    )}
+
+                                                    {isSuperAdmin(admin) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDeleteTaskAction(task)
+                                                            }
+                                                            className="flex items-center gap-1.5 text-xs font-semibold text-red-400"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+
+                                                </div>
+
+                                            </div>
+
+                                            {Array.isArray(task.subtasks) &&
+                                                task.subtasks.length > 0 && (
+
+                                                    <div className="mt-4 space-y-2 border-l border-[var(--border)] pl-4">
+
+                                                        {task.subtasks.map(
+                                                            (subtask) => (
+                                                                <div
+                                                                    key={subtask._id}
+                                                                    className="flex items-center justify-between gap-3 text-xs"
+                                                                >
+                                                                    <span
+                                                                        className={
+                                                                            subtask.completed
+                                                                                ? "text-[var(--muted)] line-through"
+                                                                                : "text-[var(--muted)]"
+                                                                        }
+                                                                    >
+                                                                        {subtask.title}
+                                                                    </span>
+
+                                                                    {isSuperAdmin(admin) &&
+                                                                        subtask.status === "ARCHIVED" && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    handleDeleteSubtaskAction(subtask)
+                                                                                }
+                                                                                className="font-semibold text-red-400"
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        )}
+
+                                                                </div>
+                                                            )
+                                                        )}
+
+                                                    </div>
+                                                )}
+
+                                        </div>
+                                    )
+                                )
+
+                            )}
+
+                        </section>
+                    )}
 
 
                     {/* ==================================================

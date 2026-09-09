@@ -704,6 +704,85 @@ export const deleteWorkLink = async (
 
 
 // ============================================================
+// ARCHIVED VIEWS
+// ============================================================
+
+export const getArchivedWorks = async () => {
+    return apiRequest(
+        `/api/work/archived`
+    );
+};
+
+
+export const getArchivedTasksForWork = async (
+    workId
+) => {
+    return apiRequest(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}/tasks/archived`
+    );
+};
+
+
+export const getArchivedSubtasksForTask = async (
+    taskId
+) => {
+    return apiRequest(
+        `/api/work/tasks/${encodeURIComponent(
+            taskId
+        )}/subtasks/archived`
+    );
+};
+
+
+// ============================================================
+// PERMANENT DELETE
+// ============================================================
+
+export const deleteWork = async (
+    workId
+) => {
+    return apiRequest(
+        `/api/work/${encodeURIComponent(
+            workId
+        )}`,
+        {
+            method: "DELETE",
+        }
+    );
+};
+
+
+export const deleteTaskPermanently = async (
+    taskId
+) => {
+    return apiRequest(
+        `/api/work/tasks/${encodeURIComponent(
+            taskId
+        )}`,
+        {
+            method: "DELETE",
+        }
+    );
+};
+
+
+export const deleteSubtaskPermanently = async (
+    subtaskId
+) => {
+    return apiRequest(
+        `/api/work/subtasks/${encodeURIComponent(
+            subtaskId
+        )}`,
+        {
+            method: "DELETE",
+        }
+    );
+};
+
+
+// ============================================================
 // DEFAULT EXPORT
 // ============================================================
 
@@ -721,6 +800,14 @@ const workApi = {
     unlockWork,
 
     reorderWorks,
+
+    getArchivedWorks,
+    getArchivedTasksForWork,
+    getArchivedSubtasksForTask,
+
+    deleteWork,
+    deleteTaskPermanently,
+    deleteSubtaskPermanently,
 
     getWorkParticipants,
     addWorkParticipant,
