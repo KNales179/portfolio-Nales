@@ -124,6 +124,10 @@ export const track = (type, data = {}) => {
         durationMs: data.durationMs ?? null,
         action: data.action ?? null,
         target: data.target ?? null,
+        screen: {
+            w: window.innerWidth || null,
+            h: window.innerHeight || null,
+        },
         ts: Date.now(),
     });
 

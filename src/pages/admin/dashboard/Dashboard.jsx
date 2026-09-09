@@ -4,6 +4,7 @@ import {
     BarChart3,
     Clock,
     Eye,
+    MonitorSmartphone,
     MousePointerClick,
     RefreshCw,
     Users,
@@ -17,6 +18,7 @@ import { useAuth } from "../../../context/AuthContext";
 import {
     getPageAnalytics,
     getInteractionAnalytics,
+    getAudienceAnalytics,
     ANALYTICS_PERIODS,
     INTERACTION_ACTION_LABELS,
 } from "../../../services/analyticsApi";
@@ -135,6 +137,7 @@ function Dashboard() {
     const [pageData, setPageData] = useState(null);
     const [interactionData, setInteractionData] =
         useState(null);
+    const [audienceData, setAudienceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
@@ -155,15 +158,22 @@ function Dashboard() {
 
                 setError("");
 
-                const [pageResponse, interactionResponse] =
-                    await Promise.all([
-                        getPageAnalytics(activePeriod),
-                        getInteractionAnalytics(activePeriod),
-                    ]);
+                const [
+                    pageResponse,
+                    interactionResponse,
+                    audienceResponse,
+                ] = await Promise.all([
+                    getPageAnalytics(activePeriod),
+                    getInteractionAnalytics(activePeriod),
+                    getAudienceAnalytics(activePeriod),
+                ]);
 
                 setPageData(pageResponse?.data || null);
                 setInteractionData(
                     interactionResponse?.data || null
+                );
+                setAudienceData(
+                    audienceResponse?.data || null
                 );
             } catch (err) {
                 console.error(
@@ -259,6 +269,26 @@ function Dashboard() {
 
     const hasInteractions =
         interactionTotals.interactions > 0;
+
+
+    // ========================================================
+    // DERIVED — AUDIENCE
+    // ========================================================
+
+    const audienceTotals = audienceData?.totals || {
+        views: 0,
+        visitors: 0,
+        geoCoveragePct: 0,
+    };
+
+    const devices = audienceData?.devices || [];
+    const browsers = audienceData?.browsers || [];
+    const operatingSystems = audienceData?.os || [];
+    const screens = audienceData?.screens || [];
+    const countries = audienceData?.countries || [];
+    const cities = audienceData?.cities || [];
+
+    const hasAudience = audienceTotals.views > 0;
 
 
     // ========================================================
@@ -645,6 +675,136 @@ function Dashboard() {
                                         </div>
                                     </div>
                                 )}
+                            </section>
+
+
+                            {/* ==============================
+                                AUDIENCE
+                            ============================== */}
+
+                            <section className="work-panel mt-6 border border-[var(--border)] bg-[var(--card)]">
+                                <div className="flex items-center gap-3 border-b border-[var(--border)] p-5">
+                                    <MonitorSmartphone
+                                        size={18}
+                                        className="text-purple-400"
+                                    />
+                                    <div>
+                                        <h2 className="font-semibold">
+                                            Audience
+                                        </h2>
+                                        <p className="mt-1 text-xs text-[var(--muted)]">
+                                            Devices, browsers, and
+                                            where visitors are
+                                            coming from.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {!hasAudience ? (
+                                    <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                        No audience data for this
+                                        period yet.
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-6 p-5 md:grid-cols-2 xl:grid-cols-3">
+                                        <BarList
+                                            title="Device type"
+                                            rows={devices.map(
+                                                (row) => ({
+                                                    label:
+                                                        row.type
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        row.type.slice(
+                                                            1
+                                                        ),
+                                                    value: row.views,
+                                                })
+                                            )}
+                                        />
+
+                                        <BarList
+                                            title="Browser"
+                                            emptyLabel="No browser data."
+                                            rows={browsers.map(
+                                                (row) => ({
+                                                    label: row.name,
+                                                    value: row.views,
+                                                })
+                                            )}
+                                        />
+
+                                        <BarList
+                                            title="Operating system"
+                                            emptyLabel="No OS data."
+                                            rows={operatingSystems.map(
+                                                (row) => ({
+                                                    label: row.name,
+                                                    value: row.views,
+                                                })
+                                            )}
+                                        />
+
+                                        <BarList
+                                            title="Screen size"
+                                            emptyLabel="No screen data."
+                                            rows={screens.map(
+                                                (row) => ({
+                                                    label: row.label,
+                                                    value: row.views,
+                                                })
+                                            )}
+                                        />
+
+                                        <div className="md:col-span-2 xl:col-span-1">
+                                            <BarList
+                                                title="Countries"
+                                                emptyLabel={
+                                                    audienceTotals.geoCoveragePct ===
+                                                    0
+                                                        ? "Location data unavailable (GeoIP database not loaded)."
+                                                        : "No location data."
+                                                }
+                                                rows={countries.map(
+                                                    (row) => ({
+                                                        label: row.country,
+                                                        value: row.views,
+                                                    })
+                                                )}
+                                            />
+                                        </div>
+
+                                        {cities.length > 0 && (
+                                            <div className="md:col-span-2 xl:col-span-1">
+                                                <BarList
+                                                    title="Cities"
+                                                    rows={cities.map(
+                                                        (row) => ({
+                                                            label: row.country
+                                                                ? `${row.city}, ${row.country}`
+                                                                : row.city,
+                                                            value: row.views,
+                                                        })
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {hasAudience &&
+                                    audienceTotals.geoCoveragePct >
+                                        0 &&
+                                    audienceTotals.geoCoveragePct <
+                                        100 && (
+                                        <p className="border-t border-[var(--border)] px-5 py-3 text-xs text-[var(--muted)]">
+                                            Location resolved for{" "}
+                                            {
+                                                audienceTotals.geoCoveragePct
+                                            }
+                                            % of views.
+                                        </p>
+                                    )}
                             </section>
 
                         </>

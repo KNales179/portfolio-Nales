@@ -123,6 +123,21 @@ export const getInteractionAnalytics = async (
 
 
 // ============================================================
+// AUDIENCE ANALYTICS
+// ============================================================
+
+export const getAudienceAnalytics = async (
+    period = "7d"
+) => {
+    const query = encodeURIComponent(period);
+
+    return apiRequest(
+        `/api/analytics/audience?period=${query}`
+    );
+};
+
+
+// ============================================================
 // LABELS
 // ============================================================
 
@@ -147,6 +162,7 @@ export const INTERACTION_ACTION_LABELS = {
 const analyticsApi = {
     getPageAnalytics,
     getInteractionAnalytics,
+    getAudienceAnalytics,
     ANALYTICS_PERIODS,
     INTERACTION_ACTION_LABELS,
 };
