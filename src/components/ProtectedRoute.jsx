@@ -34,6 +34,26 @@ function ProtectedRoute({ children }) {
     }
 
     // ============================================================
+    // FORCED PASSWORD CHANGE
+    // ============================================================
+
+    const isProfilePage =
+        location.pathname === "/admin/profile";
+
+    if (
+        admin.mustChangePassword &&
+        !isProfilePage
+    ) {
+        return (
+            <Navigate
+                to="/admin/profile"
+                replace
+                state={{ firstLogin: true }}
+            />
+        );
+    }
+
+    // ============================================================
     // 2FA NOT ENABLED
     // ============================================================
 
