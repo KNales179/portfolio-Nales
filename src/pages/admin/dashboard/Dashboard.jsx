@@ -4,21 +4,26 @@ import {
     BarChart3,
     Clock,
     Eye,
+    Gauge,
     MonitorSmartphone,
     MousePointerClick,
     RefreshCw,
+    Route,
     Users,
 } from "lucide-react";
 
 import AdminNavbar from "../../../components/admin/AdminNavbar";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import BarSeries from "../../../components/charts/BarSeries";
+import VisitorsSection from "./VisitorsSection";
 import { useAuth } from "../../../context/AuthContext";
 
 import {
     getPageAnalytics,
     getInteractionAnalytics,
     getAudienceAnalytics,
+    getVisitorFlow,
+    getEngagementAnalytics,
     ANALYTICS_PERIODS,
     INTERACTION_ACTION_LABELS,
 } from "../../../services/analyticsApi";
@@ -138,6 +143,9 @@ function Dashboard() {
     const [interactionData, setInteractionData] =
         useState(null);
     const [audienceData, setAudienceData] = useState(null);
+    const [flowData, setFlowData] = useState(null);
+    const [engagementData, setEngagementData] =
+        useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
@@ -162,10 +170,14 @@ function Dashboard() {
                     pageResponse,
                     interactionResponse,
                     audienceResponse,
+                    flowResponse,
+                    engagementResponse,
                 ] = await Promise.all([
                     getPageAnalytics(activePeriod),
                     getInteractionAnalytics(activePeriod),
                     getAudienceAnalytics(activePeriod),
+                    getVisitorFlow(activePeriod),
+                    getEngagementAnalytics(activePeriod),
                 ]);
 
                 setPageData(pageResponse?.data || null);
@@ -174,6 +186,10 @@ function Dashboard() {
                 );
                 setAudienceData(
                     audienceResponse?.data || null
+                );
+                setFlowData(flowResponse?.data || null);
+                setEngagementData(
+                    engagementResponse?.data || null
                 );
             } catch (err) {
                 console.error(
@@ -289,6 +305,58 @@ function Dashboard() {
     const cities = audienceData?.cities || [];
 
     const hasAudience = audienceTotals.views > 0;
+
+
+    // ========================================================
+    // DERIVED — VISITOR FLOW
+    // ========================================================
+
+    const flowTotals = flowData?.totals || {
+        sessions: 0,
+        bounceRate: 0,
+        avgPagesPerSession: 0,
+    };
+
+    const entryPages = flowData?.entryPages || [];
+    const exitPages = flowData?.exitPages || [];
+    const transitions = flowData?.transitions || [];
+    const paths = flowData?.paths || [];
+
+    const hasFlow = flowTotals.sessions > 0;
+
+
+    // ========================================================
+    // DERIVED — ENGAGEMENT
+    // ========================================================
+
+    const engagementTotals = engagementData?.totals || {
+        sessions: 0,
+        engagementRate: 0,
+        avgSessionDurationMs: 0,
+        totalTimeMs: 0,
+        repeatVisitors: 0,
+    };
+
+    const engagementPages = engagementData?.pages || [];
+
+    const activitySeries = useMemo(() => {
+        if (!engagementData?.activity) {
+            return [];
+        }
+
+        return buildSeriesPoints(
+            engagementData.activity,
+            engagementData.granularity,
+            "sessions"
+        );
+    }, [engagementData]);
+
+    const maxEngagementScore = engagementPages.reduce(
+        (max, page) => Math.max(max, page.engagementScore),
+        0
+    );
+
+    const hasEngagement = engagementPages.length > 0;
 
 
     // ========================================================
@@ -616,6 +684,193 @@ function Dashboard() {
 
 
                             {/* ==============================
+                                ENGAGEMENT
+                            ============================== */}
+
+                            <section className="work-panel mt-6 border border-[var(--border)] bg-[var(--card)]">
+                                <div className="flex items-center gap-3 border-b border-[var(--border)] p-5">
+                                    <Gauge
+                                        size={18}
+                                        className="text-purple-400"
+                                    />
+                                    <div>
+                                        <h2 className="font-semibold">
+                                            Engagement
+                                        </h2>
+                                        <p className="mt-1 text-xs text-[var(--muted)]">
+                                            Depth of attention,
+                                            not just traffic.
+                                            Score blends time on
+                                            page, interactions
+                                            per view, and scroll
+                                            depth.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {!hasEngagement ? (
+                                    <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                        No engagement data for
+                                        this period yet.
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-2 divide-x divide-y divide-[var(--border)] border-b border-[var(--border)] text-center sm:grid-cols-4 sm:divide-y-0">
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {formatDuration(
+                                                        engagementTotals.avgSessionDurationMs
+                                                    )}
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Avg. session
+                                                </p>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {
+                                                        engagementTotals.engagementRate
+                                                    }
+                                                    %
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Engaged
+                                                    sessions
+                                                </p>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {formatNumber(
+                                                        engagementTotals.repeatVisitors
+                                                    )}
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Repeat
+                                                    visitors
+                                                </p>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {formatDuration(
+                                                        engagementTotals.totalTimeMs
+                                                    )}
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Total time
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="border-b border-[var(--border)] p-6">
+                                            <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                                Sessions over time
+                                            </p>
+                                            <BarSeries
+                                                data={
+                                                    activitySeries
+                                                }
+                                                valueLabel="sessions"
+                                            />
+                                        </div>
+
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full min-w-[640px] text-sm">
+                                                <thead>
+                                                    <tr className="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--muted)]">
+                                                        <th className="px-5 py-3 font-semibold">
+                                                            Page
+                                                        </th>
+                                                        <th className="px-5 py-3 text-right font-semibold">
+                                                            Views
+                                                        </th>
+                                                        <th className="px-5 py-3 text-right font-semibold">
+                                                            Avg.
+                                                            time
+                                                        </th>
+                                                        <th className="px-5 py-3 text-right font-semibold">
+                                                            Int./view
+                                                        </th>
+                                                        <th className="px-5 py-3 text-right font-semibold">
+                                                            Scroll
+                                                        </th>
+                                                        <th className="px-5 py-3 text-right font-semibold">
+                                                            Score
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {engagementPages.map(
+                                                        (
+                                                            page
+                                                        ) => (
+                                                            <tr
+                                                                key={
+                                                                    page.path
+                                                                }
+                                                                className="border-b border-[var(--border)] last:border-b-0"
+                                                            >
+                                                                <td className="px-5 py-3 font-medium">
+                                                                    {formatPagePath(
+                                                                        page.path
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right tabular-nums text-[var(--muted)]">
+                                                                    {formatNumber(
+                                                                        page.views
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right tabular-nums text-[var(--muted)]">
+                                                                    {formatDuration(
+                                                                        page.avgTimeMs
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right tabular-nums text-[var(--muted)]">
+                                                                    {
+                                                                        page.interactionsPerView
+                                                                    }
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right tabular-nums text-[var(--muted)]">
+                                                                    {
+                                                                        page.avgScrollDepth
+                                                                    }
+                                                                    %
+                                                                </td>
+                                                                <td className="px-5 py-3">
+                                                                    <div className="flex items-center justify-end gap-2">
+                                                                        <span className="tabular-nums font-semibold">
+                                                                            {
+                                                                                page.engagementScore
+                                                                            }
+                                                                        </span>
+                                                                        <span className="h-1.5 w-16 shrink-0 bg-[var(--surface)]">
+                                                                            <span
+                                                                                className="block h-full bg-purple-500"
+                                                                                style={{
+                                                                                    width: `${
+                                                                                        maxEngagementScore >
+                                                                                        0
+                                                                                            ? (page.engagementScore /
+                                                                                                  maxEngagementScore) *
+                                                                                              100
+                                                                                            : 0
+                                                                                    }%`,
+                                                                                }}
+                                                                            />
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </>
+                                )}
+                            </section>
+
+
+                            {/* ==============================
                                 INTERACTIONS
                             ============================== */}
 
@@ -806,6 +1061,204 @@ function Dashboard() {
                                         </p>
                                     )}
                             </section>
+
+
+                            {/* ==============================
+                                VISITOR FLOW
+                            ============================== */}
+
+                            <section className="work-panel mt-6 border border-[var(--border)] bg-[var(--card)]">
+                                <div className="flex items-center gap-3 border-b border-[var(--border)] p-5">
+                                    <Route
+                                        size={18}
+                                        className="text-purple-400"
+                                    />
+                                    <div>
+                                        <h2 className="font-semibold">
+                                            Visitor flow
+                                        </h2>
+                                        <p className="mt-1 text-xs text-[var(--muted)]">
+                                            How visitors move
+                                            through the
+                                            portfolio.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {!hasFlow ? (
+                                    <div className="p-10 text-center text-sm text-[var(--muted)]">
+                                        Not enough navigation
+                                        data for this period
+                                        yet.
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-3 divide-x divide-[var(--border)] border-b border-[var(--border)] text-center">
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {formatNumber(
+                                                        flowTotals.sessions
+                                                    )}
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Sessions
+                                                </p>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {
+                                                        flowTotals.bounceRate
+                                                    }
+                                                    %
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Bounce rate
+                                                </p>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-lg font-bold tabular-nums">
+                                                    {
+                                                        flowTotals.avgPagesPerSession
+                                                    }
+                                                </p>
+                                                <p className="text-[11px] text-[var(--muted)]">
+                                                    Pages /
+                                                    session
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-6 p-5 md:grid-cols-2">
+                                            <BarList
+                                                title="Entry pages"
+                                                rows={entryPages.map(
+                                                    (row) => ({
+                                                        label: formatPagePath(
+                                                            row.path
+                                                        ),
+                                                        value: row.count,
+                                                    })
+                                                )}
+                                            />
+                                            <BarList
+                                                title="Exit pages"
+                                                rows={exitPages.map(
+                                                    (row) => ({
+                                                        label: formatPagePath(
+                                                            row.path
+                                                        ),
+                                                        value: row.count,
+                                                    })
+                                                )}
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-6 border-t border-[var(--border)] p-5 md:grid-cols-2">
+                                            <div>
+                                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                                    Top transitions
+                                                </p>
+                                                {transitions.length ===
+                                                0 ? (
+                                                    <p className="text-sm text-[var(--muted)]">
+                                                        No
+                                                        multi-page
+                                                        sessions
+                                                        yet.
+                                                    </p>
+                                                ) : (
+                                                    <ul className="space-y-2 text-sm">
+                                                        {transitions.map(
+                                                            (
+                                                                row,
+                                                                index
+                                                            ) => (
+                                                                <li
+                                                                    key={
+                                                                        index
+                                                                    }
+                                                                    className="flex items-center justify-between gap-3"
+                                                                >
+                                                                    <span className="truncate">
+                                                                        {formatPagePath(
+                                                                            row.from
+                                                                        )}{" "}
+                                                                        <span className="text-[var(--muted)]">
+                                                                            →
+                                                                        </span>{" "}
+                                                                        {formatPagePath(
+                                                                            row.to
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="shrink-0 font-semibold tabular-nums">
+                                                                        {
+                                                                            row.count
+                                                                        }
+                                                                    </span>
+                                                                </li>
+                                                            )
+                                                        )}
+                                                    </ul>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                                    Common paths
+                                                </p>
+                                                {paths.length ===
+                                                0 ? (
+                                                    <p className="text-sm text-[var(--muted)]">
+                                                        No repeated
+                                                        paths yet.
+                                                    </p>
+                                                ) : (
+                                                    <ul className="space-y-2 text-sm">
+                                                        {paths.map(
+                                                            (
+                                                                row,
+                                                                index
+                                                            ) => (
+                                                                <li
+                                                                    key={
+                                                                        index
+                                                                    }
+                                                                    className="flex items-start justify-between gap-3"
+                                                                >
+                                                                    <span className="min-w-0 break-words">
+                                                                        {row.steps
+                                                                            .map(
+                                                                                formatPagePath
+                                                                            )
+                                                                            .join(
+                                                                                " → "
+                                                                            )}
+                                                                    </span>
+                                                                    <span className="shrink-0 font-semibold tabular-nums">
+                                                                        {
+                                                                            row.count
+                                                                        }
+                                                                    </span>
+                                                                </li>
+                                                            )
+                                                        )}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </section>
+
+
+                            {/* ==============================
+                                VISITORS
+                            ============================== */}
+
+                            <VisitorsSection
+                                key={period}
+                                period={period}
+                            />
 
                         </>
                     ) : null}

@@ -138,6 +138,70 @@ export const getAudienceAnalytics = async (
 
 
 // ============================================================
+// VISITOR ANALYTICS
+// ============================================================
+
+export const getVisitors = async (
+    period = "7d",
+    { limit = 25, skip = 0 } = {}
+) => {
+    const params = new URLSearchParams({
+        period,
+        limit: String(limit),
+        skip: String(skip),
+    });
+
+    return apiRequest(
+        `/api/analytics/visitors?${params.toString()}`
+    );
+};
+
+
+export const getVisitorDetail = async (
+    visitorHash,
+    period = "7d"
+) => {
+    const params = new URLSearchParams({ period });
+
+    return apiRequest(
+        `/api/analytics/visitors/${encodeURIComponent(
+            visitorHash
+        )}?${params.toString()}`
+    );
+};
+
+
+// ============================================================
+// VISITOR FLOW
+// ============================================================
+
+export const getVisitorFlow = async (
+    period = "7d"
+) => {
+    const query = encodeURIComponent(period);
+
+    return apiRequest(
+        `/api/analytics/flow?period=${query}`
+    );
+};
+
+
+// ============================================================
+// ENGAGEMENT ANALYTICS
+// ============================================================
+
+export const getEngagementAnalytics = async (
+    period = "7d"
+) => {
+    const query = encodeURIComponent(period);
+
+    return apiRequest(
+        `/api/analytics/engagement?period=${query}`
+    );
+};
+
+
+// ============================================================
 // LABELS
 // ============================================================
 
@@ -163,6 +227,10 @@ const analyticsApi = {
     getPageAnalytics,
     getInteractionAnalytics,
     getAudienceAnalytics,
+    getVisitors,
+    getVisitorDetail,
+    getVisitorFlow,
+    getEngagementAnalytics,
     ANALYTICS_PERIODS,
     INTERACTION_ACTION_LABELS,
 };

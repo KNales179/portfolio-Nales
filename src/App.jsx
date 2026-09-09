@@ -13,6 +13,7 @@ import Projects from "./pages/Projects";
 import Certificates from "./pages/Certificates";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Analytics from "./pages/Analytics";
 
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Profile from "./pages/admin/Profile";
@@ -71,6 +72,11 @@ function App() {
                         <Route
                             path="/contact"
                             element={<Contact />}
+                        />
+
+                        <Route
+                            path="/analytics"
+                            element={<Analytics />}
                         />
 
                         {/* =========================================
