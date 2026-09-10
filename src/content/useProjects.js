@@ -5,6 +5,7 @@ import { mutate } from "./store.js";
 import {
     fetchProjects,
     patchProject,
+    createProjectApi,
     archiveProjectApi,
     restoreProjectApi,
     reorderProjectsApi,
@@ -122,6 +123,27 @@ export const useProjects = () => {
         }
     }, []);
 
+    // Create a blank project (edit mode). It lands in "Planned"
+    // so a half-filled draft isn't shown as completed work.
+    const create = useCallback(
+        async (name = "New project") => {
+            const saved = await createProjectApi({
+                name,
+                status: "planned",
+            });
+
+            if (saved) {
+                mutate(KEY, (list) => [
+                    ...(list || []),
+                    saved,
+                ]);
+            }
+
+            return saved;
+        },
+        []
+    );
+
     const archive = useCallback(async (id) => {
         const rollback = mutate(KEY, (list) =>
             (list || []).filter(
@@ -162,6 +184,7 @@ export const useProjects = () => {
         updateField,
         updateFields,
         reorder,
+        create,
         archive,
         restore,
     };
