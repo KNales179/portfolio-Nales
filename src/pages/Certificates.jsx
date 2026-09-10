@@ -1,37 +1,32 @@
 import { motion } from "framer-motion";
 import { ExternalLink, Award } from "lucide-react";
 
-const certificates = [
-  {
-    title: "Introduction to Cybersecurity",
-    issuer: "Cisco",
-    verifyUrl:
-      "https://www.credly.com/badges/1684af74-8fc0-4df3-8d9e-37d20b80b174",
-    image: `${import.meta.env.BASE_URL}certificates/Cybersecurity_intro.png`,
-  },
-  {
-    title: "Ethical Hacker",
-    issuer: "Cisco",
-    verifyUrl:
-      "https://www.credly.com/badges/f1498d56-a6c0-4009-954f-d8fea6586fd1",
-    image: `${import.meta.env.BASE_URL}certificates/Ethical_hacker.png`,
-  },
-  {
-    title: "Networking Basics",
-    issuer: "Cisco",
-    verifyUrl:
-      "https://www.credly.com/badges/453b327a-9810-4a01-b85f-e1ffc5c6ae60",
-    image: `${import.meta.env.BASE_URL}certificates/Networking_basics.png`,
-  },
-  {
-    title: "Python Developer",
-    issuer: "SoloLearn",
-    verifyUrl: "https://www.sololearn.com/certificates/CC-YIFBLQFD",
-    image: `${import.meta.env.BASE_URL}certificates/PythonDev.jpg`,
-  },
-];
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import Editable from "../components/edit/Editable";
+import EditableImage from "../components/edit/EditableImage";
+import DragHandle from "../components/edit/DragHandle";
+import { useSortable } from "../components/edit/useSortable";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
 
 function Certificates() {
+  const {
+    content,
+    updateItem,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+  const certificates = content.certificates;
+
+  const sortable = useSortable(
+    certificates.map((certificate) => certificate.id),
+    (orderedIds) => reorderItems("certificates", orderedIds)
+  );
+
   return (
     <section className="relative min-h-screen py-28 md:py-32">
       <div className="mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-16">
@@ -64,7 +59,8 @@ function Certificates() {
         <div className="grid gap-6 md:grid-cols-3">
           {certificates.map((certificate, index) => (
             <motion.article
-              key={certificate.badgeId}
+              key={certificate.id || certificate.title}
+              {...sortable.getItemProps(certificate.id)}
               initial={{
                 opacity: 0,
                 y: 30,
@@ -81,15 +77,48 @@ function Certificates() {
                 duration: 0.6,
                 delay: index * 0.08,
               }}
-              className="group overflow-hidden border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-xl"
+              className={`group relative overflow-hidden border bg-[var(--card)]/70 backdrop-blur-xl transition ${
+                sortable.overId === certificate.id
+                  ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/40"
+                  : "border-[var(--border)]"
+              } ${
+                sortable.draggingId === certificate.id
+                  ? "opacity-40"
+                  : ""
+              }`}
             >
+              <ArchiveButton
+                label={certificate.title}
+                onArchive={() =>
+                  archiveItem(
+                    "certificates",
+                    certificate.id
+                  )
+                }
+              />
+
+              <DragHandle
+                {...sortable.dragHandleProps(certificate.id)}
+                className="absolute left-2 top-2 z-10"
+              />
+
               {/* CERTIFICATE IMAGE */}
               <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
-                <img
-                  src={certificate.image}
-                  alt={`${certificate.title} certificate`}
-                  className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.03]"
-                />
+                <EditableImage
+                  uploadType="CERTIFICATE_IMAGE"
+                  onUpload={(url) =>
+                    updateItem("certificates", certificate.id, {
+                      image: url,
+                    })
+                  }
+                  className="absolute inset-0"
+                >
+                  <img
+                    src={certificate.image}
+                    alt={`${certificate.title} certificate`}
+                    className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.03]"
+                  />
+                </EditableImage>
 
                 {/* Image overlay */}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
@@ -106,14 +135,32 @@ function Certificates() {
                         className="shrink-0 text-purple-400"
                       />
 
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-purple-400">
-                        {certificate.issuer}
-                      </span>
+                      <Editable
+                        value={certificate.issuer}
+                        onSave={(v) =>
+                          updateItem(
+                            "certificates",
+                            certificate.id,
+                            { issuer: v }
+                          )
+                        }
+                        placeholder="Issuer"
+                        className="text-[11px] font-semibold uppercase tracking-[0.16em] text-purple-400"
+                      />
                     </div>
 
-                    <h2 className="heading-font text-lg font-semibold leading-snug">
-                      {certificate.title}
-                    </h2>
+                    <Editable
+                      as="h2"
+                      value={certificate.title}
+                      onSave={(v) =>
+                        updateItem(
+                          "certificates",
+                          certificate.id,
+                          { title: v }
+                        )
+                      }
+                      className="heading-font block text-lg font-semibold leading-snug"
+                    />
                   </div>
 
                   {/* VERIFY */}
@@ -135,6 +182,20 @@ function Certificates() {
             </motion.article>
           ))}
         </div>
+
+        <CollectionControls
+          type="certificates"
+          label="certificate"
+          nameField="title"
+          newItem={{
+            title: "New certificate",
+            issuer: "",
+            verifyUrl: "",
+            image: "",
+          }}
+          onAdd={createItem}
+          onRestore={restoreItem}
+        />
 
       </div>
     </section>

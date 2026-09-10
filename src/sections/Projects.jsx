@@ -2,14 +2,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, X } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
-import projects from "../data/projects";
 import ProjectManuscript from "../components/ProjectManuscript";
 import { trackInteraction } from "../analytics/track";
+import { useProjects } from "../content/useProjects";
+import ReorderStrip from "../components/edit/ReorderStrip";
 
 
 function ProjectCard({ project, index, className = "" }) {
   const [isActive, setIsActive] = useState(false);
   const [showManuscript, setShowManuscript] = useState(false);
+
+  if (!project) {
+    return <div className={className} aria-hidden="true" />;
+  }
 
   return (
     <motion.article
@@ -186,6 +191,8 @@ function ProjectCard({ project, index, className = "" }) {
 }
 
 function Projects() {
+  const { projects, reorder } = useProjects();
+
   /*
     Desktop layout:
 
@@ -275,7 +282,7 @@ function Projects() {
         <div className="mt-8 grid gap-3 md:hidden">
           {showcaseProjects.map((project, index) => (
             <div
-              key={project.name}
+              key={project.id || project.name}
               className={
                 project.layout === "portrait"
                   ? "aspect-[3/4]"
@@ -290,6 +297,15 @@ function Projects() {
             </div>
           ))}
         </div>
+
+        <ReorderStrip
+          title="Project order"
+          items={projects}
+          getLabel={(project) =>
+            `${project.name} · ${project.status}`
+          }
+          onReorder={reorder}
+        />
 
         {/* Footer */}
         <motion.div

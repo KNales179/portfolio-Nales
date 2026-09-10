@@ -1,24 +1,38 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, GitBranch, ExternalLink, X } from "lucide-react";
 
-function ProjectManuscript({ project, onClose }) {
+import Editable from "./edit/Editable";
+import EditableTags from "./edit/EditableTags";
+import EditableParagraphs from "./edit/EditableParagraphs";
+import EditableImage from "./edit/EditableImage";
+import EditableManuscriptSections from "./edit/EditableManuscriptSections";
+
+function ProjectManuscript({
+    project,
+    onClose,
+    editing = false,
+    onEditField,
+    onEditFields,
+}) {
     if (!project) return null;
+
+    const save = (field) => (value) =>
+        onEditField
+            ? onEditField(field, value)
+            : Promise.resolve();
+
+    const notes = project.notes || {};
+
+    const saveNoteList = (listKey) => (next) =>
+        onEditFields
+            ? onEditFields({
+                  notes: { ...notes, [listKey]: next },
+              })
+            : Promise.resolve();
 
     const hasLiveView = Boolean(project.liveLink);
     const hasDemo = Boolean(project.demoLink);
     const hasSource = Boolean(project.github);
-
-    const getImageGridClass = (imageCount) => {
-        if (imageCount === 1) {
-            return "grid grid-cols-1 max-w-[850px] mx-auto";
-        }
-
-        if (imageCount === 2) {
-            return "grid grid-cols-1 gap-4 md:grid-cols-2";
-        }
-
-        return "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
-    };
 
     return (
         <AnimatePresence>
@@ -178,28 +192,41 @@ function ProjectManuscript({ project, onClose }) {
                             {/* PROJECT INTRO */}
 
                             <section className="mb-10">
-                                <p className="text-[9px] tracking-[0.22em] text-[var(--accent)]">
-                                    {project.type}
-                                </p>
+                                <Editable
+                                    as="p"
+                                    value={project.type}
+                                    onSave={save("type")}
+                                    placeholder="Project type"
+                                    className="text-[9px] tracking-[0.22em] text-[var(--accent)]"
+                                />
 
-                                <h1 className="heading-font mt-2 text-3xl font-bold tracking-tight md:text-5xl">
-                                    {project.title || project.name}
-                                </h1>
+                                <Editable
+                                    as="h1"
+                                    value={project.name}
+                                    onSave={save("name")}
+                                    className="heading-font mt-2 block text-3xl font-bold tracking-tight md:text-5xl"
+                                />
 
-                                {project.description && (
-                                    <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)] md:text-base">
-                                        {project.description}
-                                    </p>
+                                {(project.description || editing) && (
+                                    <Editable
+                                        as="p"
+                                        value={project.description}
+                                        onSave={save("description")}
+                                        multiline
+                                        placeholder="Short description"
+                                        className="mt-4 block max-w-2xl text-sm leading-7 text-[var(--muted)] md:text-base"
+                                    />
                                 )}
                             </section>
 
                             {/* MAIN PROJECT IMAGE */}
 
-                            {project.image && (
+                            {(project.image || editing) && (
                                 <div
                                     className={
                                         project.layout === "portrait"
                                             ? `
+                                                relative
                                                 mx-auto
                                                 aspect-[3/4]
                                                 w-full
@@ -211,6 +238,7 @@ function ProjectManuscript({ project, onClose }) {
                                                 bg-[var(--surface)]
                                             `
                                             : `
+                                                relative
                                                 mx-auto
                                                 aspect-[16/9]
                                                 w-full
@@ -223,11 +251,23 @@ function ProjectManuscript({ project, onClose }) {
                                             `
                                     }
                                 >
-                                    <img
-                                        src={project.image}
-                                        alt={`${project.name} home screen`}
-                                        className="h-full w-full object-cover"
-                                    />
+                                    <EditableImage
+                                        uploadType="PROJECT_IMAGE"
+                                        onUpload={save("image")}
+                                        className="absolute inset-0"
+                                    >
+                                        {project.image ? (
+                                            <img
+                                                src={project.image}
+                                                alt={`${project.name} home screen`}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full items-center justify-center text-xs text-[var(--muted)]">
+                                                No cover image
+                                            </div>
+                                        )}
+                                    </EditableImage>
                                 </div>
                             )}
 
@@ -381,204 +421,55 @@ function ProjectManuscript({ project, onClose }) {
 
                             {/* MANUSCRIPT */}
 
-                            {project.descriptions?.length > 0 && (
-                                <section className="mt-16">
-
-                                    {/* SECTION HEADER */}
-
-                                    <div className="mb-10 flex items-center gap-3">
-
-                                        <div className="h-px flex-1 bg-[var(--border)]" />
-
-                                        <span className="text-[9px] tracking-[0.2em] text-[var(--muted)]">
-                                            PROJECT DETAILS
-                                        </span>
-                                    </div>
-
-                                    <div className="space-y-20">
-
-                                        {project.descriptions.map(
-                                            (section, index) => {
-                                                const images = Array.isArray(
-                                                    section.images
-                                                )
-                                                    ? section.images.filter(
-                                                        Boolean
-                                                    )
-                                                    : [];
-
-                                                const texts = Array.isArray(
-                                                    section.texts
-                                                )
-                                                    ? section.texts.filter(
-                                                        Boolean
-                                                    )
-                                                    : [];
-
-                                                return (
-                                                    <motion.article
-                                                        key={`${project.name}-${index}`}
-                                                        initial={{
-                                                            opacity: 0,
-                                                            y: 18,
-                                                        }}
-                                                        whileInView={{
-                                                            opacity: 1,
-                                                            y: 0,
-                                                        }}
-                                                        viewport={{
-                                                            once: true,
-                                                            amount: 0.15,
-                                                        }}
-                                                        transition={{
-                                                            duration: 0.45,
-                                                        }}
-                                                    >
-                                                        {/* SECTION NUMBER */}
-
-                                                        <div className="mb-5 flex items-center gap-3">
-                                                            <span className="text-[9px] font-medium tracking-[0.15em] text-[var(--accent)]">
-                                                                {String(
-                                                                    index + 1
-                                                                ).padStart(
-                                                                    2,
-                                                                    "0"
-                                                                )}
-                                                            </span>
-
-                                                            <div className="h-px flex-1 bg-[var(--border)]" />
-                                                        </div>
-
-                                                        {/* IMAGES */}
-
-                                                        {images.length > 0 && (
-                                                            <div
-                                                                className={getImageGridClass(
-                                                                    images.length
-                                                                )}
-                                                            >
-                                                                {images.map(
-                                                                    (
-                                                                        image,
-                                                                        imageIndex
-                                                                    ) => (
-                                                                        <div
-                                                                            key={`${project.name}-${index}-${imageIndex}`}
-                                                                            className="
-                                                                                group
-                                                                                relative
-                                                                                w-full
-                                                                                overflow-hidden
-                                                                                rounded-xl
-                                                                                border
-                                                                                border-[var(--border)]
-                                                                                bg-[var(--surface)]
-                                                                            "
-                                                                        >
-                                                                            <img
-                                                                                src={
-                                                                                    image
-                                                                                }
-                                                                                alt={`${project.name} section ${index +
-                                                                                    1
-                                                                                    } image ${imageIndex +
-                                                                                    1
-                                                                                    }`}
-                                                                                loading="lazy"
-                                                                                className="
-                                                                                    block
-                                                                                    h-auto
-                                                                                    max-h-[650px]
-                                                                                    w-full
-                                                                                    object-contain
-                                                                                    transition-transform
-                                                                                    duration-500
-                                                                                    group-hover:scale-[1.02]
-                                                                                "
-                                                                            />
-                                                                        </div>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        {/* TEXT */}
-
-                                                        {texts.length > 0 && (
-                                                            <div
-                                                                className={
-                                                                    images.length >
-                                                                        0
-                                                                        ? "mt-7 space-y-5"
-                                                                        : "space-y-5"
-                                                                }
-                                                            >
-                                                                {texts.map(
-                                                                    (
-                                                                        paragraph,
-                                                                        paragraphIndex
-                                                                    ) => (
-                                                                        <p
-                                                                            key={`${project.name}-${index}-text-${paragraphIndex}`}
-                                                                            className="
-                                                                                max-w-[760px]
-                                                                                text-sm
-                                                                                leading-8
-                                                                                text-[var(--muted)]
-                                                                                md:text-base
-                                                                            "
-                                                                        >
-                                                                            {
-                                                                                paragraph
-                                                                            }
-                                                                        </p>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </motion.article>
-                                                );
-                                            }
-                                        )}
-                                    </div>
-                                </section>
-                            )}
+                            <EditableManuscriptSections
+                                descriptions={project.descriptions}
+                                projectName={project.name}
+                                onSave={(next) =>
+                                    onEditFields
+                                        ? onEditFields({
+                                              descriptions: next,
+                                          })
+                                        : Promise.resolve()
+                                }
+                            />
 
                             {/* TECHNOLOGIES */}
 
-                            {project.technologies?.length > 0 && (
+                            {(project.technologies?.length > 0 ||
+                                editing) && (
                                 <section className="mt-20 border-t border-[var(--border)] pt-8">
                                     <p className="text-[9px] tracking-[0.2em] text-[var(--muted)]">
                                         BUILT WITH
                                     </p>
 
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {project.technologies.map(
-                                            (technology) => (
-                                                <span
-                                                    key={technology}
-                                                    className="
-                                                        rounded-full
-                                                        border
-                                                        border-[var(--border)]
-                                                        bg-[var(--surface)]
-                                                        px-3
-                                                        py-1.5
-                                                        text-[10px]
-                                                        text-[var(--muted)]
-                                                    "
-                                                >
-                                                    {technology}
-                                                </span>
-                                            )
+                                    <EditableTags
+                                        className="mt-4 flex flex-wrap items-center gap-2"
+                                        value={
+                                            project.technologies ||
+                                            []
+                                        }
+                                        onSave={(next) =>
+                                            onEditField
+                                                ? onEditField(
+                                                      "technologies",
+                                                      next
+                                                  )
+                                                : Promise.resolve()
+                                        }
+                                        renderTag={(
+                                            technology
+                                        ) => (
+                                            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[10px] text-[var(--muted)]">
+                                                {technology}
+                                            </span>
                                         )}
-                                    </div>
+                                    />
                                 </section>
                             )}
 
                             {/* NOTES & LEARNINGS */}
 
-                            {project.notes && (
+                            {(project.notes || editing) && (
                                 <section className="mt-20 border-t border-[var(--border)] pt-10">
 
                                     <div className="mb-8">
@@ -597,83 +488,76 @@ function ProjectManuscript({ project, onClose }) {
                                     </div>
 
                                     <div className="space-y-10">
+                                        {[
+                                            {
+                                                key: "learned",
+                                                label: "Things I Learned",
+                                            },
+                                            {
+                                                key: "challenges",
+                                                label: "Challenges",
+                                            },
+                                            {
+                                                key: "technical",
+                                                label: "Technical Notes",
+                                            },
+                                            {
+                                                key: "reflection",
+                                                label: "Reflection",
+                                            },
+                                        ].map((block) => {
+                                            const list =
+                                                notes[
+                                                    block.key
+                                                ] || [];
 
-                                        {project.notes.learned?.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-semibold text-[var(--text)]">
-                                                    Things I Learned
-                                                </p>
+                                            if (
+                                                list.length ===
+                                                    0 &&
+                                                !editing
+                                            ) {
+                                                return null;
+                                            }
 
-                                                <ul className="mt-4 space-y-3">
-                                                    {project.notes.learned.map((note, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="border-l-2 border-[var(--accent)] pl-4 text-sm leading-7 text-[var(--muted)]"
-                                                        >
-                                                            {note}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
+                                            return (
+                                                <div
+                                                    key={
+                                                        block.key
+                                                    }
+                                                >
+                                                    <p className="text-xs font-semibold text-[var(--text)]">
+                                                        {
+                                                            block.label
+                                                        }
+                                                    </p>
 
-                                        {project.notes.challenges?.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-semibold text-[var(--text)]">
-                                                    Challenges
-                                                </p>
-
-                                                <ul className="mt-4 space-y-3">
-                                                    {project.notes.challenges.map((note, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
-                                                        >
-                                                            {note}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-
-                                        {project.notes.technical?.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-semibold text-[var(--text)]">
-                                                    Technical Notes
-                                                </p>
-
-                                                <ul className="mt-4 space-y-3">
-                                                    {project.notes.technical.map((note, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
-                                                        >
-                                                            {note}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-
-                                        {project.notes.reflection?.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-semibold text-[var(--text)]">
-                                                    Reflection
-                                                </p>
-
-                                                <ul className="mt-4 space-y-3">
-                                                    {project.notes.reflection.map((note, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
-                                                        >
-                                                            {note}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-
+                                                    <EditableParagraphs
+                                                        className="mt-4 space-y-3"
+                                                        value={
+                                                            list
+                                                        }
+                                                        onSave={saveNoteList(
+                                                            block.key
+                                                        )}
+                                                        renderItem={(
+                                                            note,
+                                                            index
+                                                        ) => (
+                                                            <li
+                                                                key={
+                                                                    index
+                                                                }
+                                                                className="border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                                                            >
+                                                                {
+                                                                    note
+                                                                }
+                                                            </li>
+                                                        )}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             )}

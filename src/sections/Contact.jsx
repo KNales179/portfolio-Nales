@@ -1,63 +1,49 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Download,
-  ExternalLink,
-  Mail,
-  Send,
-} from "lucide-react";
+import { ExternalLink, Send } from "lucide-react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 import SectionTitle from "../components/SectionTitle";
-import {
-  FaInstagram,
-  FaFacebook,
-  FaLinkedin,
-  FaGithub,
-  FaWhatsapp,
-} from "react-icons/fa";
 import { sendContactMessage } from "../services/contactApi";
 import { trackInteraction, trackLink } from "../analytics/track";
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import { resumeHref } from "../content/siteAssets";
+import Editable from "../components/edit/Editable";
+import EditableIcon from "../components/edit/EditableIcon";
+import ResumeUploadControl from "../components/edit/ResumeUploadControl";
+import DragHandle from "../components/edit/DragHandle";
+import { useSortable } from "../components/edit/useSortable";
+import { useEditMode } from "../context/EditModeContext";
 
-
-const contacts = [
-  {
-    label: "Email",
-    href: "mailto:ibelldev179@gmail.com",
-    icon: Mail,
-  },
-  {
-    label: "Facebook",
-    href: "https://www.facebook.com/lehvi.ben",
-    icon: FaFacebook,
-    external: true,
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/levi.cohen179?igsi=MWdjMmZrNTJzNXJrdQ==",
-    icon: FaInstagram,
-    external: true,
-  },
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/ivhel-nales-996189419",
-    icon: FaLinkedin,
-    external: true,
-  },
-  {
-    label: "WhatsApp",
-    value: "Chat with me",
-    href: "https://api.whatsapp.com/send?phone=639635321913",
-    icon: FaWhatsapp,
-    external: true,
-  },
-  {
-    label: "Resume",
-    href: `${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`,
-    icon: Download,
-    download: true,
-  },
+const FALLBACK_CONTACTS = [
+  { id: "f1", label: "Email", href: "mailto:ibelldev179@gmail.com", icon: "Mail" },
+  { id: "f2", label: "LinkedIn", href: "https://www.linkedin.com/in/ivhel-nales-996189419", icon: "FaLinkedin", external: true },
 ];
 
 function Contact() {
+  const { editing } = useEditMode();
+  const { content, updateItem, reorderItems } =
+    usePortfolioContent();
+
+  const hasContacts = content.contactLinks.length > 0;
+
+  const contacts = [
+    ...(hasContacts ? content.contactLinks : FALLBACK_CONTACTS),
+    {
+      id: "resume",
+      label: "Resume",
+      href: resumeHref(content),
+      icon: "Download",
+      download: true,
+    },
+  ];
+
+  const sortable = useSortable(
+    (hasContacts ? content.contactLinks : []).map(
+      (contact) => contact.id
+    ),
+    (orderedIds) => reorderItems("contact-links", orderedIds)
+  );
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -183,23 +169,33 @@ function Contact() {
               {/* Contact links */}
               <div className="mt-8 space-y-2">
                 {contacts.map((contact, index) => {
-                  const Icon = contact.icon;
+                  const sortableItem =
+                    hasContacts && !contact.download;
 
                   return (
                     <motion.a
-                      key={contact.label}
+                      key={contact.id || contact.label}
+                      {...(sortableItem
+                        ? sortable.getItemProps(contact.id)
+                        : {})}
                       href={contact.href}
-                      onClick={() =>
-                        contact.download
-                          ? trackInteraction(
-                              "RESUME_DOWNLOAD",
-                              "home-contact"
-                            )
-                          : trackLink(
-                              contact.href,
-                              contact.label
-                            )
-                      }
+                      onClick={(event) => {
+                        if (editing && !contact.download) {
+                          event.preventDefault();
+                          return;
+                        }
+                        if (contact.download) {
+                          trackInteraction(
+                            "RESUME_DOWNLOAD",
+                            "home-contact"
+                          );
+                        } else {
+                          trackLink(
+                            contact.href,
+                            contact.label
+                          );
+                        }
+                      }}
                       target={
                         contact.external
                           ? "_blank"
@@ -233,20 +229,64 @@ function Contact() {
                       whileHover={{
                         x: 5,
                       }}
-                      className="group flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 px-4 py-3 transition-colors duration-300 hover:border-[var(--accent)]/50 hover:bg-[var(--accent-soft)]"
+                      className={`group relative flex items-center justify-between rounded-xl border bg-[var(--surface)]/50 px-4 py-3 transition-colors duration-300 hover:border-[var(--accent)]/50 hover:bg-[var(--accent-soft)] ${
+                        sortableItem &&
+                        sortable.overId === contact.id
+                          ? "border-[var(--accent)]"
+                          : "border-[var(--border)]"
+                      } ${
+                        sortableItem &&
+                        sortable.draggingId === contact.id
+                          ? "opacity-40"
+                          : ""
+                      }`}
                     >
+                      {sortableItem && (
+                        <DragHandle
+                          {...sortable.dragHandleProps(
+                            contact.id
+                          )}
+                          className="absolute -left-2 -top-2 z-20 shadow-sm"
+                        />
+                      )}
+
                       <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--accent-soft)]">
-                          <Icon
+                          <EditableIcon
+                            value={contact.icon}
+                            onSave={
+                              sortableItem
+                                ? (v) =>
+                                    updateItem(
+                                      "contact-links",
+                                      contact.id,
+                                      { icon: v }
+                                    )
+                                : undefined
+                            }
+                            fallback="Link"
                             size={16}
-                            strokeWidth={1.8}
-                            className="text-[var(--accent)]"
+                            iconClassName="text-[var(--accent)]"
                           />
                         </div>
 
-                        <span className="text-sm font-medium">
-                          {contact.label}
-                        </span>
+                        {contact.download ? (
+                          <span className="text-sm font-medium">
+                            {contact.label}
+                          </span>
+                        ) : (
+                          <Editable
+                            value={contact.label}
+                            onSave={(v) =>
+                              updateItem(
+                                "contact-links",
+                                contact.id,
+                                { label: v }
+                              )
+                            }
+                            className="text-sm font-medium"
+                          />
+                        )}
                       </div>
 
                       <ExternalLink
@@ -256,6 +296,8 @@ function Contact() {
                     </motion.a>
                   );
                 })}
+
+                <ResumeUploadControl className="pt-1" />
               </div>
             </div>
           </motion.div>

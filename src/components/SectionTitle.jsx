@@ -1,12 +1,20 @@
 import { motion } from "framer-motion";
 
+import Editable from "./edit/Editable";
+
+// `onSave(field, value)` — when provided, the label / title /
+// description become inline-editable in edit mode.
 function SectionTitle({
   label,
   title,
   description,
   align = "left",
+  onSave,
 }) {
   const isCenter = align === "center";
+
+  const save = (field) => (value) =>
+    onSave ? onSave(field, value) : Promise.resolve();
 
   return (
     <motion.div
@@ -32,21 +40,47 @@ function SectionTitle({
           }`}
       >
         <span className="h-px w-10 bg-purple-400" />
-        {label}
+        {onSave ? (
+          <Editable value={label} onSave={save("label")} />
+        ) : (
+          label
+        )}
         {isCenter && <span className="h-px w-10 bg-purple-400" />}
       </p>
 
-      <h2 className="heading-font mb-4 text-4xl font-bold leading-tight md:text-6xl">
-        {title}
-      </h2>
+      {onSave ? (
+        <Editable
+          as="h2"
+          value={title}
+          onSave={save("title")}
+          multiline
+          className="heading-font mb-4 block text-4xl font-bold leading-tight md:text-6xl"
+        />
+      ) : (
+        <h2 className="heading-font mb-4 text-4xl font-bold leading-tight md:text-6xl">
+          {title}
+        </h2>
+      )}
 
-      {description && (
-        <p
-          className={`leading-7 opacity-70 ${isCenter ? "mx-auto max-w-2xl" : "max-w-2xl"
+      {onSave ? (
+        <Editable
+          as="p"
+          value={description}
+          onSave={save("description")}
+          multiline
+          placeholder="Section description"
+          className={`block leading-7 opacity-70 ${isCenter ? "mx-auto max-w-2xl" : "max-w-2xl"
             }`}
-        >
-          {description}
-        </p>
+        />
+      ) : (
+        description && (
+          <p
+            className={`leading-7 opacity-70 ${isCenter ? "mx-auto max-w-2xl" : "max-w-2xl"
+              }`}
+          >
+            {description}
+          </p>
+        )
       )}
     </motion.div>
   );

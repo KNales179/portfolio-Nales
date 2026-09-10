@@ -29,25 +29,8 @@ function Login() {
             return;
         }
 
-        if (admin.mustChangePassword) {
-            navigate("/admin/profile", {
-                replace: true,
-                state: {
-                    firstLogin: true,
-                },
-            });
-
-            return;
-        }
-
-        if (!admin.twoFactorEnabled) {
-            navigate("/admin/security", {
-                replace: true,
-            });
-
-            return;
-        }
-
+        // ProtectedRoute owns the first-login / 2FA-enrolment
+        // gating — just land on the dashboard and let it route.
         navigate("/admin/dashboard", {
             replace: true,
         });
@@ -84,24 +67,12 @@ function Login() {
     // REDIRECT AFTER AUTHENTICATION
     // ============================================================
 
-    const redirectAfterLogin = (admin) => {
-        if (!admin.twoFactorEnabled) {
-            navigate(
-                "/admin/security",
-                {
-                    replace: true,
-                }
-            );
-
-            return;
-        }
-
-        navigate(
-            "/admin/dashboard",
-            {
-                replace: true,
-            }
-        );
+    const redirectAfterLogin = () => {
+        // ProtectedRoute redirects onward if first-login setup or
+        // 2FA enrolment is still pending.
+        navigate("/admin/dashboard", {
+            replace: true,
+        });
     };
 
     // ============================================================
@@ -172,28 +143,11 @@ function Login() {
             }
 
             // ====================================================
-            // FIRST LOGIN
+            // DASHBOARD  (ProtectedRoute handles first-login /
+            // 2FA-enrolment redirects)
             // ====================================================
 
-            if (admin.mustChangePassword) {
-                navigate(
-                    "/admin/profile",
-                    {
-                        replace: true,
-                        state: {
-                            firstLogin: true,
-                        },
-                    }
-                );
-
-                return;
-            }
-
-            // ====================================================
-            // 2FA / DASHBOARD
-            // ====================================================
-
-            redirectAfterLogin(admin);
+            redirectAfterLogin();
 
         } catch (error) {
             console.error(
@@ -265,25 +219,8 @@ function Login() {
                 }
 
                 // =================================================
-                // FIRST LOGIN
-                // =================================================
-
-                if (admin.mustChangePassword) {
-                    navigate(
-                        "/admin/profile",
-                        {
-                            replace: true,
-                            state: {
-                                firstLogin: true,
-                            },
-                        }
-                    );
-
-                    return;
-                }
-
-                // =================================================
-                // 2FA COMPLETE
+                // 2FA COMPLETE — ProtectedRoute routes onward if
+                // first-login setup is still pending
                 // =================================================
 
                 navigate(

@@ -3,45 +3,31 @@ import { motion } from "framer-motion";
 import AboutSection from "../sections/About";
 import Awards from "../sections/Awards";
 
-const hobbies = [
-  {
-    title: "Learning & Experimenting with Code",
-    description:
-      "Learning new things, experimenting with code, and exploring different ways to build and solve problems.",
-  },
-  {
-    title: "Gaming",
-    description:
-      "Playing games for fun, exploring different genres, and getting immersed in different worlds and experiences.",
-  },
-  {
-    title: "Movies & Series",
-    description:
-      "Watching movies and series whenever I want to relax, discover new stories, or simply enjoy some downtime.",
-  },
-  {
-    title: "Reading",
-    description:
-      "Reading whenever I find something interesting, from technical topics to stories and random subjects that catch my attention.",
-  },
-  {
-    title: "Exploring New Technology",
-    description:
-      "Trying new tools, frameworks, libraries, and technologies that catch my interest.",
-  },
-  {
-    title: "Building Side Projects",
-    description:
-      "Turning random ideas into small projects and experimenting with different ways to build them.",
-  },
-  {
-    title: "Creative Experimentation",
-    description:
-      "Playing around with ideas, interfaces, animations, and different approaches to creating digital experiences.",
-  },
-];
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import Editable from "../components/edit/Editable";
+import DragHandle from "../components/edit/DragHandle";
+import { useSortable } from "../components/edit/useSortable";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
 
 function About() {
+  const {
+    content,
+    updateItem,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+  const hobbies = content.hobbies;
+
+  const sortable = useSortable(
+    hobbies.map((hobby) => hobby.id),
+    (orderedIds) => reorderItems("hobbies", orderedIds)
+  );
+
   return (
     <section className="min-h-screen px-6 py-32 md:px-10 lg:px-16">
       <div className="mx-auto max-w-[1100px]">
@@ -128,7 +114,8 @@ function About() {
           <div className="grid overflow-hidden border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
             {hobbies.map((hobby, index) => (
               <motion.article
-                key={hobby.title}
+                key={hobby.id || hobby.title}
+                {...sortable.getItemProps(hobby.id)}
                 initial={{
                   opacity: 0,
                   y: 20,
@@ -145,25 +132,70 @@ function About() {
                   duration: 0.5,
                   delay: index * 0.06,
                 }}
-                className="group bg-[var(--card)] p-6 transition-colors duration-300 hover:bg-[var(--surface-soft)]"
+                className={`group relative bg-[var(--card)] p-6 transition-colors duration-300 hover:bg-[var(--surface-soft)] ${
+                  sortable.overId === hobby.id
+                    ? "outline outline-2 -outline-offset-2 outline-[var(--accent)]"
+                    : ""
+                } ${
+                  sortable.draggingId === hobby.id
+                    ? "opacity-40"
+                    : ""
+                }`}
               >
+                <ArchiveButton
+                  label={hobby.title}
+                  onArchive={() =>
+                    archiveItem("hobbies", hobby.id)
+                  }
+                />
+
+                <DragHandle
+                  {...sortable.dragHandleProps(hobby.id)}
+                  className="absolute left-2 top-2 z-10"
+                />
+
                 {/* NUMBER */}
                 <span className="text-xs font-medium tracking-[0.18em] text-[var(--accent)]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
                 {/* TITLE */}
-                <h3 className="heading-font mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-[var(--accent)]">
-                  {hobby.title}
-                </h3>
+                <Editable
+                  as="h3"
+                  value={hobby.title}
+                  onSave={(v) =>
+                    updateItem("hobbies", hobby.id, {
+                      title: v,
+                    })
+                  }
+                  className="heading-font mt-4 block text-lg font-semibold transition-colors duration-300 group-hover:text-[var(--accent)]"
+                />
 
                 {/* DESCRIPTION */}
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  {hobby.description}
-                </p>
+                <Editable
+                  as="p"
+                  value={hobby.description}
+                  onSave={(v) =>
+                    updateItem("hobbies", hobby.id, {
+                      description: v,
+                    })
+                  }
+                  multiline
+                  placeholder="Description"
+                  className="mt-2 block text-sm leading-6 text-[var(--muted)]"
+                />
               </motion.article>
             ))}
           </div>
+
+          <CollectionControls
+            type="hobbies"
+            label="hobby"
+            nameField="title"
+            newItem={{ title: "New hobby", description: "" }}
+            onAdd={createItem}
+            onRestore={restoreItem}
+          />
         </section>
 
       </div>

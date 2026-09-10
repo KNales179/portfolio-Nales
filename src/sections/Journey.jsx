@@ -3,37 +3,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin } from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
 
-const milestones = [
-  {
-    year: "2022",
-    title: "Started Basic Coding",
-    description:
-      "Started college with no coding background and learned the fundamentals of programming through Python, including basic syntax, inputs, buttons, text display, and the classic “Hello World” program.",
-  },
-  {
-    year: "2023",
-    title: "Started Advanced Coding",
-    description:
-      "Moved from basic programming into more structured application development, learning how to build simple systems, understand logic flow, and create more functional user interfaces.",
-  },
-  {
-    year: "2024",
-    title: "Learned APIs, Backend, and Databases",
-    description:
-      "Expanded into backend development, API integration, authentication, database handling, and connecting frontend systems with server-side logic.",
-  },
-  {
-    year: "2025",
-    title: "Developed TODA-GO",
-    description:
-      "Built TODA-GO, a tricycle ride-hailing platform with passenger and driver mobile apps, backend services, location-based features, and a web-based admin dashboard.",
-  },
-  {
-    year: "2026",
-    title: "Completed Major Systems",
-    description:
-      "Completed TODA-GO and the Tricycle Integration Record System, presented the projects, participated in research activities, and graduated from the BSIT program. Since then, I’ve continued learning by building various web and mobile applications, experimenting with new technologies, and embracing the world of vibe coding.",
-  },
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import Editable from "../components/edit/Editable";
+import ReorderStrip from "../components/edit/ReorderStrip";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
+
+// Fallback used only until the content API responds.
+const FALLBACK_MILESTONES = [
+  { id: "f1", year: "2022", title: "Started Basic Coding", description: "" },
+  { id: "f2", year: "2023", title: "Started Advanced Coding", description: "" },
+  { id: "f3", year: "2024", title: "Learned APIs, Backend, and Databases", description: "" },
+  { id: "f4", year: "2025", title: "Developed TODA-GO", description: "" },
+  { id: "f5", year: "2026", title: "Completed Major Systems", description: "" },
 ];
 
 /*
@@ -48,6 +32,35 @@ const points = [
   { x: 720, y: 80 },
   { x: 920, y: 150 },
 ];
+
+/*
+  The map has five hand-placed anchor points. The milestone
+  list is now editable, so it can hold any number — this spreads
+  N markers evenly along the polyline through those anchors
+  (returns the exact anchors when there are five).
+*/
+const milestonePoint = (index, count) => {
+  if (count <= 1) {
+    return points[0];
+  }
+
+  const scaled =
+    (index / (count - 1)) * (points.length - 1);
+
+  const segment = Math.min(
+    Math.floor(scaled),
+    points.length - 2,
+  );
+
+  const local = scaled - segment;
+  const start = points[segment];
+  const end = points[segment + 1];
+
+  return {
+    x: start.x + (end.x - start.x) * local,
+    y: start.y + (end.y - start.y) * local,
+  };
+};
 
 /*
   The actual curved journey path.
@@ -83,7 +96,7 @@ function MobileJourney({ milestones, activeIndex, selectMilestone }) {
 
           return (
             <motion.button
-              key={item.year}
+              key={item.id || item.year}
               type="button"
               onClick={() => selectMilestone(index)}
               initial={{
@@ -187,6 +200,22 @@ function MobileJourney({ milestones, activeIndex, selectMilestone }) {
 }
 
 function Journey() {
+  const {
+    content,
+    updateItem,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+  const hasMilestones = content.journey.length > 0;
+  const milestones = hasMilestones
+    ? content.journey
+    : FALLBACK_MILESTONES;
+
+  const saveMilestone = (id) => (field) => (value) =>
+    updateItem("journey", id, { [field]: value });
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -257,14 +286,14 @@ function Journey() {
 
     return () =>
       cancelAnimationFrame(animationFrame);
-  }, [isPaused]);
+  }, [isPaused, milestones.length]);
 
   /*
     Clicking a milestone moves the dot to it.
   */
   const selectMilestone = (index) => {
     const targetProgress =
-      index / (milestones.length - 1);
+      index / Math.max(milestones.length - 1, 1);
 
     /*
       Keep the dot moving immediately toward
@@ -317,7 +346,7 @@ function Journey() {
   const dot = getDotPosition();
 
   const activeMilestone =
-    milestones[activeIndex];
+    milestones[activeIndex] || milestones[0];
 
   return (
     <section
@@ -433,7 +462,10 @@ function Journey() {
 
             {/* MILESTONES */}
             {milestones.map((item, index) => {
-              const point = points[index];
+              const point = milestonePoint(
+                index,
+                milestones.length,
+              );
 
               const isActive =
                 index === activeIndex;
@@ -447,7 +479,7 @@ function Journey() {
 
               return (
                 <motion.div
-                  key={item.year}
+                  key={item.id || `${item.year}-${index}`}
                   className="absolute z-10"
                   style={{
                     left: `${point.x / 10}%`,
@@ -555,7 +587,7 @@ function Journey() {
               mode="wait"
             >
               <motion.div
-                key={activeMilestone.year}
+                key={activeMilestone.id || activeMilestone.year}
                 initial={{
                   opacity: 0,
                   y: 8,
@@ -571,8 +603,18 @@ function Journey() {
                 transition={{
                   duration: 0.35,
                 }}
-                className="px-6 py-6 md:px-10"
+                className="relative px-6 py-6 md:px-10"
               >
+                <ArchiveButton
+                  label={activeMilestone.title}
+                  onArchive={() =>
+                    archiveItem(
+                      "journey",
+                      activeMilestone.id
+                    )
+                  }
+                />
+
                 <div className="flex items-start gap-4">
 
                   {/* Number */}
@@ -583,19 +625,35 @@ function Journey() {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold tracking-[0.2em] text-[var(--accent)]">
-                      {activeMilestone.year}
-                    </p>
+                    <Editable
+                      as="p"
+                      value={activeMilestone.year}
+                      onSave={saveMilestone(
+                        activeMilestone.id
+                      )("year")}
+                      placeholder="Year"
+                      className="text-xs font-bold tracking-[0.2em] text-[var(--accent)]"
+                    />
 
-                    <h3 className="heading-font mt-1 text-xl font-bold md:text-2xl">
-                      {activeMilestone.title}
-                    </h3>
+                    <Editable
+                      as="h3"
+                      value={activeMilestone.title}
+                      onSave={saveMilestone(
+                        activeMilestone.id
+                      )("title")}
+                      className="heading-font mt-1 block text-xl font-bold md:text-2xl"
+                    />
 
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-                      {
-                        activeMilestone.description
-                      }
-                    </p>
+                    <Editable
+                      as="p"
+                      value={activeMilestone.description}
+                      onSave={saveMilestone(
+                        activeMilestone.id
+                      )("description")}
+                      multiline
+                      placeholder="Description"
+                      className="mt-2 block max-w-3xl text-sm leading-6 text-[var(--muted)]"
+                    />
                   </div>
                 </div>
               </motion.div>
@@ -608,6 +666,32 @@ function Journey() {
           milestones={milestones}
           activeIndex={activeIndex}
           selectMilestone={selectMilestone}
+        />
+
+        {hasMilestones && (
+          <ReorderStrip
+            title="Milestones"
+            items={milestones}
+            getLabel={(milestone) =>
+              `${milestone.year || "—"} · ${milestone.title}`
+            }
+            onReorder={(orderedIds) =>
+              reorderItems("journey", orderedIds)
+            }
+          />
+        )}
+
+        <CollectionControls
+          type="journey"
+          label="milestone"
+          nameField="title"
+          newItem={{
+            year: "",
+            title: "New milestone",
+            description: "",
+          }}
+          onAdd={createItem}
+          onRestore={restoreItem}
         />
       </div>
     </section>

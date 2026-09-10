@@ -16,6 +16,9 @@ import Contact from "./pages/Contact";
 
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Profile from "./pages/admin/Profile";
+import AuditLogs from "./pages/admin/AuditLogs";
+import ManageAdmins from "./pages/admin/ManageAdmins";
+import RegisterAdmin from "./pages/admin/RegisterAdmin";
 
 import Security from "./pages/admin/settings/Security";
 import Settings from "./pages/admin/settings/Settings";
@@ -25,6 +28,7 @@ import TwoFactor from "./pages/admin/settings/TwoFactor";
 
 import WorkList from "./pages/admin/worklist/WorkList";
 import WorkDetail from "./pages/admin/worklist/WorkDetail";
+import EditPortfolio from "./pages/admin/dashboard/EditPortfolio";
 
 import Login from "./pages/auth/Login";
 
@@ -91,6 +95,20 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <Dashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* =========================================
+                            PORTFOLIO CONTENT EDITOR
+                            The ONLY editing surface. Admin-only.
+                        ========================================= */}
+
+                        <Route
+                            path="/admin/edit"
+                            element={
+                                <ProtectedRoute>
+                                    <EditPortfolio />
                                 </ProtectedRoute>
                             }
                         />
@@ -175,6 +193,41 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <TwoFactor />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* =========================================
+                            AUDIT LOG
+                        ========================================= */}
+
+                        <Route
+                            path="/admin/audit-logs"
+                            element={
+                                <ProtectedRoute>
+                                    <AuditLogs />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* =========================================
+                            ADMIN MANAGEMENT
+                        ========================================= */}
+
+                        <Route
+                            path="/admin/register"
+                            element={
+                                <ProtectedRoute>
+                                    <RegisterAdmin />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/admin/manage-admins"
+                            element={
+                                <ProtectedRoute>
+                                    <ManageAdmins />
                                 </ProtectedRoute>
                             }
                         />

@@ -7,53 +7,52 @@ import {
   Download,
 } from "lucide-react";
 import {
-  FaFacebook,
-  FaInstagram,
   FaLinkedin,
   FaGithub,
-  FaWhatsapp,
 } from "react-icons/fa";
 import { sendContactMessage } from "../services/contactApi";
 import { trackInteraction, trackLink } from "../analytics/track";
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import { resumeHref } from "../content/siteAssets";
+import Editable from "../components/edit/Editable";
+import EditableIcon from "../components/edit/EditableIcon";
+import ResumeUploadControl from "../components/edit/ResumeUploadControl";
+import DragHandle from "../components/edit/DragHandle";
+import { useSortable } from "../components/edit/useSortable";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
+import { useEditMode } from "../context/EditModeContext";
 
-const contacts = [
-  {
-    label: "Email",
-    value: "ibelldev179@gmail.com",
-    href: "mailto:ibelldev179@gmail.com",
-    icon: Mail,
-  },
-  {
-    label: "Facebook",
-    value: "Connect with me",
-    href: "https://www.facebook.com/lehvi.ben",
-    icon: FaFacebook,
-    external: true,
-  },
-  {
-    label: "Instagram",
-    value: "Follow me",
-    href: "https://www.instagram.com/levi.cohen179?igsi=MWdjMmZrNTJzNXJrdQ==",
-    icon: FaInstagram,
-    external: true,
-  },
-  {
-    label: "LinkedIn",
-    value: "Professional profile",
-    href: "https://www.linkedin.com/in/ivhel-nales-996189419",
-    icon: FaLinkedin,
-    external: true,
-  },
-  {
-    label: "WhatsApp",
-    value: "Chat with me",
-    href: "https://api.whatsapp.com/send?phone=639635321913",
-    icon: FaWhatsapp,
-    external: true,
-  }
+const FALLBACK_CONTACTS = [
+  { id: "f1", label: "Email", value: "ibelldev179@gmail.com", href: "mailto:ibelldev179@gmail.com", icon: "Mail", external: false },
+  { id: "f2", label: "LinkedIn", value: "Professional profile", href: "https://www.linkedin.com/in/ivhel-nales-996189419", icon: "FaLinkedin", external: true },
 ];
 
 function Contact() {
+  const { editing } = useEditMode();
+  const {
+    content,
+    updateItem,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+  const hasContacts = content.contactLinks.length > 0;
+  const contacts = hasContacts
+    ? content.contactLinks
+    : FALLBACK_CONTACTS;
+
+  const sortable = useSortable(
+    contacts.map((contact) => contact.id),
+    (orderedIds) => reorderItems("contact-links", orderedIds)
+  );
+
+  const saveContact = (id, field) => (value) =>
+    updateItem("contact-links", id, { [field]: value });
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -204,18 +203,23 @@ function Contact() {
               {/* Contact links */}
               <div className="mt-8 space-y-3">
                 {contacts.map((contact, index) => {
-                  const Icon = contact.icon;
-
                   return (
                     <motion.a
-                      key={contact.label}
+                      key={contact.id || contact.label}
+                      {...(hasContacts
+                        ? sortable.getItemProps(contact.id)
+                        : {})}
                       href={contact.href}
-                      onClick={() =>
+                      onClick={(event) => {
+                        if (editing) {
+                          event.preventDefault();
+                          return;
+                        }
                         trackLink(
                           contact.href,
                           contact.label
-                        )
-                      }
+                        );
+                      }}
                       target={
                         contact.external
                           ? "_blank"
@@ -244,25 +248,93 @@ function Contact() {
                       whileHover={{
                         x: 5,
                       }}
-                      className="group flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface)]/50 p-4 transition-all duration-300 hover:border-[var(--accent)]/50 hover:bg-[var(--accent-soft)]"
+                      className={`group relative flex items-center justify-between rounded-2xl border bg-[var(--surface)]/50 p-4 transition-all duration-300 hover:border-[var(--accent)]/50 hover:bg-[var(--accent-soft)] ${
+                        sortable.overId === contact.id
+                          ? "border-[var(--accent)]"
+                          : "border-[var(--border)]"
+                      } ${
+                        sortable.draggingId === contact.id
+                          ? "opacity-40"
+                          : ""
+                      }`}
                     >
+                      {hasContacts && (
+                        <DragHandle
+                          {...sortable.dragHandleProps(
+                            contact.id
+                          )}
+                          className="absolute -left-2 -top-2 z-20 shadow-sm"
+                        />
+                      )}
+
                       <div className="flex items-center gap-4">
 
                         <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
-                          <Icon size={19} />
+                          <EditableIcon
+                            value={contact.icon}
+                            onSave={
+                              hasContacts && contact.id
+                                ? saveContact(
+                                    contact.id,
+                                    "icon"
+                                  )
+                                : undefined
+                            }
+                            fallback="Link"
+                            size={19}
+                            iconClassName="text-[var(--accent)]"
+                          />
                         </div>
 
                         <div>
-                          <p className="text-xs text-[var(--muted)]">
-                            {contact.label}
-                          </p>
+                          <Editable
+                            as="p"
+                            value={contact.label}
+                            onSave={saveContact(
+                              contact.id,
+                              "label"
+                            )}
+                            className="text-xs text-[var(--muted)]"
+                          />
 
-                          <p className="mt-1 text-sm font-medium">
-                            {contact.value}
-                          </p>
+                          <Editable
+                            as="p"
+                            value={contact.value}
+                            onSave={saveContact(
+                              contact.id,
+                              "value"
+                            )}
+                            placeholder="Value"
+                            className="mt-1 block text-sm font-medium"
+                          />
+
+                          {editing && (
+                            <Editable
+                              as="p"
+                              value={contact.href}
+                              onSave={saveContact(
+                                contact.id,
+                                "href"
+                              )}
+                              placeholder="Link URL"
+                              className="mt-1 block break-all text-[11px] text-[var(--muted)]"
+                            />
+                          )}
                         </div>
 
                       </div>
+
+                      {editing && contact.id && (
+                        <ArchiveButton
+                          label={contact.label}
+                          onArchive={() =>
+                            archiveItem(
+                              "contact-links",
+                              contact.id
+                            )
+                          }
+                        />
+                      )}
 
                       <ExternalLink
                         size={15}
@@ -271,12 +343,27 @@ function Contact() {
                     </motion.a>
                   );
                 })}
+
+                <CollectionControls
+                  type="contact-links"
+                  label="link"
+                  nameField="label"
+                  newItem={{
+                    label: "New link",
+                    value: "",
+                    href: "",
+                    icon: "Link",
+                    external: true,
+                  }}
+                  onAdd={createItem}
+                  onRestore={restoreItem}
+                />
               </div>
 
 
               {/* Resume */}
               <a
-                href={`${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`}
+                href={resumeHref(content)}
                 download
                 onClick={() =>
                   trackInteraction(
@@ -290,6 +377,8 @@ function Contact() {
 
                 Download Resume
               </a>
+
+              <ResumeUploadControl className="mt-2 justify-center" />
 
             </div>
           </motion.div>

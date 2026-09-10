@@ -1,17 +1,12 @@
 import { motion } from "framer-motion";
 import {
-    Award,
-    BookOpen,
-    BriefcaseBusiness,
     ClipboardList,
-    FileBadge,
-    FolderKanban,
     Gauge,
-    Heart,
+    History,
     LayoutDashboard,
     Mail,
-    Route,
     Settings,
+    SquarePen,
     UserCircle,
     Users,
     X,
@@ -21,53 +16,70 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useRef, useState } from "react";
 
-const navigation = [
-    {
-        label: "Dashboard",
-        path: "/admin/dashboard",
-        icon: LayoutDashboard,
-    },
-    {
-        label: "Projects",
-        path: "/admin/dashboard/projects",
-        icon: FolderKanban,
-    },
-    {
-        label: "Skills",
-        path: "/admin/dashboard/skills",
-        icon: BookOpen,
-    },
-    {
-        label: "Journey",
-        path: "/admin/dashboard/journey",
-        icon: Route,
-    },
-    {
-        label: "Certificates",
-        path: "/admin/dashboard/certificates",
-        icon: FileBadge,
-    },
-    {
-        label: "Awards",
-        path: "/admin/dashboard/awards",
-        icon: Award,
-    },
-    {
-        label: "Hobbies",
-        path: "/admin/dashboard/hobbies",
-        icon: Heart,
-    },
-    {
-        label: "Messages",
-        path: "/admin/dashboard/messages",
-        icon: Mail,
-    },
-];
+
+// ============================================================
+// LAYOUT CONSTANTS
+// ============================================================
 
 const DEFAULT_WIDTH = 288;
 const MIN_WIDTH = 72;
 const MAX_WIDTH = 420;
 const COLLAPSE_WIDTH = 120;
+
+
+// ============================================================
+// SHARED NAV ITEM
+// ============================================================
+
+const navItemClass = (isActive) =>
+    `sidebar-nav-item group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+        isActive
+            ? "bg-purple-500/15 text-purple-400"
+            : "text-[var(--text)]/70 hover:bg-purple-500/10 hover:text-[var(--text)]"
+    }`;
+
+
+function NavItem({ to, end, icon: Icon, label, onClose }) {
+    return (
+        <NavLink
+            to={to}
+            end={end}
+            onClick={onClose}
+            title={label}
+        >
+            {({ isActive }) => (
+                <motion.div
+                    whileHover={{ x: 3 }}
+                    className={navItemClass(isActive)}
+                >
+                    <Icon
+                        size={18}
+                        className={`sidebar-nav-icon shrink-0 ${
+                            isActive
+                                ? "text-purple-400"
+                                : "text-[var(--muted)]"
+                        }`}
+                    />
+                    <span className="sidebar-nav-label truncate">
+                        {label}
+                    </span>
+                </motion.div>
+            )}
+        </NavLink>
+    );
+}
+
+
+const SectionTitle = ({ children }) => (
+    <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)] first:mt-0">
+        {children}
+    </p>
+);
+
+
+// ============================================================
+// SIDEBAR
+// ============================================================
 
 function AdminSidebar({ open, onClose }) {
     const { admin } = useAuth();
@@ -291,253 +303,92 @@ function AdminSidebar({ open, onClose }) {
 
                     <nav className="flex-1 overflow-y-auto px-4 py-5">
 
-                        {/* PORTFOLIO */}
+                        {/* OVERVIEW */}
 
-                        <p className="sidebar-section-title mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                            Portfolio
-                        </p>
+                        <SectionTitle>Overview</SectionTitle>
 
                         <div className="space-y-1">
-
-                            {navigation.map(
-                                (item) => {
-                                    const Icon =
-                                        item.icon;
-
-                                    return (
-                                        <NavLink
-                                            key={
-                                                item.path
-                                            }
-                                            to={
-                                                item.path
-                                            }
-                                            end={
-                                                item.path ===
-                                                "/admin/dashboard"
-                                            }
-                                            onClick={
-                                                onClose
-                                            }
-                                            title={
-                                                item.label
-                                            }
-                                        >
-                                            {({
-                                                isActive,
-                                            }) => (
-                                                <motion.div
-                                                    whileHover={{
-                                                        x: 3,
-                                                    }}
-                                                    className={`sidebar-nav-item group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                                        isActive
-                                                            ? "bg-purple-500/15 text-purple-400"
-                                                            : "text-[var(--text)]/70 hover:bg-purple-500/10 hover:text-[var(--text)]"
-                                                    }`}
-                                                >
-                                                    <Icon
-                                                        size={
-                                                            18
-                                                        }
-                                                        className={`sidebar-nav-icon shrink-0 ${
-                                                            isActive
-                                                                ? "text-purple-400"
-                                                                : "text-[var(--muted)]"
-                                                        }`}
-                                                    />
-
-                                                    <span className="sidebar-nav-label truncate">
-                                                        {
-                                                            item.label
-                                                        }
-                                                    </span>
-                                                </motion.div>
-                                            )}
-                                        </NavLink>
-                                    );
-                                }
-                            )}
-
+                            <NavItem
+                                to="/admin/dashboard"
+                                end
+                                icon={LayoutDashboard}
+                                label="Analytics"
+                                onClose={onClose}
+                            />
                         </div>
 
-                        {/* WORK SYSTEM */}
+                        {/* PORTFOLIO CONTENT */}
 
-                        <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                            Work
-                        </p>
+                        <SectionTitle>Portfolio</SectionTitle>
 
                         <div className="space-y-1">
+                            <NavItem
+                                to="/admin/edit"
+                                icon={SquarePen}
+                                label="Edit Portfolio"
+                                onClose={onClose}
+                            />
+                            <NavItem
+                                to="/admin/dashboard/messages"
+                                icon={Mail}
+                                label="Messages"
+                                onClose={onClose}
+                            />
+                        </div>
 
-                            <NavLink
+                        {/* WORK */}
+
+                        <SectionTitle>Work</SectionTitle>
+
+                        <div className="space-y-1">
+                            <NavItem
                                 to="/admin/worklist"
-                                onClick={onClose}
-                                title="Work List"
-                            >
-                                {({
-                                    isActive,
-                                }) => (
-                                    <div
-                                        className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                            isActive
-                                                ? "bg-purple-500/15 text-purple-400"
-                                                : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                        }`}
-                                    >
-                                        <ClipboardList
-                                            size={18}
-                                            className={`sidebar-nav-icon shrink-0 ${
-                                                isActive
-                                                    ? "text-purple-400"
-                                                    : "text-[var(--muted)]"
-                                            }`}
-                                        />
-
-                                        <span className="sidebar-nav-label">
-                                            Work List
-                                        </span>
-                                    </div>
-                                )}
-                            </NavLink>
-
+                                icon={ClipboardList}
+                                label="Work List"
+                                onClose={onClose}
+                            />
                         </div>
 
                         {/* ACCOUNT */}
 
-                        <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                            Account
-                        </p>
+                        <SectionTitle>Account</SectionTitle>
 
                         <div className="space-y-1">
-
-                            <NavLink
+                            <NavItem
                                 to="/admin/profile"
-                                onClick={onClose}
-                                title="Profile"
-                            >
-                                {({
-                                    isActive,
-                                }) => (
-                                    <div
-                                        className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                            isActive
-                                                ? "bg-purple-500/15 text-purple-400"
-                                                : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                        }`}
-                                    >
-                                        <UserCircle
-                                            size={18}
-                                            className="sidebar-nav-icon shrink-0"
-                                        />
-
-                                        <span className="sidebar-nav-label">
-                                            Profile
-                                        </span>
-                                    </div>
-                                )}
-                            </NavLink>
-
-                            <NavLink
+                                icon={UserCircle}
+                                label="Profile"
+                                onClose={onClose}
+                            />
+                            <NavItem
                                 to="/admin/settings"
-                                onClick={onClose}
-                                title="Settings"
-                            >
-                                {({
-                                    isActive,
-                                }) => (
-                                    <div
-                                        className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                            isActive
-                                                ? "bg-purple-500/15 text-purple-400"
-                                                : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                        }`}
-                                    >
-                                        <Settings
-                                            size={18}
-                                            className="sidebar-nav-icon shrink-0"
-                                        />
-
-                                        <span className="sidebar-nav-label">
-                                            Settings
-                                        </span>
-                                    </div>
-                                )}
-                            </NavLink>
-
+                                icon={Settings}
+                                label="Settings"
+                                onClose={onClose}
+                            />
+                            <NavItem
+                                to="/admin/audit-logs"
+                                icon={History}
+                                label="Audit Logs"
+                                onClose={onClose}
+                            />
                         </div>
 
                         {/* SUPER ADMIN */}
 
                         {isSuperAdmin && (
                             <>
-                                <p className="sidebar-section-title mb-3 mt-8 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                                <SectionTitle>
                                     Administration
-                                </p>
+                                </SectionTitle>
 
                                 <div className="space-y-1">
-
-                                    <NavLink
+                                    <NavItem
                                         to="/admin/manage-admins"
-                                        onClick={
-                                            onClose
-                                        }
-                                        title="Manage Admins"
-                                    >
-                                        {({
-                                            isActive,
-                                        }) => (
-                                            <div
-                                                className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                                    isActive
-                                                        ? "bg-purple-500/15 text-purple-400"
-                                                        : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                                }`}
-                                            >
-                                                <Users
-                                                    size={
-                                                        18
-                                                    }
-                                                    className="sidebar-nav-icon shrink-0"
-                                                />
-
-                                                <span className="sidebar-nav-label">
-                                                    Manage Admins
-                                                </span>
-                                            </div>
-                                        )}
-                                    </NavLink>
-
-                                    <NavLink
-                                        to="/admin/audit-logs"
-                                        onClick={
-                                            onClose
-                                        }
-                                        title="Audit Logs"
-                                    >
-                                        {({
-                                            isActive,
-                                        }) => (
-                                            <div
-                                                className={`sidebar-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                                    isActive
-                                                        ? "bg-purple-500/15 text-purple-400"
-                                                        : "text-[var(--text)]/70 hover:bg-purple-500/10"
-                                                }`}
-                                            >
-                                                <BriefcaseBusiness
-                                                    size={
-                                                        18
-                                                    }
-                                                    className="sidebar-nav-icon shrink-0"
-                                                />
-
-                                                <span className="sidebar-nav-label">
-                                                    Audit Logs
-                                                </span>
-                                            </div>
-                                        )}
-                                    </NavLink>
-
+                                        icon={Users}
+                                        label="Manage Admins"
+                                        onClose={onClose}
+                                    />
                                 </div>
                             </>
                         )}

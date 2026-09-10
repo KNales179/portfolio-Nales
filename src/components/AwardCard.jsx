@@ -1,12 +1,19 @@
 import { motion } from "framer-motion";
 
+import Editable from "./edit/Editable";
+import EditableIcon from "./edit/EditableIcon";
+
 function AwardCard({
-  icon: Icon,
+  iconValue,
+  iconEditable = false,
   title,
   category,
   description,
   index = 0,
+  onSave,
 }) {
+  const save = (field) => (value) =>
+    onSave ? onSave(field, value) : Promise.resolve();
   return (
     <motion.article
       initial={{
@@ -31,26 +38,46 @@ function AwardCard({
         y: -8,
         scale: 1.01,
       }}
-      className="group relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-8 backdrop-blur-lg"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 p-8 backdrop-blur-lg"
     >
       <div className="absolute -right-16 -top-16 size-48 rounded-full bg-purple-500/0 blur-3xl transition duration-300 group-hover:bg-purple-500/15" />
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-1 flex-col">
         <div className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-400 transition duration-200 group-hover:rotate-6 group-hover:scale-110">
-          <Icon size={27} />
+          <EditableIcon
+            value={iconValue}
+            onSave={
+              iconEditable ? save("icon") : undefined
+            }
+            fallback="Award"
+            size={27}
+            iconClassName="text-purple-400"
+          />
         </div>
 
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-purple-400">
-          {category}
-        </p>
+        <Editable
+          as="p"
+          value={category}
+          onSave={save("category")}
+          placeholder="Category"
+          className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-purple-400"
+        />
 
-        <h3 className="heading-font mb-4 text-2xl font-bold">
-          {title}
-        </h3>
+        <Editable
+          as="h3"
+          value={title}
+          onSave={save("title")}
+          className="heading-font mb-4 block text-2xl font-bold"
+        />
 
-        <p className="leading-7 opacity-70">
-          {description}
-        </p>
+        <Editable
+          as="p"
+          value={description}
+          onSave={save("description")}
+          multiline
+          placeholder="Description"
+          className="block leading-7 opacity-70"
+        />
       </div>
     </motion.article>
   );

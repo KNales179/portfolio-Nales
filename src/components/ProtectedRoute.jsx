@@ -33,41 +33,45 @@ function ProtectedRoute({ children }) {
         );
     }
 
+    const path = location.pathname;
+    const onRegisterPage = path === "/admin/register";
+    // The 2FA-enrolment pages an un-enrolled admin is allowed to
+    // sit on (the QR setup lives on /two-factor; /security is its
+    // sibling).
+    const onTwoFactorSetupPage =
+        path === "/admin/settings/two-factor" ||
+        path === "/admin/settings/security" ||
+        path === "/admin/settings";
+
     // ============================================================
-    // FORCED PASSWORD CHANGE
+    // FIRST LOGIN — finish account setup before anything else
     // ============================================================
 
-    const isProfilePage =
-        location.pathname === "/admin/profile";
-
-    if (
-        admin.mustChangePassword &&
-        !isProfilePage
-    ) {
+    if (admin.mustChangePassword && !onRegisterPage) {
         return (
-            <Navigate
-                to="/admin/profile"
-                replace
-                state={{ firstLogin: true }}
-            />
+            <Navigate to="/admin/register" replace />
+        );
+    }
+
+    // Setup already done — no reason to sit on the register page.
+    if (!admin.mustChangePassword && onRegisterPage) {
+        return (
+            <Navigate to="/admin/dashboard" replace />
         );
     }
 
     // ============================================================
-    // 2FA NOT ENABLED
+    // 2FA NOT ENABLED — force enrolment on the security page
     // ============================================================
 
-    const isSecurityPage =
-        location.pathname ===
-        "/admin/security";
-
     if (
+        !admin.mustChangePassword &&
         !admin.twoFactorEnabled &&
-        !isSecurityPage
+        !onTwoFactorSetupPage
     ) {
         return (
             <Navigate
-                to="/admin/security"
+                to="/admin/settings/two-factor"
                 replace
             />
         );

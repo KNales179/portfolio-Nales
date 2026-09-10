@@ -11,9 +11,20 @@ import {
 } from "lucide-react";
 
 import { trackInteraction } from "../analytics/track";
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import { resumeHref } from "../content/siteAssets";
+import Editable from "../components/edit/Editable";
+import EditableImage from "../components/edit/EditableImage";
+import ResumeUploadControl from "../components/edit/ResumeUploadControl";
 
 function Hero() {
   const sectionRef = useRef(null);
+
+  const { content, updateText } = usePortfolioContent();
+  const hero = content.text?.hero || {};
+
+  const saveHero = (field) => (value) =>
+    updateText("hero", { [field]: value });
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -188,31 +199,42 @@ function Hero() {
               aria-hidden="true"
             />
 
-            Hello, I'm
+            <Editable
+              value={hero.greeting || "Hello, I'm"}
+              onSave={saveHero("greeting")}
+            />
           </motion.p>
 
           {/* Name */}
 
-          <h1
-            id="hero-heading"
-            className="heading-font mb-5 text-6xl font-bold leading-[0.95] tracking-[-0.04em] md:text-8xl lg:text-6xl"
-          >
-            Ivhel
-          </h1>
+          <Editable
+            as="h1"
+            value={hero.name || "Ivhel"}
+            onSave={saveHero("name")}
+            className="heading-font mb-5 block text-6xl font-bold leading-[0.95] tracking-[-0.04em] md:text-8xl lg:text-6xl"
+          />
 
           {/* Role */}
 
-          <h2 className="heading-font mb-6 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.025em] md:text-4xl">
-            Mobile & Full Stack Developer
-          </h2>
+          <Editable
+            as="h2"
+            value={
+              hero.role || "Mobile & Full Stack Developer"
+            }
+            onSave={saveHero("role")}
+            className="heading-font mb-6 block max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.025em] md:text-4xl"
+          />
 
           {/* Description */}
 
-          <p className="mb-9 max-w-[820px] text-base leading-8 text-[var(--muted)] md:text-lg">
-            I’m a developer who enjoys turning ideas into practical digital
-            experiences. I’m always learning, experimenting with new technologies,
-            and looking for better ways to build, solve problems, and create.
-          </p>
+          <Editable
+            as="p"
+            value={hero.description || ""}
+            onSave={saveHero("description")}
+            multiline
+            placeholder="Short intro"
+            className="mb-9 block max-w-[820px] text-base leading-8 text-[var(--muted)] md:text-lg"
+          />
 
           {/* =========================================
               ACTIONS
@@ -235,7 +257,7 @@ function Hero() {
             </button>
 
             <a
-              href={`${import.meta.env.BASE_URL}Nales_Ivhel_Resume.pdf`}
+              href={resumeHref(content)}
               download
               onClick={() =>
                 trackInteraction("RESUME_DOWNLOAD", "hero")
@@ -250,6 +272,8 @@ function Hero() {
                 className="transition-transform duration-200 group-hover:translate-y-0.5"
               />
             </a>
+
+            <ResumeUploadControl className="w-full" />
 
           </div>
 
@@ -285,17 +309,26 @@ function Hero() {
 
             {/* Portrait */}
 
-            <img
-              src={`${import.meta.env.BASE_URL}beh.png`}
-              alt="Ivhel, Mobile and Full Stack Developer"
-              className="relative z-10 mx-auto h-full w-full -translate-y-[10%] object-contain object-center drop-shadow-2xl md:-translate-y-[10%]"
-              style={{
-                WebkitMaskImage:
-                  "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
-                maskImage:
-                  "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
-              }}
-            />
+            <EditableImage
+              uploadType="HERO_IMAGE"
+              onUpload={saveHero("photoUrl")}
+              className="pointer-events-auto absolute inset-0 z-10"
+            >
+              <img
+                src={
+                  hero.photoUrl ||
+                  `${import.meta.env.BASE_URL}beh.png`
+                }
+                alt="Ivhel, Mobile and Full Stack Developer"
+                className="relative z-10 mx-auto h-full w-full -translate-y-[10%] object-contain object-center drop-shadow-2xl md:-translate-y-[10%]"
+                style={{
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
+                  maskImage:
+                    "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
+                }}
+              />
+            </EditableImage>
 
           </motion.div>
 

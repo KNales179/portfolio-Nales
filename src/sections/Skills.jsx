@@ -1,75 +1,49 @@
 import { motion } from "framer-motion";
-import {
-  Code2,
-  Database,
-  Layers,
-  Wrench,
-} from "lucide-react";
 import SectionTitle from "../components/SectionTitle";
 
-const skillGroups = [
-  {
-    number: "01",
-    name: "Languages",
-    icon: Code2,
-    skills: [
-      "TypeScript",
-      "JavaScript",
-      "SQL",
-      "Python",
-    ],
-  },
-  {
-    number: "02",
-    name: "Frameworks",
-    icon: Layers,
-    skills: [
-      "React",
-      "React Native",
-      "Node.js",
-      "Express",
-      "Vite",
-      "Expo",
-      "NativeWind",
-      "Django",
-    ],
-  },
-  {
-    number: "03",
-    name: "Databases",
-    icon: Database,
-    skills: [
-      "MongoDB",
-      "MySQL",
-      "MongoDB Atlas",
-      "AsyncStorage",
-      "SQLite",
-      "PostgreSQL",
-    ],
-  },
-  {
-    number: "04",
-    name: "Tools",
-    icon: Wrench,
-    skills: [
-      "Figma",
-      "Git",
-      "GitHub",
-      "Tailwind CSS",
-      "MapLibre",
-      "GraphHopper",
-      "OpenStreetMap",
-      "Twilio",
-      "Cloudinary",
-      "Render",
-      "Brevo",
-      "Vercel",
-      "Render",
-    ],
-  },
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import Editable from "../components/edit/Editable";
+import EditableIcon from "../components/edit/EditableIcon";
+import EditableTags from "../components/edit/EditableTags";
+import ReorderStrip from "../components/edit/ReorderStrip";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
+import { useEditMode } from "../context/EditModeContext";
+
+const tagPill = (skill) => (
+  <span className="skill-pill shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-medium text-[var(--muted)]">
+    {skill}
+  </span>
+);
+
+const FALLBACK_SKILLS = [
+  { id: "f1", name: "Languages", icon: "Code2", items: ["TypeScript", "JavaScript", "SQL", "Python"] },
+  { id: "f2", name: "Frameworks", icon: "Layers", items: ["React", "React Native", "Node.js", "Express"] },
+  { id: "f3", name: "Databases", icon: "Database", items: ["MongoDB", "MySQL", "PostgreSQL", "SQLite"] },
+  { id: "f4", name: "Tools", icon: "Wrench", items: ["Figma", "Git", "GitHub", "Tailwind CSS"] },
 ];
 
-function SkillRow({ group, index }) {
+// Normalize a stored skill group to what the section renders.
+const normalizeGroup = (group, index) => ({
+  id: group.id,
+  name: group.name,
+  number: String(index + 1).padStart(2, "0"),
+  icon: group.icon,
+  skills: Array.isArray(group.items) ? group.items : [],
+});
+
+function SkillRow({
+  group,
+  index,
+  onSaveName,
+  onSaveItems,
+  onSaveIcon,
+  onArchive,
+}) {
+  const { editing } = useEditMode();
+
   /*
    * Duplicate the skills so the second copy follows
    * the first one seamlessly.
@@ -100,13 +74,20 @@ function SkillRow({ group, index }) {
       }}
       className="group relative flex h-16 items-center overflow-hidden border-b border-[var(--border)] last:border-b-0"
     >
+      <ArchiveButton
+        label={group.name}
+        onArchive={onArchive}
+      />
+
       {/* Category */}
       <div className="relative z-20 flex w-[145px] shrink-0 items-center gap-3 bg-[var(--surface)] pr-5">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)]">
-          <group.icon
+          <EditableIcon
+            value={group.icon}
+            onSave={onSaveIcon}
+            fallback="Code2"
             size={16}
-            strokeWidth={1.8}
-            className="text-[var(--accent)]"
+            iconClassName="text-[var(--accent)]"
           />
         </div>
 
@@ -115,13 +96,25 @@ function SkillRow({ group, index }) {
             {group.number}
           </p>
 
-          <p className="heading-font text-sm font-semibold whitespace-nowrap">
-            {group.name}
-          </p>
+          <Editable
+            as="p"
+            value={group.name}
+            onSave={onSaveName}
+            className="heading-font block text-sm font-semibold whitespace-nowrap"
+          />
         </div>
       </div>
 
       {/* Moving skills */}
+      {editing ? (
+        <div className="min-w-0 flex-1 px-3">
+          <EditableTags
+            value={group.skills}
+            onSave={onSaveItems}
+            renderTag={tagPill}
+          />
+        </div>
+      ) : (
       <div
         className="relative min-w-0 flex-1 overflow-hidden"
         onMouseEnter={(event) => {
@@ -180,13 +173,19 @@ function SkillRow({ group, index }) {
           ))}
         </div>
       </div>
+      )}
     </motion.div>
   );
 }
 
-function MobileSkillGroup({ group, index }) {
-  const Icon = group.icon;
-
+function MobileSkillGroup({
+  group,
+  index,
+  onSaveName,
+  onSaveItems,
+  onSaveIcon,
+  onArchive,
+}) {
   return (
     <motion.div
       initial={{
@@ -205,15 +204,22 @@ function MobileSkillGroup({ group, index }) {
         duration: 0.5,
         delay: index * 0.08,
       }}
-      className="border-b border-[var(--border)] py-5 last:border-b-0"
+      className="relative border-b border-[var(--border)] py-5 last:border-b-0"
     >
+      <ArchiveButton
+        label={group.name}
+        onArchive={onArchive}
+      />
+
       {/* CATEGORY */}
       <div className="mb-4 flex items-center gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)]">
-          <Icon
+          <EditableIcon
+            value={group.icon}
+            onSave={onSaveIcon}
+            fallback="Code2"
             size={17}
-            strokeWidth={1.8}
-            className="text-[var(--accent)]"
+            iconClassName="text-[var(--accent)]"
           />
         </div>
 
@@ -222,28 +228,53 @@ function MobileSkillGroup({ group, index }) {
             {group.number}
           </p>
 
-          <h3 className="heading-font text-sm font-semibold">
-            {group.name}
-          </h3>
+          <Editable
+            as="h3"
+            value={group.name}
+            onSave={onSaveName}
+            className="heading-font block text-sm font-semibold"
+          />
         </div>
       </div>
 
       {/* SKILLS */}
-      <div className="flex flex-wrap gap-2">
-        {group.skills.map((skill) => (
-          <span
-            key={skill}
-            className="border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-medium text-[var(--muted)]"
-          >
+      <EditableTags
+        value={group.skills}
+        onSave={onSaveItems}
+        renderTag={(skill) => (
+          <span className="border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-medium text-[var(--muted)]">
             {skill}
           </span>
-        ))}
-      </div>
+        )}
+      />
     </motion.div>
   );
 }
 
 function Skills() {
+  const {
+    content,
+    updateItem,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+
+  const hasSkills = content.skills.length > 0;
+  const source = hasSkills ? content.skills : FALLBACK_SKILLS;
+
+  const groups = source.map(normalizeGroup);
+
+  const saveName = (id) => (value) =>
+    updateItem("skills", id, { name: value });
+
+  const saveItems = (id) => (next) =>
+    updateItem("skills", id, { items: next });
+
+  const saveIcon = (id) => (value) =>
+    updateItem("skills", id, { icon: value });
+
   return (
     <section
       id="skills"
@@ -260,25 +291,65 @@ function Skills() {
 
         {/* DESKTOP */}
         <div className="hidden overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md md:block">
-          {skillGroups.map((group, index) => (
+          {groups.map((group, index) => (
             <SkillRow
-              key={group.name}
+              key={group.id || group.name}
               group={group}
               index={index}
+              onSaveName={saveName(group.id)}
+              onSaveItems={saveItems(group.id)}
+              onSaveIcon={
+                hasSkills ? saveIcon(group.id) : undefined
+              }
+              onArchive={() =>
+                archiveItem("skills", group.id)
+              }
             />
           ))}
         </div>
 
         {/* MOBILE */}
         <div className="overflow-hidden border border-[var(--border)] bg-[var(--card)] px-5 backdrop-blur-md md:hidden">
-          {skillGroups.map((group, index) => (
+          {groups.map((group, index) => (
             <MobileSkillGroup
-              key={group.name}
+              key={group.id || group.name}
               group={group}
               index={index}
+              onSaveName={saveName(group.id)}
+              onSaveItems={saveItems(group.id)}
+              onSaveIcon={
+                hasSkills ? saveIcon(group.id) : undefined
+              }
+              onArchive={() =>
+                archiveItem("skills", group.id)
+              }
             />
           ))}
         </div>
+
+        {hasSkills && (
+          <ReorderStrip
+            title="Skill groups"
+            items={groups}
+            getLabel={(group) => group.name}
+            onReorder={(orderedIds) =>
+              reorderItems("skills", orderedIds)
+            }
+          />
+        )}
+
+        <CollectionControls
+          type="skills"
+          label="skill group"
+          nameField="name"
+          newItem={{
+            name: "New group",
+            icon: "Code2",
+            items: [],
+          }}
+          onAdd={createItem}
+          onRestore={restoreItem}
+        />
 
         {/* Footer */}
         <motion.div

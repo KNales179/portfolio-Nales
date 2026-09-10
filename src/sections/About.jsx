@@ -1,54 +1,72 @@
 import { motion } from "framer-motion";
-import {
-  BrainCircuit,
-  Lightbulb,
-  Rocket,
-} from "lucide-react";
 
 import SectionTitle from "../components/SectionTitle";
 
-const strengths = [
-  {
-    icon: BrainCircuit,
-    title: "Logical Thinking",
-    description:
-      "I focus on workflows, system logic, and solving problems in a structured way.",
-  },
-  {
-    icon: Lightbulb,
-    title: "Feature Planning",
-    description:
-      "I turn real user needs into practical features that make the system useful and easier to manage.",
-  },
-  {
-    icon: Rocket,
-    title: "Continuous Learning",
-    description:
-      "I learn new tools and technologies when a project requires them, instead of limiting myself to what I already know.",
-  },
+import { usePortfolioContent } from "../content/usePortfolioContent";
+import Editable from "../components/edit/Editable";
+import EditableIcon from "../components/edit/EditableIcon";
+import DragHandle from "../components/edit/DragHandle";
+import { useSortable } from "../components/edit/useSortable";
+import {
+  ArchiveButton,
+  CollectionControls,
+} from "../components/edit/CollectionControls";
+
+const FALLBACK_STRENGTHS = [
+  { id: "f1", icon: "BrainCircuit", title: "Logical Thinking", description: "" },
+  { id: "f2", icon: "Lightbulb", title: "Feature Planning", description: "" },
+  { id: "f3", icon: "Rocket", title: "Continuous Learning", description: "" },
 ];
 
 function About() {
+  const {
+    content,
+    updateItem,
+    updateText,
+    archiveItem,
+    restoreItem,
+    reorderItems,
+    createItem,
+  } = usePortfolioContent();
+
+  const aboutText = content.text?.about || {};
+  const hasStrengths = content.strengths.length > 0;
+  const strengths = hasStrengths
+    ? content.strengths
+    : FALLBACK_STRENGTHS;
+
+  const sortable = useSortable(
+    strengths.map((strength) => strength.id),
+    (orderedIds) => reorderItems("strengths", orderedIds)
+  );
+
   return (
     <div>
       <SectionTitle
-        label="About Me"
-        title="Building practical systems through logic, planning, and continuous learning."
-        description="I’m a Full Stack Developer who enjoys both building and experimenting 
-        with technology. I love creating interactive interfaces and experiences on the frontend, 
-        but I’m especially interested in what happens behind them—the logic, data, APIs, and 
-        systems that make everything work. For me, a good application isn’t just about how it 
-        looks; I care just as much about what happens underneath and whether the whole thing 
-        actually works the way it should."
+        label={aboutText.label || "About Me"}
+        title={
+          aboutText.title ||
+          "Building practical systems through logic, planning, and continuous learning."
+        }
+        description={aboutText.description || ""}
+        onSave={(field, value) =>
+          updateText("about", { [field]: value })
+        }
       />
 
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
+      <div className="mt-12 grid items-stretch gap-5 md:grid-cols-3">
         {strengths.map((strength, index) => {
-          const Icon = strength.icon;
+          const save = (field) => (value) =>
+            updateItem("strengths", strength.id, {
+              [field]: value,
+            });
 
           return (
             <motion.article
-              key={strength.title}
+              key={strength.id || strength.title}
+              {...(hasStrengths
+                ? sortable.getItemProps(strength.id)
+                : {})}
               initial={{
                 opacity: 0,
                 y: 30,
@@ -69,23 +87,74 @@ function About() {
               whileHover={{
                 y: -5,
               }}
-              className="group rounded-2xl border border-[var(--border)] bg-[var(--card)]/70 p-6 backdrop-blur-xl transition-all duration-300 hover:border-purple-400/30 hover:shadow-xl hover:shadow-purple-950/10"
+              className={`group relative flex h-full flex-col rounded-2xl border bg-[var(--card)]/70 p-6 backdrop-blur-xl transition-all duration-300 hover:shadow-xl hover:shadow-purple-950/10 ${
+                sortable.overId === strength.id
+                  ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/40"
+                  : "border-[var(--border)] hover:border-purple-400/30"
+              } ${
+                sortable.draggingId === strength.id
+                  ? "opacity-40"
+                  : ""
+              }`}
             >
+              <ArchiveButton
+                label={strength.title}
+                onArchive={() =>
+                  archiveItem("strengths", strength.id)
+                }
+              />
+
+              {hasStrengths && (
+                <DragHandle
+                  {...sortable.dragHandleProps(strength.id)}
+                  className="absolute left-2 top-2 z-10"
+                />
+              )}
+
               <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 transition-transform duration-300 group-hover:scale-105">
-                <Icon size={21} strokeWidth={1.8} />
+                <EditableIcon
+                  value={strength.icon}
+                  onSave={
+                    hasStrengths ? save("icon") : undefined
+                  }
+                  fallback="Sparkles"
+                  size={21}
+                  iconClassName="text-purple-400"
+                />
               </div>
 
-              <h3 className="heading-font text-xl font-semibold">
-                {strength.title}
-              </h3>
+              <Editable
+                as="h3"
+                value={strength.title}
+                onSave={save("title")}
+                className="heading-font block text-xl font-semibold"
+              />
 
-              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                {strength.description}
-              </p>
+              <Editable
+                as="p"
+                value={strength.description}
+                onSave={save("description")}
+                multiline
+                placeholder="Description"
+                className="mt-3 block text-sm leading-7 text-[var(--muted)]"
+              />
             </motion.article>
           );
         })}
       </div>
+
+      <CollectionControls
+        type="strengths"
+        label="strength"
+        nameField="title"
+        newItem={{
+          title: "New strength",
+          description: "",
+          icon: "Sparkles",
+        }}
+        onAdd={createItem}
+        onRestore={restoreItem}
+      />
     </div>
   );
 }

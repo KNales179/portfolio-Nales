@@ -45,15 +45,25 @@ function Insights() {
     }
 
     const stats = [
-        { label: "Visitors", value: num(totals.visitors) },
-        { label: "Page views", value: num(totals.pageViews) },
+        {
+            label: "Visitors",
+            value: num(totals.visitors),
+            hint: "unique devices",
+        },
+        {
+            label: "Page views",
+            value: num(totals.pageViews),
+            hint: "pages opened",
+        },
         {
             label: "Interactions",
             value: num(totals.interactions),
+            hint: "clicks & scrolls",
         },
         {
             label: "Projects opened",
             value: num(data.activity?.projectsOpened),
+            hint: "detail views",
         },
     ];
 
@@ -86,6 +96,11 @@ function Insights() {
                             <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
                                 {stat.label}
                             </p>
+                            {stat.hint && (
+                                <p className="mt-1 text-[11px] text-[var(--muted)]/70">
+                                    {stat.hint}
+                                </p>
+                            )}
                         </motion.div>
                     ))}
                 </div>

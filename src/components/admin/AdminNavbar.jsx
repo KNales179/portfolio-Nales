@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import {
+    ExternalLink,
     LogOut,
     Menu,
     ShieldCheck,
@@ -89,6 +90,24 @@ function AdminNavbar({ onMenuToggle }) {
                             </p>
                         </div>
                     </div>
+
+                    {/* View public site */}
+
+                    <motion.a
+                        href={import.meta.env.BASE_URL || "/"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        className="hidden h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/70 px-3 text-sm font-medium text-[var(--text)] transition hover:bg-purple-500/10 sm:flex"
+                        aria-label="View public site"
+                        title="Open the public portfolio"
+                    >
+                        <ExternalLink size={17} />
+                        <span className="hidden md:inline">
+                            View site
+                        </span>
+                    </motion.a>
 
                     {/* Profile */}
 
