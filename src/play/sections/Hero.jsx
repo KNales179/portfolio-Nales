@@ -9,6 +9,7 @@ import {
     Rule,
 } from "./primitives";
 import { panelStyle } from "./styles";
+import { HoloSurface } from "./HoloSurface";
 
 
 const scrollToId = (id) => {
@@ -582,12 +583,14 @@ export function HeroChrome({ data }) {
                     className="text-6xl font-bold uppercase leading-[0.95] tracking-tight md:text-8xl"
                     style={{
                         backgroundImage:
-                            "linear-gradient(180deg, #ffffff 0%, #ffd9ec 42%, var(--play-accent) 60%, var(--play-accent-2) 100%)",
+                            "linear-gradient(180deg, #ffffff 0%, #ffe6f3 55%, var(--play-accent) 88%, var(--play-accent-2) 100%)",
                         WebkitBackgroundClip: "text",
                         backgroundClip: "text",
                         color: "transparent",
+                        WebkitTextStroke:
+                            "1px rgba(255,255,255,0.25)",
                         filter:
-                            "drop-shadow(0 3px 0 rgba(0,0,0,0.35))",
+                            "drop-shadow(0 2px 10px rgba(255,92,168,0.4))",
                     }}
                 >
                     {hero.name}
@@ -650,6 +653,864 @@ export function HeroChrome({ data }) {
                         }}
                     >
                         <Download size={15} />
+                        Résumé
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — pane  (glassmorphism)
+// ============================================================
+
+export function HeroPane({ data }) {
+    const { hero, resumeHref } = data;
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[92vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{
+                    duration: 0.7,
+                    ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mx-auto w-full max-w-2xl p-8 text-center md:p-12"
+                style={panelStyle}
+            >
+                <p
+                    className="text-xs font-semibold uppercase tracking-[0.32em]"
+                    style={{ color: "var(--play-accent)" }}
+                >
+                    {hero.greeting}
+                </p>
+
+                <Display
+                    as="h1"
+                    className="mt-5 text-5xl font-bold leading-[1.02] tracking-tight md:text-7xl"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(120deg, var(--play-text), var(--play-accent) 70%, var(--play-accent-2))",
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                    }}
+                >
+                    {hero.name}
+                </Display>
+
+                <p
+                    className="mt-3 text-xl font-medium md:text-2xl"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.role}
+                </p>
+
+                <p
+                    className="mx-auto mt-5 max-w-md text-base leading-7"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            document
+                                .getElementById(
+                                    "play-projects"
+                                )
+                                ?.scrollIntoView({
+                                    behavior: "smooth",
+                                })
+                        }
+                        className="rounded-full px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            background: "var(--play-accent)",
+                            color: "var(--play-accent-contrast)",
+                            boxShadow: "var(--play-shadow)",
+                        }}
+                    >
+                        Explore
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="rounded-full border px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            borderColor: "var(--play-border)",
+                            background: "var(--play-card)",
+                            backdropFilter: "var(--play-blur)",
+                            WebkitBackdropFilter:
+                                "var(--play-blur)",
+                        }}
+                    >
+                        Résumé
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — prism  (holographic)
+// ============================================================
+
+export function HeroPrism({ data }) {
+    const { hero, resumeHref } = data;
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[92vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="w-full"
+            >
+                <Kicker>{hero.greeting}</Kicker>
+
+                <h1
+                    className="mt-5 text-6xl font-bold leading-[0.92] tracking-tight md:text-8xl"
+                    style={{
+                        fontFamily: "var(--play-font-head)",
+                        backgroundImage: "var(--play-iris)",
+                        backgroundSize: "180% 180%",
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                        filter:
+                            "drop-shadow(0 0 30px rgba(122,245,224,0.25))",
+                    }}
+                >
+                    {hero.name}
+                </h1>
+
+                <p
+                    className="mt-4 text-xl font-medium md:text-2xl"
+                    style={{ color: "var(--play-text)" }}
+                >
+                    {hero.role}
+                </p>
+                <p
+                    className="mt-5 max-w-xl text-base leading-7"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-9 flex flex-wrap gap-3">
+                    <HoloSurface
+                        as="button"
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            borderRadius: "var(--play-radius)",
+                            border: "1px solid var(--play-border)",
+                            background: "var(--play-card)",
+                            color: "var(--play-text)",
+                        }}
+                    >
+                        View work
+                    </HoloSurface>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            borderRadius: "var(--play-radius)",
+                            border: "1px solid var(--play-border)",
+                            color: "var(--play-text)",
+                        }}
+                    >
+                        Résumé
+                        <Download size={15} />
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — clay  (claymorphism)
+// ============================================================
+
+export function HeroClay({ data }) {
+    const { hero, resumeHref } = data;
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[90vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mx-auto w-full max-w-2xl p-9 text-center md:p-14"
+                style={panelStyle}
+            >
+                <span
+                    className="inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em]"
+                    style={{
+                        ...panelStyle,
+                        borderRadius: "999px",
+                        color: "var(--play-accent)",
+                    }}
+                >
+                    {hero.greeting}
+                </span>
+
+                <Display
+                    as="h1"
+                    className="mt-6 text-5xl font-semibold tracking-tight md:text-7xl"
+                >
+                    {hero.name}
+                </Display>
+
+                <p
+                    className="mt-3 text-xl font-medium md:text-2xl"
+                    style={{ color: "var(--play-accent)" }}
+                >
+                    {hero.role}
+                </p>
+                <p
+                    className="mx-auto mt-5 max-w-md text-base leading-7"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="px-7 py-3.5 text-sm font-semibold transition active:scale-95"
+                        style={{
+                            borderRadius: "999px",
+                            background: "var(--play-accent)",
+                            color: "var(--play-accent-contrast)",
+                            boxShadow:
+                                "6px 6px 16px rgba(155,165,205,0.5), -5px -5px 14px rgba(255,255,255,0.85)",
+                        }}
+                    >
+                        View work
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="px-7 py-3.5 text-sm font-semibold transition active:scale-95"
+                        style={{
+                            ...panelStyle,
+                            borderRadius: "999px",
+                        }}
+                    >
+                        Résumé
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — tile  (bento)
+// ============================================================
+
+export function HeroBento({ data }) {
+    const {
+        hero,
+        projects,
+        certificates,
+        journey,
+        resumeHref,
+    } = data;
+
+    const stats = [
+        { label: "Projects", value: (projects || []).length },
+        {
+            label: "Milestones",
+            value: (journey || []).length,
+        },
+        {
+            label: "Certificates",
+            value: (certificates || []).length,
+        },
+    ];
+
+    return (
+        <PlaySection id="play-hero" className="pt-24">
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[168px]"
+            >
+                <div
+                    className="flex flex-col justify-between gap-6 p-6 sm:col-span-2 lg:col-span-2 lg:row-span-2"
+                    style={panelStyle}
+                >
+                    <Kicker>{hero.greeting}</Kicker>
+                    <div>
+                        <Display
+                            as="h1"
+                            className="text-4xl font-bold tracking-tight md:text-6xl"
+                        >
+                            {hero.name}
+                        </Display>
+                        <p
+                            className="mt-2 text-lg"
+                            style={{
+                                color: "var(--play-muted)",
+                            }}
+                        >
+                            {hero.role}
+                        </p>
+                    </div>
+                </div>
+
+                {stats.map((s) => (
+                    <div
+                        key={s.label}
+                        className="flex flex-col justify-center p-6"
+                        style={panelStyle}
+                    >
+                        <span
+                            className="text-4xl font-bold"
+                            style={{
+                                fontFamily:
+                                    "var(--play-font-head)",
+                                color: "var(--play-accent)",
+                            }}
+                        >
+                            {s.value}
+                        </span>
+                        <span
+                            className="mt-1 text-sm"
+                            style={{
+                                color: "var(--play-muted)",
+                            }}
+                        >
+                            {s.label}
+                        </span>
+                    </div>
+                ))}
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        scrollToId("play-projects")
+                    }
+                    className="flex items-center justify-between p-6 text-left transition hover:-translate-y-0.5"
+                    style={{
+                        ...panelStyle,
+                        background: "var(--play-accent)",
+                        color: "var(--play-accent-contrast)",
+                    }}
+                >
+                    <span className="text-lg font-semibold">
+                        View work
+                    </span>
+                    <ArrowDownRight size={20} />
+                </button>
+
+                <a
+                    href={resumeHref}
+                    download
+                    onClick={() =>
+                        trackInteraction(
+                            "RESUME_DOWNLOAD",
+                            "play-hero"
+                        )
+                    }
+                    className="flex items-center justify-between p-6 transition hover:-translate-y-0.5"
+                    style={panelStyle}
+                >
+                    <span className="text-lg font-semibold">
+                        Résumé
+                    </span>
+                    <Download size={18} />
+                </a>
+
+                <div
+                    className="p-6 sm:col-span-2"
+                    style={panelStyle}
+                >
+                    <p
+                        className="text-sm leading-6"
+                        style={{ color: "var(--play-muted)" }}
+                    >
+                        {hero.description}
+                    </p>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — maxi  (maximalism)
+// ============================================================
+
+export function HeroMaxi({ data }) {
+    const { hero, resumeHref } = data;
+
+    const parts = String(hero.name || "").split(" ");
+    const first = parts[0];
+    const restName = parts.slice(1).join(" ");
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[88vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                className="w-full"
+            >
+                <span
+                    className="inline-block -rotate-3 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] md:text-sm"
+                    style={{
+                        background: "var(--play-accent-2)",
+                        color: "var(--play-text)",
+                        border: "3px solid var(--play-border)",
+                        boxShadow: "var(--play-shadow)",
+                    }}
+                >
+                    {hero.greeting}
+                </span>
+
+                <h1
+                    className="mt-7 break-words text-[clamp(2.75rem,13vw,4rem)] font-black uppercase leading-[0.82] tracking-tight md:text-[8.5rem]"
+                    style={{
+                        fontFamily: "var(--play-font-head)",
+                        color: "var(--play-text)",
+                        WebkitTextStroke:
+                            "2px var(--play-border)",
+                    }}
+                >
+                    <span style={{ color: "var(--play-accent)" }}>
+                        {first}
+                    </span>{" "}
+                    {restName}
+                </h1>
+
+                <p
+                    className="mt-6 inline-block max-w-full rotate-1 break-words px-4 py-2 text-lg font-bold uppercase sm:text-xl md:text-3xl"
+                    style={{
+                        background: "var(--play-accent)",
+                        color: "var(--play-accent-contrast)",
+                        border: "3px solid var(--play-border)",
+                        boxShadow: "var(--play-shadow)",
+                    }}
+                >
+                    {hero.role}
+                </p>
+
+                <p
+                    className="mt-7 max-w-xl text-base font-semibold leading-7"
+                    style={{ color: "var(--play-text)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-4">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="px-6 py-3 text-sm font-bold uppercase tracking-widest transition active:translate-x-1 active:translate-y-1"
+                        style={{
+                            background: "var(--play-text)",
+                            color: "var(--play-bg)",
+                            border: "3px solid var(--play-border)",
+                            boxShadow: "var(--play-shadow)",
+                        }}
+                    >
+                        See the work
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold uppercase tracking-widest transition active:translate-x-1 active:translate-y-1"
+                        style={{
+                            background: "var(--play-card)",
+                            color: "var(--play-text)",
+                            border: "3px solid var(--play-border)",
+                            boxShadow: "var(--play-shadow)",
+                        }}
+                    >
+                        <Download size={15} />
+                        Résumé
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — aurora  (aurora)
+// ============================================================
+
+export function HeroAurora({ data }) {
+    const { hero, resumeHref } = data;
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[94vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    duration: 0.8,
+                    ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mx-auto max-w-3xl text-center"
+            >
+                <Kicker className="justify-center">
+                    {hero.greeting}
+                </Kicker>
+
+                <h1
+                    className="mt-6 text-5xl font-bold leading-[1.03] tracking-tight md:text-7xl"
+                    style={{
+                        fontFamily: "var(--play-font-head)",
+                        backgroundImage:
+                            "linear-gradient(120deg, var(--play-text) 20%, var(--play-accent) 70%, var(--play-accent-2))",
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                    }}
+                >
+                    {hero.name}
+                </h1>
+
+                <p
+                    className="mt-4 text-xl font-medium md:text-2xl"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.role}
+                </p>
+                <p
+                    className="mx-auto mt-6 max-w-xl text-base leading-7"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="rounded-full px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            background: "var(--play-accent)",
+                            color: "var(--play-accent-contrast)",
+                            boxShadow: "var(--play-shadow)",
+                        }}
+                    >
+                        View work
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="rounded-full border px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+                        style={{
+                            borderColor: "var(--play-border)",
+                            background: "var(--play-card)",
+                            backdropFilter: "var(--play-blur)",
+                            WebkitBackdropFilter:
+                                "var(--play-blur)",
+                        }}
+                    >
+                        Résumé
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — blueprint  (blueprint)
+// ============================================================
+
+export function HeroBlueprint({ data }) {
+    const { hero, resumeHref } = data;
+
+    const tick = {
+        borderColor: "var(--play-accent)",
+    };
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[88vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="relative w-full border p-8 md:p-12"
+                style={{ borderColor: "var(--play-border)" }}
+            >
+                {/* corner ticks */}
+                <span
+                    className="absolute -left-px -top-px h-4 w-4 border-l-2 border-t-2"
+                    style={tick}
+                />
+                <span
+                    className="absolute -right-px -top-px h-4 w-4 border-r-2 border-t-2"
+                    style={tick}
+                />
+                <span
+                    className="absolute -bottom-px -left-px h-4 w-4 border-b-2 border-l-2"
+                    style={tick}
+                />
+                <span
+                    className="absolute -bottom-px -right-px h-4 w-4 border-b-2 border-r-2"
+                    style={tick}
+                />
+
+                <p
+                    className="text-xs uppercase tracking-[0.3em]"
+                    style={{ color: "var(--play-accent)" }}
+                >
+                    FIG. 01 — {hero.greeting}
+                </p>
+
+                <h1
+                    className="mt-4 text-5xl font-bold uppercase leading-[0.95] tracking-tight md:text-7xl"
+                    style={{
+                        fontFamily: "var(--play-font-head)",
+                    }}
+                >
+                    {hero.name}
+                </h1>
+
+                <div
+                    className="mt-3 flex items-center gap-3 text-sm"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    <span
+                        className="h-px flex-1"
+                        style={{
+                            background: "var(--play-border)",
+                        }}
+                    />
+                    <span>{hero.role}</span>
+                    <span
+                        className="h-px flex-1"
+                        style={{
+                            background: "var(--play-border)",
+                        }}
+                    />
+                </div>
+
+                <p
+                    className="mt-6 max-w-xl text-sm leading-7"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="border px-5 py-2.5 text-xs uppercase tracking-[0.2em] transition hover:bg-[var(--play-accent)] hover:text-[var(--play-accent-contrast)]"
+                        style={{
+                            borderColor: "var(--play-accent)",
+                            color: "var(--play-accent)",
+                        }}
+                    >
+                        [ view work ]
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="inline-flex items-center gap-2 border px-5 py-2.5 text-xs uppercase tracking-[0.2em] transition hover:bg-[var(--play-border)]"
+                        style={{
+                            borderColor: "var(--play-border)",
+                        }}
+                    >
+                        <Download size={13} />
+                        resume.pdf
+                    </a>
+                </div>
+            </motion.div>
+        </PlaySection>
+    );
+}
+
+
+// ============================================================
+// HERO — vintage  (vintage)
+// ============================================================
+
+export function HeroVintage({ data }) {
+    const { hero, resumeHref } = data;
+
+    return (
+        <PlaySection
+            id="play-hero"
+            className="flex min-h-[88vh] items-center"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="mx-auto w-full max-w-3xl text-center"
+            >
+                <p
+                    className="text-xs uppercase tracking-[0.4em]"
+                    style={{ color: "var(--play-accent)" }}
+                >
+                    {hero.greeting}
+                </p>
+
+                <div
+                    className="mx-auto my-4 h-px w-24"
+                    style={{ background: "var(--play-border)" }}
+                />
+
+                <Display
+                    as="h1"
+                    className="text-6xl leading-[1.05] tracking-tight md:text-8xl"
+                    style={{
+                        fontWeight: 700,
+                        textShadow:
+                            "0 1px 0 rgba(255,255,255,0.5), 0 2px 3px rgba(58,47,34,0.18)",
+                    }}
+                >
+                    {hero.name}
+                </Display>
+
+                <p
+                    className="mt-4 text-xl italic md:text-2xl"
+                    style={{ color: "var(--play-muted)" }}
+                >
+                    {hero.role}
+                </p>
+
+                <div
+                    className="mx-auto my-6 h-px w-40"
+                    style={{ background: "var(--play-border)" }}
+                />
+
+                <p
+                    className="mx-auto max-w-xl text-base leading-8"
+                    style={{ color: "var(--play-text)" }}
+                >
+                    {hero.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            scrollToId("play-projects")
+                        }
+                        className="px-6 py-3 text-xs uppercase tracking-[0.24em] transition hover:opacity-85"
+                        style={{
+                            background: "var(--play-accent)",
+                            color: "var(--play-accent-contrast)",
+                        }}
+                    >
+                        View the work
+                    </button>
+
+                    <a
+                        href={resumeHref}
+                        download
+                        onClick={() =>
+                            trackInteraction(
+                                "RESUME_DOWNLOAD",
+                                "play-hero"
+                            )
+                        }
+                        className="border-b-2 pb-0.5 text-xs uppercase tracking-[0.24em] transition hover:opacity-70"
+                        style={{
+                            borderColor: "var(--play-text)",
+                        }}
+                    >
                         Résumé
                     </a>
                 </div>

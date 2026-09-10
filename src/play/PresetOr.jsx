@@ -1,3 +1,5 @@
+import { MotionConfig } from "framer-motion";
+
 import { usePreset } from "./PresetContext";
 import HomeSurface from "./surfaces/HomeSurface";
 import PageSurface from "./surfaces/PageSurface";
@@ -22,11 +24,15 @@ function PresetOr({ page, fallback }) {
         return fallback;
     }
 
-    if (page === "home") {
-        return <HomeSurface />;
-    }
-
-    return <PageSurface page={page} />;
+    return (
+        <MotionConfig reducedMotion="user">
+            {page === "home" ? (
+                <HomeSurface />
+            ) : (
+                <PageSurface page={page} />
+            )}
+        </MotionConfig>
+    );
 }
 
 export default PresetOr;

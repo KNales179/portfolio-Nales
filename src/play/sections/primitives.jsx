@@ -43,6 +43,7 @@ export function Display({
             className={className}
             style={{
                 fontFamily: "var(--play-font-head)",
+                textShadow: "var(--play-head-glow, none)",
                 ...style,
             }}
         >
@@ -56,7 +57,10 @@ export function Kicker({ children, className = "" }) {
     return (
         <p
             className={`text-xs font-semibold uppercase tracking-[0.28em] ${className}`}
-            style={{ color: "var(--play-accent)" }}
+            style={{
+                color: "var(--play-accent)",
+                textShadow: "var(--play-kicker-glow, none)",
+            }}
         >
             {children}
         </p>

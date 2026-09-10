@@ -1,5 +1,12 @@
 import MatrixRain from "./MatrixRain";
+import NeonGrid from "./NeonGrid";
 import GridFloor from "./GridFloor";
+import Aurora from "./Aurora";
+import HoloMesh from "./HoloMesh";
+import RisoDots from "./RisoDots";
+import MeshGradient from "./MeshGradient";
+import BlueprintGrid from "./BlueprintGrid";
+import Grain from "./Grain";
 
 
 // ============================================================
@@ -12,33 +19,75 @@ import GridFloor from "./GridFloor";
 // canvas never has to read CSS variables.
 // ============================================================
 
-const pick = (preset, mode, token) =>
+const pick = (preset, mode, token, overrides) =>
+    overrides?.[token] ||
     (mode === "dark" && preset.themeDark?.[token]) ||
     preset.theme[token];
 
 
-function PresetFx({ preset, mode = "light" }) {
+function PresetFx({ preset, mode = "light", overrides }) {
     const fx = preset?.layout?.fx;
 
     if (!fx) {
         return null;
     }
 
-    const accent = pick(preset, mode, "--play-accent");
-    const bg = pick(preset, mode, "--play-bg");
+    const get = (token) =>
+        pick(preset, mode, token, overrides);
+
+    const accent = get("--play-accent");
+    const bg = get("--play-bg");
 
     let layer = null;
 
+    const accent2 = get("--play-accent-2") || accent;
+
     if (fx === "matrixRain") {
         layer = <MatrixRain accent={accent} bg={bg} />;
-    } else if (fx === "gridFloor") {
+    } else if (fx === "neonGrid") {
         layer = (
-            <GridFloor
+            <NeonGrid
                 accent={accent}
-                glow={pick(preset, mode, "--play-accent-2") ||
-                    accent}
+                accent2={accent2}
+                bg={bg}
             />
         );
+    } else if (fx === "gridFloor") {
+        layer = <GridFloor accent={accent} glow={accent2} />;
+    } else if (fx === "aurora") {
+        layer = (
+            <Aurora
+                colors={[
+                    get("--play-aurora-1") || accent,
+                    get("--play-aurora-2") || accent2,
+                    get("--play-aurora-3") || accent,
+                ]}
+            />
+        );
+    } else if (fx === "holoMesh") {
+        layer = <HoloMesh />;
+    } else if (fx === "riso") {
+        layer = (
+            <RisoDots
+                accent={accent}
+                accent2={accent2}
+                bg={bg}
+            />
+        );
+    } else if (fx === "mesh") {
+        layer = (
+            <MeshGradient
+                colors={[
+                    get("--play-mesh-1") || accent,
+                    get("--play-mesh-2") || accent2,
+                    get("--play-mesh-3") || accent,
+                ]}
+            />
+        );
+    } else if (fx === "blueprintGrid") {
+        layer = <BlueprintGrid accent={accent} bg={bg} />;
+    } else if (fx === "grain") {
+        layer = <Grain tint={get("--play-text")} />;
     }
 
     if (!layer) {

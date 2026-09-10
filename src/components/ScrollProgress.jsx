@@ -5,9 +5,12 @@ import {
 } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
+import { usePreset } from "../play/PresetContext";
+
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
   const location = useLocation();
+  const { livePreset } = usePreset();
 
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 140,
@@ -15,8 +18,9 @@ function ScrollProgress() {
     mass: 0.2,
   });
 
-  // The Play page brings its own presentation chrome.
-  if (location.pathname === "/play") {
+  // The Play page — and any preset-applied page — brings its
+  // own presentation chrome.
+  if (location.pathname === "/play" || livePreset) {
     return null;
   }
 

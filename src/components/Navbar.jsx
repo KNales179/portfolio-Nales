@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { trackInteraction } from "../analytics/track";
+import { usePreset } from "../play/PresetContext";
 
 const navigationLinks = [
   {
@@ -38,6 +39,7 @@ function Navbar() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { livePreset } = usePreset();
 
   /*
     Detect whether the page has been scrolled.
@@ -73,11 +75,11 @@ function Navbar() {
   };
 
   /*
-    The Play page is a self-contained immersive experience with
-    its own preset-driven navigation — the site chrome steps
-    aside there.
+    The Play page — and any public page while a preset is
+    applied — brings its own preset-driven navigation, so the
+    default site chrome steps aside.
   */
-  if (location.pathname === "/play") {
+  if (location.pathname === "/play" || livePreset) {
     return null;
   }
 

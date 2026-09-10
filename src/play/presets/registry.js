@@ -4,6 +4,15 @@ import terminal from "./terminal";
 import brutalist from "./brutalist";
 import cyberpunk from "./cyberpunk";
 import synthwave from "./synthwave";
+import glassmorphism from "./glassmorphism";
+import spatial from "./spatial";
+import holographic from "./holographic";
+import claymorphism from "./claymorphism";
+import bento from "./bento";
+import maximalism from "./maximalism";
+import aurora from "./aurora";
+import blueprint from "./blueprint";
+import vintage from "./vintage";
 
 
 // ============================================================
@@ -22,6 +31,15 @@ export const PRESETS = [
     brutalist,
     cyberpunk,
     synthwave,
+    glassmorphism,
+    spatial,
+    holographic,
+    claymorphism,
+    bento,
+    maximalism,
+    aurora,
+    blueprint,
+    vintage,
 ];
 
 export const PRESET_MAP = Object.fromEntries(

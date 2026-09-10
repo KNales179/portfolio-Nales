@@ -1,6 +1,8 @@
 import { usePreset } from "./PresetContext";
 import { usePlayContent } from "./content/usePlayContent";
 import { SECTIONS, NAVS } from "./sections/registry";
+import SectionBoundary from "./sections/SectionBoundary";
+import MobileNav from "./sections/MobileNav";
 
 
 // ============================================================
@@ -53,21 +55,27 @@ function LayoutRenderer() {
     return (
         <>
             <Nav order={order} data={data} />
-            <main>
-                {order.map((key) => {
-                    const variant = variants[key];
-                    const Component =
-                        SECTIONS[key]?.[variant];
+            <main className="pb-16 sm:pb-0">
+                <SectionBoundary>
+                    {order.map((key) => {
+                        const variant = variants[key];
+                        const Component =
+                            SECTIONS[key]?.[variant];
 
-                    if (!Component) {
-                        return null;
-                    }
+                        if (!Component) {
+                            return null;
+                        }
 
-                    return (
-                        <Component key={key} data={data} />
-                    );
-                })}
+                        return (
+                            <Component
+                                key={key}
+                                data={data}
+                            />
+                        );
+                    })}
+                </SectionBoundary>
             </main>
+            <MobileNav />
         </>
     );
 }

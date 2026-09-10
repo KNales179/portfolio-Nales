@@ -374,6 +374,24 @@ body.preset-active .site-nav .bg-purple-500 {
     background-color: var(--play-accent);
 }
 
+/* Visible keyboard focus for the preset UI (custom nav buttons,
+   cards, the customise panel). Scoped to the applied site and
+   the /play preview container so it never affects admin. */
+body.preset-active :focus-visible,
+.play-scope :focus-visible {
+    outline: 2px solid var(--play-accent, #7c5cff);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.preset-active *,
+    .play-scope * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}
+
 /* ============================================================
    ADMIN SIDEBAR
    ============================================================ */

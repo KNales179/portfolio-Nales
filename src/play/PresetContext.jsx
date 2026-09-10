@@ -21,27 +21,28 @@ import {
 // PRESET CONTEXT
 // ============================================================
 //
-// Two related pieces of state, both persisted to localStorage
-// (no account):
+// State persisted to localStorage (no account):
 //
-//   presetId  — the preset currently selected in the /play
-//               picker / preview.
-//   applied   — whether that preset is live on the main public
-//               site. Default false → the site looks exactly
-//               as designed.
+//   presetId   — the preset selected in the /play picker.
+//   applied    — whether that preset is live on the public site.
+//   mode       — light / dark.
+//   overrides  — per-preset visitor customisation (accent, type,
+//                density …) as a map of --play-* tokens. Shape in
+//                storage: { [presetId]: { "--play-accent": "#…" } }
+//                so tweaks to one preset never leak into another.
 //
-//   mode      — light / dark, applies to both.
-//
-//   apply()   — make the selected preset live sitewide.
-//   reset()   — back to the default site.
-//
-// `overrides` is the (empty) seam for Phase 4 visitor colour /
-// font customisation.
+//   apply()          — make the selected preset live sitewide.
+//   reset()          — back to the default site (keeps overrides).
+//   setOverride()    — set / clear one token for the current preset.
+//   resetOverrides() — clear the current preset's customisation.
 // ============================================================
 
 const PRESET_KEY = "play_preset";
 const MODE_KEY = "play_mode";
 const APPLIED_KEY = "play_applied";
+const OVERRIDES_KEY = "play_overrides";
+
+const EMPTY = {};
 
 const read = (key) => {
     try {
@@ -59,6 +60,19 @@ const write = (key, value) => {
     }
 };
 
+const readOverrides = () => {
+    try {
+        const parsed = JSON.parse(
+            localStorage.getItem(OVERRIDES_KEY) || "{}"
+        );
+        return parsed && typeof parsed === "object"
+            ? parsed
+            : {};
+    } catch {
+        return {};
+    }
+};
+
 
 const PresetContext = createContext(null);
 
@@ -73,10 +87,13 @@ export const PresetProvider = ({ children }) => {
     const [applied, setApplied] = useState(
         () => read(APPLIED_KEY) === "1"
     );
-
-    const [overrides] = useState({});
+    const [allOverrides, setAllOverrides] =
+        useState(readOverrides);
 
     const preset = getPreset(presetId);
+    const activeId = preset.id;
+
+    const overrides = allOverrides[activeId] || EMPTY;
 
     const setPreset = useCallback((id) => {
         setPresetId(id);
@@ -102,7 +119,67 @@ export const PresetProvider = ({ children }) => {
         write(APPLIED_KEY, "0");
     }, []);
 
-    // The /play preview always reflects the picker.
+    // Merge a map of token → value for the current preset.
+    // A null / undefined / "" value removes that token.
+    const setOverrides = useCallback(
+        (patch) => {
+            setAllOverrides((current) => {
+                const forPreset = {
+                    ...(current[activeId] || {}),
+                };
+                for (const [token, value] of Object.entries(
+                    patch
+                )) {
+                    if (
+                        value === null ||
+                        value === undefined ||
+                        value === ""
+                    ) {
+                        delete forPreset[token];
+                    } else {
+                        forPreset[token] = value;
+                    }
+                }
+
+                const next = { ...current };
+                if (Object.keys(forPreset).length === 0) {
+                    delete next[activeId];
+                } else {
+                    next[activeId] = forPreset;
+                }
+                write(
+                    OVERRIDES_KEY,
+                    JSON.stringify(next)
+                );
+                return next;
+            });
+        },
+        [activeId]
+    );
+
+    const setOverride = useCallback(
+        (token, value) => setOverrides({ [token]: value }),
+        [setOverrides]
+    );
+
+    const resetOverrides = useCallback(() => {
+        setAllOverrides((current) => {
+            if (!current[activeId]) {
+                return current;
+            }
+            const next = { ...current };
+            delete next[activeId];
+            write(OVERRIDES_KEY, JSON.stringify(next));
+            return next;
+        });
+    }, [activeId]);
+
+    const overridesFor = useCallback(
+        (id) => allOverrides[id] || EMPTY,
+        [allOverrides]
+    );
+
+    // The /play preview always reflects the picker + overrides.
     const themeStyle = useMemo(
         () => buildThemeStyle(preset, { mode, overrides }),
         [preset, mode, overrides]
@@ -131,6 +208,14 @@ export const PresetProvider = ({ children }) => {
             // or null when the default site is showing.
             livePreset: applied ? preset : null,
 
+            overrides,
+            setOverride,
+            setOverrides,
+            resetOverrides,
+            hasOverrides:
+                Object.keys(overrides).length > 0,
+            overridesFor,
+
             themeStyle,
             scopeVars,
         }),
@@ -142,6 +227,11 @@ export const PresetProvider = ({ children }) => {
             applied,
             apply,
             reset,
+            overrides,
+            setOverride,
+            setOverrides,
+            resetOverrides,
+            overridesFor,
             themeStyle,
             scopeVars,
         ]

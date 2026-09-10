@@ -14,15 +14,15 @@ const cyberpunk = {
         "Neon dystopia. Cyan on black, scanlines, glitch, code rain.",
 
     theme: {
-        "--play-bg": "#070510",
-        "--play-surface": "#0d0a1c",
-        "--play-card": "#100c22",
-        "--play-text": "#e8f2ff",
-        "--play-muted": "#7c7ca6",
-        "--play-accent": "#22f0ff",
-        "--play-accent-2": "#ff2bd1",
-        "--play-accent-contrast": "#070510",
-        "--play-border": "#211d44",
+        "--play-bg": "#05060f",
+        "--play-surface": "#0b0d1e",
+        "--play-card": "rgba(13, 17, 38, 0.72)",
+        "--play-text": "#eafcff",
+        "--play-muted": "#8fa2c8",
+        "--play-accent": "#12f5ff",
+        "--play-accent-2": "#ff2d9c",
+        "--play-accent-contrast": "#05060f",
+        "--play-border": "rgba(18, 245, 255, 0.35)",
 
         "--play-font-head":
             "'JetBrains Mono', ui-monospace, monospace",
@@ -31,21 +31,26 @@ const cyberpunk = {
 
         "--play-radius": "0px",
         "--play-border-width": "1px",
+        "--play-blur": "blur(3px)",
+        "--play-head-glow": "0 0 18px rgba(18, 245, 255, 0.55)",
+        "--play-kicker-glow":
+            "0 0 12px rgba(18, 245, 255, 0.7)",
         "--play-maxw": "1120px",
         "--play-section-y": "5rem",
-        "--play-shadow": "0 0 24px rgba(34, 240, 255, 0.22)",
+        "--play-shadow":
+            "0 0 0 1px rgba(18,245,255,0.15), 0 0 30px rgba(18, 245, 255, 0.28)",
     },
 
     themeDark: {
-        "--play-bg": "#020104",
-        "--play-surface": "#08060f",
-        "--play-card": "#0a0716",
-        "--play-border": "#181436",
+        "--play-bg": "#010208",
+        "--play-surface": "#06070f",
+        "--play-card": "rgba(6, 9, 22, 0.78)",
+        "--play-border": "rgba(18, 245, 255, 0.4)",
     },
 
     layout: {
         nav: "cyber",
-        fx: "matrixRain",
+        fx: "neonGrid",
         order: [
             "hero",
             "projects",

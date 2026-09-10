@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 
 import { usePreset } from "../PresetContext";
 import { usePlayContent } from "../content/usePlayContent";
-import { SECTIONS } from "../sections/registry";
+import { SECTIONS, NAVS } from "../sections/registry";
 import ContactForm from "../sections/ContactForm";
+import SectionBoundary from "../sections/SectionBoundary";
+import MobileNav from "../sections/MobileNav";
 import { Display, Kicker } from "../sections/primitives";
 
 
@@ -22,6 +24,8 @@ function PageSurface({ page }) {
     const data = usePlayContent();
 
     const blocks = livePreset.layout.pages?.[page] || [];
+    const { order, nav } = livePreset.layout;
+    const Nav = NAVS[nav] || NAVS.minimal;
 
     return (
         <motion.div
@@ -30,6 +34,8 @@ function PageSurface({ page }) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
         >
+            <Nav order={order} data={data} />
+
             {page === "contact" && (
                 <section className="w-full px-6 pt-28 md:px-10 lg:px-16">
                     <div
@@ -52,21 +58,29 @@ function PageSurface({ page }) {
                 </section>
             )}
 
-            {blocks.map(([section, variant], index) => {
-                const Component =
-                    SECTIONS[section]?.[variant];
+            <div className="pb-16 sm:pb-0">
+                <SectionBoundary>
+                    {blocks.map(
+                        ([section, variant], index) => {
+                            const Component =
+                                SECTIONS[section]?.[variant];
 
-                if (!Component) {
-                    return null;
-                }
+                            if (!Component) {
+                                return null;
+                            }
 
-                return (
-                    <Component
-                        key={`${section}-${index}`}
-                        data={data}
-                    />
-                );
-            })}
+                            return (
+                                <Component
+                                    key={`${section}-${index}`}
+                                    data={data}
+                                />
+                            );
+                        }
+                    )}
+                </SectionBoundary>
+            </div>
+
+            <MobileNav />
         </motion.div>
     );
 }

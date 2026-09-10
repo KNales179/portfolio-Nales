@@ -2,7 +2,9 @@ import { motion } from "framer-motion";
 
 import { usePreset } from "../PresetContext";
 import { usePlayContent } from "../content/usePlayContent";
-import { SECTIONS } from "../sections/registry";
+import { SECTIONS, NAVS } from "../sections/registry";
+import SectionBoundary from "../sections/SectionBoundary";
+import MobileNav from "../sections/MobileNav";
 
 
 // ============================================================
@@ -19,7 +21,8 @@ function HomeSurface() {
     const { livePreset } = usePreset();
     const data = usePlayContent();
 
-    const { order, variants } = livePreset.layout;
+    const { order, variants, nav } = livePreset.layout;
+    const Nav = NAVS[nav] || NAVS.minimal;
 
     return (
         <motion.div
@@ -28,16 +31,29 @@ function HomeSurface() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
         >
-            {order.map((key) => {
-                const Component =
-                    SECTIONS[key]?.[variants[key]];
+            <Nav order={order} data={data} />
 
-                if (!Component) {
-                    return null;
-                }
+            <div className="pb-16 sm:pb-0">
+                <SectionBoundary>
+                    {order.map((key) => {
+                        const Component =
+                            SECTIONS[key]?.[variants[key]];
 
-                return <Component key={key} data={data} />;
-            })}
+                        if (!Component) {
+                            return null;
+                        }
+
+                        return (
+                            <Component
+                                key={key}
+                                data={data}
+                            />
+                        );
+                    })}
+                </SectionBoundary>
+            </div>
+
+            <MobileNav />
         </motion.div>
     );
 }

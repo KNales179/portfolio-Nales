@@ -31,8 +31,14 @@ const isPublicRoute = (pathname) =>
 
 
 function PresetSiteTheme() {
-    const { applied, livePreset, scopeVars, reset, mode } =
-        usePreset();
+    const {
+        applied,
+        livePreset,
+        scopeVars,
+        reset,
+        mode,
+        overrides,
+    } = usePreset();
 
     const { pathname } = useLocation();
 
@@ -87,7 +93,11 @@ function PresetSiteTheme() {
 
     return (
         <>
-            <PresetFx preset={livePreset} mode={mode} />
+            <PresetFx
+                preset={livePreset}
+                mode={mode}
+                overrides={overrides}
+            />
 
             <div className="fixed bottom-5 left-5 z-[60]">
             <div
