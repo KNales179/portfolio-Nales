@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { trackInteraction } from "../analytics/track";
 
@@ -26,6 +26,10 @@ const navigationLinks = [
     label: "Contact",
     path: "/contact",
   },
+  {
+    label: "Play",
+    path: "/play",
+  },
 ];
 
 function Navbar() {
@@ -33,6 +37,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   /*
     Detect whether the page has been scrolled.
@@ -67,9 +72,18 @@ function Navbar() {
     });
   };
 
+  /*
+    The Play page is a self-contained immersive experience with
+    its own preset-driven navigation — the site chrome steps
+    aside there.
+  */
+  if (location.pathname === "/play") {
+    return null;
+  }
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${scrolled || menuOpen
+      className={`site-nav fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${scrolled || menuOpen
           ? "border-b border-[var(--border)] bg-[var(--surface)]/85 shadow-lg shadow-black/5 backdrop-blur-xl"
           : "bg-transparent"
         }`}

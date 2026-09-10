@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -13,6 +14,10 @@ import Projects from "./pages/Projects";
 import Certificates from "./pages/Certificates";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+
+// The Play experience carries preset-specific weight — keep it
+// out of the main bundle.
+const Play = lazy(() => import("./pages/Play"));
 
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Profile from "./pages/admin/Profile";
@@ -32,14 +37,20 @@ import EditPortfolio from "./pages/admin/dashboard/EditPortfolio";
 
 import Login from "./pages/auth/Login";
 
+import { PresetProvider } from "./play/PresetContext";
+import PresetSiteTheme from "./play/PresetSiteTheme";
+import PresetOr from "./play/PresetOr";
+
 function App() {
     return (
+        <PresetProvider>
         <div className="relative min-h-screen overflow-x-clip">
 
             <AnalyticsProvider />
 
             <AnimatedBackground />
             <ScrollProgress />
+            <PresetSiteTheme />
 
             <div className="relative z-10">
 
@@ -54,27 +65,63 @@ function App() {
 
                         <Route
                             path="/"
-                            element={<Home />}
+                            element={
+                                <PresetOr
+                                    page="home"
+                                    fallback={<Home />}
+                                />
+                            }
                         />
 
                         <Route
                             path="/projects"
-                            element={<Projects />}
+                            element={
+                                <PresetOr
+                                    page="projects"
+                                    fallback={<Projects />}
+                                />
+                            }
                         />
 
                         <Route
                             path="/certificates"
-                            element={<Certificates />}
+                            element={
+                                <PresetOr
+                                    page="certificates"
+                                    fallback={
+                                        <Certificates />
+                                    }
+                                />
+                            }
                         />
 
                         <Route
                             path="/about"
-                            element={<About />}
+                            element={
+                                <PresetOr
+                                    page="about"
+                                    fallback={<About />}
+                                />
+                            }
                         />
 
                         <Route
                             path="/contact"
-                            element={<Contact />}
+                            element={
+                                <PresetOr
+                                    page="contact"
+                                    fallback={<Contact />}
+                                />
+                            }
+                        />
+
+                        <Route
+                            path="/play"
+                            element={
+                                <Suspense fallback={null}>
+                                    <Play />
+                                </Suspense>
+                            }
                         />
 
                         {/* =========================================
@@ -238,6 +285,7 @@ function App() {
             </div>
 
         </div>
+        </PresetProvider>
     );
 }
 

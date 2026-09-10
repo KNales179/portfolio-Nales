@@ -3,15 +3,22 @@ import {
   useScroll,
   useSpring,
 } from "framer-motion";
+import { useLocation } from "react-router-dom";
 
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
+  const location = useLocation();
 
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 140,
     damping: 30,
     mass: 0.2,
   });
+
+  // The Play page brings its own presentation chrome.
+  if (location.pathname === "/play") {
+    return null;
+  }
 
   return (
     <motion.div

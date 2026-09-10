@@ -267,6 +267,114 @@ html.sidebar-resizing * {
 }
 
 /* ============================================================
+   PLAY PRESET (opt-in)
+   Only active while a visitor has applied a /play preset to the
+   public site (see src/play/PresetSiteTheme.jsx). Scoped to
+   body.preset-active — never touches the admin pages or the
+   default site. Colours come from --play-* vars set on :root
+   at runtime.
+   ============================================================ */
+
+body.preset-active {
+    font-family: var(--play-font-body, "Inter", sans-serif);
+}
+
+body.preset-active .heading-font {
+    font-family: var(--play-font-head, "Outfit", sans-serif);
+}
+
+/* The default site's decorative grid + glow would fight the
+   preset's own background / FX layer. */
+body.preset-active .portfolio-bg::before,
+body.preset-active .portfolio-bg::after {
+    display: none;
+}
+
+/* Cyberpunk glitch headline. Additively-named, used only by the
+   Play cyberpunk preset's hero. */
+.play-glitch {
+    position: relative;
+    display: inline-block;
+}
+
+.play-glitch::before,
+.play-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.play-glitch::before {
+    color: var(--play-accent);
+    animation: play-glitch-a 2.6s infinite steps(2, end);
+}
+
+.play-glitch::after {
+    color: var(--play-accent-2, var(--play-accent));
+    animation: play-glitch-b 3.4s infinite steps(2, end);
+}
+
+@keyframes play-glitch-a {
+    0%, 92%, 100% {
+        transform: translate(0);
+        clip-path: inset(0 0 100% 0);
+    }
+    93% {
+        transform: translate(-3px, 1px);
+        clip-path: inset(18% 0 42% 0);
+    }
+    96% {
+        transform: translate(2px, -1px);
+        clip-path: inset(58% 0 12% 0);
+    }
+}
+
+@keyframes play-glitch-b {
+    0%, 90%, 100% {
+        transform: translate(0);
+        clip-path: inset(100% 0 0 0);
+    }
+    91% {
+        transform: translate(3px, -1px);
+        clip-path: inset(10% 0 70% 0);
+    }
+    95% {
+        transform: translate(-2px, 2px);
+        clip-path: inset(48% 0 22% 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .play-glitch::before,
+    .play-glitch::after {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* Bend the site navbar's hardcoded purple accents to the
+   applied preset. Scoped to .site-nav under body.preset-active. */
+body.preset-active .site-nav .text-purple-400\/80,
+body.preset-active .site-nav .text-purple-500,
+body.preset-active .site-nav .dark\:text-purple-300 {
+    color: var(--play-accent);
+}
+
+body.preset-active .site-nav .bg-purple-500\/15,
+body.preset-active .site-nav .bg-purple-500\/10 {
+    background-color: color-mix(
+        in srgb,
+        var(--play-accent) 14%,
+        transparent
+    );
+}
+
+body.preset-active .site-nav .bg-purple-500 {
+    background-color: var(--play-accent);
+}
+
+/* ============================================================
    ADMIN SIDEBAR
    ============================================================ */
 
