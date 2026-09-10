@@ -18,6 +18,7 @@ const EMPTY = {
     email: "",
     subject: "",
     message: "",
+    company: "", // honeypot — real users never fill this
 };
 
 const fieldStyle = {
@@ -71,6 +72,17 @@ function ContactForm() {
 
     return (
         <form onSubmit={submit} className="space-y-4">
+            <input
+                type="text"
+                name="company"
+                value={form.company}
+                onChange={set("company")}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute left-[-9999px] h-0 w-0 opacity-0"
+            />
+
             <div className="grid gap-4 sm:grid-cols-2">
                 <input
                     required

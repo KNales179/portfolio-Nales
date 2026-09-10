@@ -34,6 +34,7 @@ import TwoFactor from "./pages/admin/settings/TwoFactor";
 import WorkList from "./pages/admin/worklist/WorkList";
 import WorkDetail from "./pages/admin/worklist/WorkDetail";
 import EditPortfolio from "./pages/admin/dashboard/EditPortfolio";
+import Messages from "./pages/admin/dashboard/Messages";
 
 import Login from "./pages/auth/Login";
 
@@ -156,6 +157,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <EditPortfolio />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/admin/dashboard/messages"
+                            element={
+                                <ProtectedRoute>
+                                    <Messages />
                                 </ProtectedRoute>
                             }
                         />

@@ -15,6 +15,7 @@ import {
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useRef, useState } from "react";
+import { fetchUnreadCount } from "../../services/messagesApi";
 
 
 // ============================================================
@@ -39,7 +40,14 @@ const navItemClass = (isActive) =>
     }`;
 
 
-function NavItem({ to, end, icon: Icon, label, onClose }) {
+function NavItem({
+    to,
+    end,
+    icon: Icon,
+    label,
+    onClose,
+    badge = 0,
+}) {
     return (
         <NavLink
             to={to}
@@ -63,6 +71,11 @@ function NavItem({ to, end, icon: Icon, label, onClose }) {
                     <span className="sidebar-nav-label truncate">
                         {label}
                     </span>
+                    {badge > 0 && (
+                        <span className="sidebar-nav-label ml-auto min-w-[18px] shrink-0 rounded-full bg-purple-500 px-1.5 text-center text-[10px] font-bold leading-[18px] text-white">
+                            {badge > 99 ? "99+" : badge}
+                        </span>
+                    )}
                 </motion.div>
             )}
         </NavLink>
@@ -86,6 +99,31 @@ function AdminSidebar({ open, onClose }) {
 
     const isSuperAdmin =
         admin?.role === "SUPER_ADMIN";
+
+    const [unreadMessages, setUnreadMessages] = useState(0);
+
+    useEffect(() => {
+        let alive = true;
+
+        const poll = async () => {
+            try {
+                const count = await fetchUnreadCount();
+                if (alive) {
+                    setUnreadMessages(count);
+                }
+            } catch {
+                // badge just stays as-is
+            }
+        };
+
+        poll();
+        const id = setInterval(poll, 60_000);
+
+        return () => {
+            alive = false;
+            clearInterval(id);
+        };
+    }, []);
 
     const [sidebarWidth, setSidebarWidth] = useState(() => {
         const savedWidth =
@@ -333,6 +371,7 @@ function AdminSidebar({ open, onClose }) {
                                 icon={Mail}
                                 label="Messages"
                                 onClose={onClose}
+                                badge={unreadMessages}
                             />
                         </div>
 

@@ -58,6 +58,7 @@ function Contact() {
     email: "",
     subject: "",
     message: "",
+    company: "", // honeypot — real users never fill this
   });
 
   const [sending, setSending] = useState(false);
@@ -423,6 +424,23 @@ function Contact() {
 
 
             <form onSubmit={handleSubmit} className="space-y-5">
+
+              {/* Honeypot — hidden from real users, catches bots */}
+              <input
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    company: e.target.value,
+                  })
+                }
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute left-[-9999px] h-0 w-0 opacity-0"
+              />
 
               {/* Name + Email */}
               <div className="grid gap-5 sm:grid-cols-2">

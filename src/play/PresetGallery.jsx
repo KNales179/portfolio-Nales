@@ -106,9 +106,8 @@ function PresetGallery({ onPreview }) {
                     </h1>
                     <p className="mt-3 max-w-xl text-sm leading-6 text-white/55">
                         The same portfolio, {presets.length}{" "}
-                        completely different experiences —
-                        layout, type, motion, the lot. Preview
-                        one, then apply it to the whole site.
+                        completely different vibes. 
+                        Pick one, preview it, and watch the whole site transform.
                     </p>
                 </motion.div>
 
@@ -157,7 +156,7 @@ function PresetGallery({ onPreview }) {
                                                 fontFamily:
                                                     preset
                                                         .theme[
-                                                        "--play-font-head"
+                                                    "--play-font-head"
                                                     ],
                                             }}
                                         >
