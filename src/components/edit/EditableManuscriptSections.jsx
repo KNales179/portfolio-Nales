@@ -24,17 +24,19 @@ import { useImageUpload } from "./useImageUpload";
 // which does the optimistic project update.
 // ============================================================
 
-const imageGridClass = (count) => {
-    if (count === 1) {
-        return "grid grid-cols-1 max-w-[850px] mx-auto";
-    }
+// A single image gets the old centred, width-led frame. Two or
+// more share a "smart" row instead of a rigid equal-width grid:
+// each image keeps ITS OWN aspect ratio at a shared height, so a
+// wide web screenshot renders wide and a tall mobile screenshot
+// renders narrow, side by side, instead of both being squeezed
+// into equal 50/50 columns (which is what made the web shot look
+// tiny next to a phone shot). Wraps to a new row once it runs out
+// of width.
+const multiImageFrameClass =
+    "group relative h-[200px] max-w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] sm:h-[280px] md:h-[360px]";
 
-    if (count === 2) {
-        return "grid grid-cols-1 gap-4 md:grid-cols-2";
-    }
-
-    return "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
-};
+const multiImageClass =
+    "block h-full w-auto max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]";
 
 
 // --- add-an-image button ---------------------------------------
@@ -199,15 +201,22 @@ function EditableManuscriptSections({
 
                             {images.length > 0 && (
                                 <div
-                                    className={imageGridClass(
-                                        images.length
-                                    )}
+                                    className={
+                                        images.length === 1
+                                            ? "mx-auto grid max-w-[850px] grid-cols-1"
+                                            : "flex flex-wrap items-start justify-center gap-4"
+                                    }
                                 >
                                     {images.map(
                                         (image, imageIndex) => (
                                             <div
                                                 key={`${projectName}-${index}-${imageIndex}`}
-                                                className="group relative w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
+                                                className={
+                                                    images.length ===
+                                                    1
+                                                        ? "group relative w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
+                                                        : multiImageFrameClass
+                                                }
                                             >
                                                 <EditableImage
                                                     uploadType="PROJECT_IMAGE"
@@ -228,7 +237,12 @@ function EditableManuscriptSections({
                                                             )
                                                         )
                                                     }
-                                                    className="block"
+                                                    className={
+                                                        images.length ===
+                                                        1
+                                                            ? "block"
+                                                            : "block h-full"
+                                                    }
                                                 >
                                                     <img
                                                         src={
@@ -242,7 +256,12 @@ function EditableManuscriptSections({
                                                             1
                                                         }`}
                                                         loading="lazy"
-                                                        className="block h-auto max-h-[650px] w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                                                        className={
+                                                            images.length ===
+                                                            1
+                                                                ? "block h-auto max-h-[650px] w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                                                                : multiImageClass
+                                                        }
                                                     />
                                                 </EditableImage>
 

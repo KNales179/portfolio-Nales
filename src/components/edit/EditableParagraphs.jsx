@@ -34,6 +34,11 @@ function EditableParagraphs({
 }) {
     const { editing } = useEditMode();
     const [busy, setBusy] = useState(false);
+    // Index of the paragraph just appended by "Add paragraph" —
+    // it should open straight into edit mode instead of making
+    // the visitor hunt for the double-click affordance on an
+    // empty row.
+    const [justAdded, setJustAdded] = useState(null);
 
     const items = Array.isArray(value) ? value : [];
 
@@ -69,7 +74,11 @@ function EditableParagraphs({
     const removeAt = (index) =>
         commit(items.filter((_, i) => i !== index));
 
-    const add = () => commit([...items, ""]);
+    const add = async () => {
+        const nextIndex = items.length;
+        await commit([...items, ""]);
+        setJustAdded(nextIndex);
+    };
 
     return (
         <div className={className}>
@@ -86,6 +95,7 @@ function EditableParagraphs({
                         }
                         multiline
                         placeholder="Paragraph"
+                        startActive={index === justAdded}
                         className="flex-1 border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
                     />
                     <button

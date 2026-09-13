@@ -3,7 +3,32 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Clock3,
+  Compass,
 } from "lucide-react";
+
+const STATUS_META = {
+  complete: {
+    label: "Completed",
+    short: "Finished",
+    icon: CheckCircle2,
+    className:
+      "border-emerald-400/30 bg-emerald-950/80 text-emerald-300",
+  },
+  incomplete: {
+    label: "In Development",
+    short: "Ongoing",
+    icon: Clock3,
+    className:
+      "border-amber-400/30 bg-amber-950/80 text-amber-300",
+  },
+  planned: {
+    label: "Planned",
+    short: "Planned",
+    icon: Compass,
+    className:
+      "border-sky-400/30 bg-sky-950/80 text-sky-300",
+  },
+};
 
 import { trackInteraction } from "../analytics/track";
 import Editable from "./edit/Editable";
@@ -16,7 +41,9 @@ function ProjectListCard({
   onViewProject,
   onEditField,
 }) {
-  const isComplete = project.status === "complete";
+  const status =
+    STATUS_META[project.status] || STATUS_META.complete;
+  const StatusIcon = status.icon;
 
   const save = (field) => (value) =>
     onEditField
@@ -71,18 +98,10 @@ function ProjectListCard({
         {/* STATUS */}
         <div className="absolute left-4 top-4">
           <span
-            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${isComplete
-              ? "border-emerald-400/30 bg-emerald-950/80 text-emerald-300"
-              : "border-amber-400/30 bg-amber-950/80 text-amber-300"
-              }`}
+            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-medium backdrop-blur-md ${status.className}`}
           >
-            {isComplete ? (
-              <CheckCircle2 size={13} />
-            ) : (
-              <Clock3 size={13} />
-            )}
-
-            {isComplete ? "Completed" : "In Development"}
+            <StatusIcon size={13} />
+            {status.label}
           </span>
         </div>
 
@@ -161,7 +180,7 @@ function ProjectListCard({
 
           {/* PROJECT STATUS LABEL */}
           <span className="text-xs uppercase tracking-wider text-[var(--muted)]">
-            {isComplete ? "Finished" : "Ongoing"}
+            {status.short}
           </span>
         </div>
       </div>

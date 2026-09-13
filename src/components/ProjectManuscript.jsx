@@ -7,6 +7,107 @@ import EditableParagraphs from "./edit/EditableParagraphs";
 import EditableImage from "./edit/EditableImage";
 import EditableManuscriptSections from "./edit/EditableManuscriptSections";
 
+
+// ============================================================
+// QUICK-PICK SETTINGS  (status / layout / type — edit mode only)
+// ============================================================
+//
+// These three fields are real enums (or, for `type`, effectively
+// one in practice) with no free-text affordance anywhere else, so
+// they need an actual picker rather than double-click text edit.
+// ============================================================
+
+const STATUS_OPTIONS = [
+    { value: "complete", label: "Completed" },
+    { value: "incomplete", label: "In Development" },
+    { value: "planned", label: "Planned" },
+];
+
+const LAYOUT_OPTIONS = [
+    { value: "portrait", label: "Portrait (mobile)" },
+    { value: "landscape", label: "Landscape (web)" },
+];
+
+const TYPE_PRESETS = [
+    "Web App",
+    "Mobile App",
+    "Full-Stack App",
+    "Desktop App",
+    "API / Backend",
+    "Browser Extension",
+];
+
+function EditSelect({ label, value, options, onChange }) {
+    return (
+        <label className="flex items-center gap-2 text-xs">
+            <span className="font-semibold uppercase tracking-wide text-[var(--muted)]">
+                {label}
+            </span>
+            <select
+                value={value}
+                onChange={(event) =>
+                    onChange(event.target.value)
+                }
+                className="border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-xs text-[var(--text)] outline-none transition focus:border-[var(--accent)]"
+            >
+                {options.map((option) => (
+                    <option
+                        key={option.value}
+                        value={option.value}
+                    >
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        </label>
+    );
+}
+
+function ProjectSettings({ project, onEditField }) {
+    const typeValue = (project.type || "").trim();
+    const matchedPreset = TYPE_PRESETS.find(
+        (preset) =>
+            preset.toLowerCase() === typeValue.toLowerCase()
+    );
+    const typeOptions = matchedPreset
+        ? TYPE_PRESETS
+        : [typeValue || "Web App", ...TYPE_PRESETS];
+    const typeSelectValue = matchedPreset || typeOptions[0];
+
+    return (
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-y border-dashed border-[var(--accent)]/30 bg-[var(--accent)]/5 px-4 py-3">
+            <EditSelect
+                label="Status"
+                value={project.status || "complete"}
+                options={STATUS_OPTIONS}
+                onChange={(value) =>
+                    onEditField("status", value)
+                }
+            />
+            <EditSelect
+                label="Type"
+                value={typeSelectValue}
+                options={typeOptions.map((option) => ({
+                    value: option,
+                    label: option,
+                }))}
+                onChange={(value) =>
+                    onEditField("type", value)
+                }
+            />
+            <EditSelect
+                label="Cover layout"
+                value={project.layout || "portrait"}
+                options={LAYOUT_OPTIONS}
+                onChange={(value) =>
+                    onEditField("layout", value)
+                }
+            />
+        </div>
+    );
+}
+
+
 function ProjectManuscript({
     project,
     onClose,
@@ -215,6 +316,15 @@ function ProjectManuscript({
                                         multiline
                                         placeholder="Short description"
                                         className="mt-4 block max-w-2xl text-sm leading-7 text-[var(--muted)] md:text-base"
+                                    />
+                                )}
+
+                                {editing && onEditField && (
+                                    <ProjectSettings
+                                        project={project}
+                                        onEditField={
+                                            onEditField
+                                        }
                                     />
                                 )}
                             </section>

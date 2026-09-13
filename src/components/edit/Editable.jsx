@@ -34,10 +34,16 @@ function Editable({
     className = "",
     placeholder = "Empty",
     maxLength,
+    // Open straight into the editor on mount — used for a field
+    // just added by an "Add …" button, so the visitor never has
+    // to hunt for the double-click affordance on an empty row.
+    startActive = false,
 }) {
     const { editing } = useEditMode();
 
-    const [active, setActive] = useState(false);
+    const [active, setActive] = useState(
+        () => editing && startActive
+    );
     const [draft, setDraft] = useState(value ?? "");
     const [saving, setSaving] = useState(false);
     const [showTick, setShowTick] = useState(false);
@@ -62,6 +68,10 @@ function Editable({
         if (active && editorRef.current) {
             editorRef.current.focus();
             editorRef.current.select?.();
+            editorRef.current.scrollIntoView({
+                block: "center",
+                behavior: "smooth",
+            });
         }
     }, [active]);
 
