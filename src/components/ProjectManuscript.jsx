@@ -63,6 +63,99 @@ function EditSelect({ label, value, options, onChange }) {
     );
 }
 
+// ============================================================
+// PROJECT LINK FIELD  (live / demo / source — editable)
+// ============================================================
+//
+// Public: the original button (accent-filled or bordered) linking
+// out, or a muted "Unavailable" placeholder when empty.
+//
+// Edit mode: the URL itself becomes a double-click-to-edit field
+// (there was previously no way to set these at all — the
+// "Unavailable" placeholder was pure read-only text). When a URL
+// is set, a small open-in-new-tab icon sits next to it so testing
+// the link doesn't require leaving edit mode.
+// ============================================================
+
+const linkButtonClass = (variant) =>
+    variant === "primary"
+        ? "inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:brightness-105"
+        : "inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-xs font-semibold text-[var(--text)] transition-all hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)]";
+
+function ProjectLinkField({
+    label,
+    icon: Icon,
+    value,
+    placeholder,
+    onSave,
+    variant = "secondary",
+    editing,
+}) {
+    const hasValue = Boolean(value);
+
+    if (!editing) {
+        if (hasValue) {
+            return (
+                <a
+                    href={value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={linkButtonClass(variant)}
+                >
+                    {label}
+                    <Icon size={14} />
+                </a>
+            );
+        }
+        return (
+            <div className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-xs text-[var(--muted)]">
+                {label} Unavailable
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="inline-flex items-center gap-2 rounded-lg border border-dashed px-4 py-2.5 text-xs"
+            style={{
+                borderColor: hasValue
+                    ? "var(--border)"
+                    : "var(--accent)",
+                background: "var(--surface)",
+            }}
+        >
+            <Icon
+                size={14}
+                className="shrink-0"
+                style={{
+                    color: hasValue
+                        ? "var(--text)"
+                        : "var(--muted)",
+                }}
+            />
+            <Editable
+                value={value}
+                onSave={onSave}
+                placeholder={placeholder}
+                maxLength={500}
+                className="min-w-[8ch] max-w-[240px] font-semibold text-[var(--text)]"
+            />
+            {hasValue && (
+                <a
+                    href={value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open ${label}`}
+                    className="shrink-0 text-[var(--muted)] transition hover:text-[var(--accent)]"
+                >
+                    <ExternalLink size={13} />
+                </a>
+            )}
+        </div>
+    );
+}
+
+
 function ProjectSettings({ project, onEditField }) {
     const typeValue = (project.type || "").trim();
     const matchedPreset = TYPE_PRESETS.find(
@@ -130,10 +223,6 @@ function ProjectManuscript({
                   notes: { ...notes, [listKey]: next },
               })
             : Promise.resolve();
-
-    const hasLiveView = Boolean(project.liveLink);
-    const hasDemo = Boolean(project.demoLink);
-    const hasSource = Boolean(project.github);
 
     return (
         <AnimatePresence>
@@ -385,147 +474,33 @@ function ProjectManuscript({
 
                             <div className="mt-5 flex flex-wrap items-center gap-3">
 
-                                {/* LIVE VIEW */}
+                                <ProjectLinkField
+                                    label="Live View"
+                                    icon={ExternalLink}
+                                    value={project.liveLink}
+                                    placeholder="Paste live URL"
+                                    onSave={save("liveLink")}
+                                    variant="primary"
+                                    editing={editing}
+                                />
 
-                                {hasLiveView ? (
-                                    <a
-                                        href={project.liveLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            gap-2
-                                            rounded-lg
-                                            bg-[var(--accent)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            font-semibold
-                                            text-white
-                                            shadow-sm
-                                            transition-all
-                                            hover:-translate-y-0.5
-                                            hover:brightness-105
-                                        "
-                                    >
-                                        Live View
-                                        <ExternalLink size={14} />
-                                    </a>
-                                ) : (
-                                    <div
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            rounded-lg
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--surface)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            text-[var(--muted)]
-                                        "
-                                    >
-                                        Live View Unavailable
-                                    </div>
-                                )}
+                                <ProjectLinkField
+                                    label="Watch Video Demo"
+                                    icon={ArrowUpRight}
+                                    value={project.demoLink}
+                                    placeholder="Paste demo URL"
+                                    onSave={save("demoLink")}
+                                    editing={editing}
+                                />
 
-                                {/* VIDEO DEMO */}
-
-                                {hasDemo ? (
-                                    <a
-                                        href={project.demoLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            gap-2
-                                            rounded-lg
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--surface)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            font-semibold
-                                            text-[var(--text)]
-                                            transition-all
-                                            hover:-translate-y-0.5
-                                            hover:border-[var(--accent)]
-                                            hover:text-[var(--accent)]
-                                        "
-                                    >
-                                        Watch Video Demo
-                                        <ArrowUpRight size={14} />
-                                    </a>
-                                ) : (
-                                    <div
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            rounded-lg
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--surface)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            text-[var(--muted)]
-                                        "
-                                    >
-                                        Video Demo Unavailable
-                                    </div>
-                                )}
-
-                                {/* SOURCE */}
-
-                                {hasSource ? (
-                                    <a
-                                        href={project.github}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            gap-2
-                                            rounded-lg
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--surface)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            font-semibold
-                                            text-[var(--text)]
-                                            transition-all
-                                            hover:-translate-y-0.5
-                                            hover:border-[var(--accent)]
-                                            hover:text-[var(--accent)]
-                                        "
-                                    >
-                                        <GitBranch size={14} />
-                                        Source
-                                    </a>
-                                ) : (
-                                    <div
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            rounded-lg
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--surface)]
-                                            px-4
-                                            py-2.5
-                                            text-xs
-                                            text-[var(--muted)]
-                                        "
-                                    >
-                                        Source Unavailable
-                                    </div>
-                                )}
+                                <ProjectLinkField
+                                    label="Source"
+                                    icon={GitBranch}
+                                    value={project.github}
+                                    placeholder="Paste repo URL"
+                                    onSave={save("github")}
+                                    editing={editing}
+                                />
 
                             </div>
 
