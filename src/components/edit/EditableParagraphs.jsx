@@ -10,7 +10,8 @@ import Editable from "./Editable";
 // ============================================================
 //
 // A string[] of full paragraphs (a project's "learned",
-// "challenges", ... notes lists).
+// "challenges", ... notes lists; also reused by
+// EditableManuscriptSections for a description block's texts).
 //
 //   <EditableParagraphs
 //     value={notes.learned}
@@ -22,8 +23,17 @@ import Editable from "./Editable";
 //
 // - edit mode off: renders each paragraph via `renderItem`
 // - edit mode on:  each paragraph is a multiline editor with a
-//   ✕; an "add paragraph" button appends an empty one.
-//   `onSave` always receives the whole new array.
+//   ✕; an "add paragraph" button appends one.
+//
+// "Add paragraph" opens a DRAFT slot that is purely local state —
+// it is NOT sent to the server until it actually has content.
+// Earlier this saved an empty string immediately, and the
+// backend's sanitizer strips empty strings out of the array on
+// every save (`.filter(Boolean)`) — so the optimistic blank row
+// would round-trip and vanish the moment the save response came
+// back ("the input opens then closes"). Deferring the save until
+// there's real text avoids ever writing (and having stripped) an
+// empty entry.
 // ============================================================
 
 function EditableParagraphs({
@@ -34,11 +44,9 @@ function EditableParagraphs({
 }) {
     const { editing } = useEditMode();
     const [busy, setBusy] = useState(false);
-    // Index of the paragraph just appended by "Add paragraph" —
-    // it should open straight into edit mode instead of making
-    // the visitor hunt for the double-click affordance on an
-    // empty row.
-    const [justAdded, setJustAdded] = useState(null);
+    // Local-only draft slot rendered after the saved items, not
+    // yet part of `value`.
+    const [drafting, setDrafting] = useState(false);
 
     const items = Array.isArray(value) ? value : [];
 
@@ -74,11 +82,19 @@ function EditableParagraphs({
     const removeAt = (index) =>
         commit(items.filter((_, i) => i !== index));
 
-    const add = async () => {
-        const nextIndex = items.length;
-        await commit([...items, ""]);
-        setJustAdded(nextIndex);
+    // The draft slot's own Editable calls this on blur/Enter.
+    // Empty input (abandoned draft) is just discarded locally —
+    // nothing is ever saved for it.
+    const commitDraft = (text) => {
+        setDrafting(false);
+        const trimmed = text.trim();
+        if (!trimmed) {
+            return Promise.resolve();
+        }
+        return commit([...items, trimmed]);
     };
+
+    const add = () => setDrafting(true);
 
     return (
         <div className={className}>
@@ -95,7 +111,6 @@ function EditableParagraphs({
                         }
                         multiline
                         placeholder="Paragraph"
-                        startActive={index === justAdded}
                         className="flex-1 border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
                     />
                     <button
@@ -110,15 +125,39 @@ function EditableParagraphs({
                 </div>
             ))}
 
-            <button
-                type="button"
-                onClick={add}
-                disabled={busy}
-                className="flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)]"
-            >
-                <Plus size={13} />
-                Add paragraph
-            </button>
+            {drafting && (
+                <div className="flex items-start gap-2">
+                    <Editable
+                        as="p"
+                        value=""
+                        onSave={commitDraft}
+                        multiline
+                        placeholder="Paragraph"
+                        startActive
+                        className="flex-1 border-l-2 border-[var(--border)] pl-4 text-sm leading-7 text-[var(--muted)]"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setDrafting(false)}
+                        aria-label="Discard paragraph"
+                        className="mt-1 text-[var(--muted)] hover:text-red-400"
+                    >
+                        <X size={13} />
+                    </button>
+                </div>
+            )}
+
+            {!drafting && (
+                <button
+                    type="button"
+                    onClick={add}
+                    disabled={busy}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)]"
+                >
+                    <Plus size={13} />
+                    Add paragraph
+                </button>
+            )}
         </div>
     );
 }
