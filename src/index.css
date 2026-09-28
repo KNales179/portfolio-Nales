@@ -25,8 +25,19 @@
   --work-bg: #ece7f4;
 }
 
+/*
+  Theme resolution order:
+    1. :root[data-theme="dark"]  — explicit "Dark" choice, always wins.
+    2. :root[data-theme="light"] not present + OS is dark — the
+       prefers-color-scheme block below (":not([data-theme=\"light\"])"
+       so an explicit "Light" choice can veto it).
+    3. Base :root above — the default, and the explicit "Light" choice.
+  ThemeToggle (src/components/ThemeToggle.jsx) sets/clears
+  documentElement's data-theme; "System" clears it so this stays live
+  with the OS setting.
+*/
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
 
     --bg: #25212e;
@@ -50,6 +61,31 @@
 
     --work-bg: #2c2637;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #25212e;
+  --surface: #17131d;
+  --surface-soft: #1f1929;
+  --card: rgba(23, 19, 29, 0.82);
+
+  --border: rgba(216, 180, 254, 0.13);
+
+  --accent: #a855f7;
+  --accent-soft: rgba(168, 85, 247, 0.09);
+
+  --text: #f8f7fb;
+  --muted: rgba(248, 247, 251, 0.66);
+
+  --shadow: rgba(0, 0, 0, 0.22);
+  --grid-line: rgba(255, 255, 255, 0.045);
+
+  --skeleton-base: rgba(216, 180, 254, 0.09);
+  --skeleton-shine: rgba(216, 180, 254, 0.20);
+
+  --work-bg: #2c2637;
 }
 
 /* ========================================

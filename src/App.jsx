@@ -42,8 +42,11 @@ import { PresetProvider } from "./play/PresetContext";
 import PresetSiteTheme from "./play/PresetSiteTheme";
 import PresetOr from "./play/PresetOr";
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 function App() {
     return (
+        <ThemeProvider>
         <PresetProvider>
         <div className="relative min-h-screen overflow-x-clip">
 
@@ -296,6 +299,7 @@ function App() {
 
         </div>
         </PresetProvider>
+        </ThemeProvider>
     );
 }
 

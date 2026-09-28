@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import ThemeToggle from "../ThemeToggle";
 
 function AdminNavbar({ onMenuToggle }) {
     const navigate = useNavigate();
@@ -73,6 +74,8 @@ function AdminNavbar({ onMenuToggle }) {
                 ========================== */}
 
                 <div className="flex items-center gap-2 md:gap-4">
+
+                    <ThemeToggle />
 
                     <div className="hidden items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 px-3 py-2 sm:flex">
                         <ShieldCheck

@@ -5,6 +5,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { trackInteraction } from "../analytics/track";
 import { usePreset } from "../play/PresetContext";
+import ThemeToggle from "./ThemeToggle";
 
 const navigationLinks = [
   {
@@ -118,8 +119,10 @@ function Navbar() {
         </button>
 
         {/* =========================
-            DESKTOP NAVIGATION
+            NAV + THEME + MOBILE BUTTON
         ========================== */}
+        <div className="flex items-center gap-2 md:gap-3">
+
         <nav className="hidden items-center gap-2 md:flex">
           {navigationLinks.map((link) => (
             <NavLink
@@ -136,7 +139,7 @@ function Navbar() {
               }}
               className={({ isActive }) =>
                 `group relative rounded-xl px-4 py-2 text-sm font-medium transition duration-300 ${isActive
-                  ? "bg-purple-500/15 text-purple-500 dark:text-purple-300"
+                  ? "bg-[var(--accent-soft)] text-[var(--accent)]"
                   : "text-[var(--text)]/70 hover:bg-[var(--surface)]/70 hover:text-[var(--text)]"
                 }`
               }
@@ -156,6 +159,8 @@ function Navbar() {
             </NavLink>
           ))}
         </nav>
+
+        <ThemeToggle />
 
         {/* =========================
             MOBILE MENU BUTTON
@@ -218,6 +223,8 @@ function Navbar() {
             )}
           </AnimatePresence>
         </button>
+
+        </div>
       </div>
 
       {/* =========================
