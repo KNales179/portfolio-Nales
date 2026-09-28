@@ -362,7 +362,7 @@ function Contact() {
               </div>
 
 
-              {/* Resume */}
+              {/* Résumé */}
               <a
                 href={resumeHref(content)}
                 download
@@ -376,7 +376,7 @@ function Contact() {
               >
                 <Download size={17} />
 
-                Download Resume
+                Download Résumé
               </a>
 
               <ResumeUploadControl className="mt-2 justify-center" />

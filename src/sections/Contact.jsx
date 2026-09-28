@@ -30,7 +30,7 @@ function Contact() {
     ...(hasContacts ? content.contactLinks : FALLBACK_CONTACTS),
     {
       id: "resume",
-      label: "Resume",
+      label: "Résumé",
       href: resumeHref(content),
       icon: "Download",
       download: true,
