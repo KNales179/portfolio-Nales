@@ -306,6 +306,16 @@ function Hero() {
             }}
           >
 
+            {/* Light-mode-only contrast backdrop — see
+                --portrait-backdrop in index.css. No-op in
+                dark mode, which doesn't need it. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0"
+              style={{
+                background: "var(--portrait-backdrop)",
+              }}
+            />
 
             {/* Portrait */}
 
@@ -323,9 +333,9 @@ function Hero() {
                 className="relative z-10 mx-auto h-full w-full -translate-y-[10%] object-contain object-center drop-shadow-2xl md:-translate-y-[10%]"
                 style={{
                   WebkitMaskImage:
-                    "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
+                    "linear-gradient(to bottom, transparent 0%, black 10%, black 95%, transparent 100%)",
                   maskImage:
-                    "linear-gradient(to bottom, transparent 0%, black 10%, black 82%, transparent 100%)",
+                    "linear-gradient(to bottom, transparent 0%, black 10%, black 95%, transparent 100%)",
                 }}
               />
             </EditableImage>

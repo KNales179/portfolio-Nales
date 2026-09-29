@@ -11,12 +11,12 @@
     instead of blending into a same-hue wash. Kept dim (not
     pure white) — a glare-y light mode was the earlier complaint.
   */
-  --bg: #e6e5e9;
-  --surface: #f2f1f4;
-  --surface-soft: #dedde2;
-  --card: rgba(242, 241, 244, 0.85);
+  --bg: #d9d8dd;
+  --surface: #e8e7ec;
+  --surface-soft: #cac9cf;
+  --card: rgba(232, 231, 236, 0.85);
 
-  --border: rgba(20, 18, 24, 0.14);
+  --border: rgba(20, 18, 24, 0.16);
 
   --accent: #7c3aed;
   --accent-soft: rgba(124, 58, 237, 0.08);
@@ -24,13 +24,25 @@
   --text: #16151a;
   --muted: rgba(22, 21, 26, 0.65);
 
-  --shadow: rgba(20, 18, 24, 0.1);
-  --grid-line: rgba(20, 18, 24, 0.06);
+  --shadow: rgba(20, 18, 24, 0.12);
+  --grid-line: rgba(20, 18, 24, 0.07);
 
-  --skeleton-base: rgba(20, 18, 24, 0.07);
-  --skeleton-shine: rgba(20, 18, 24, 0.14);
+  --skeleton-base: rgba(20, 18, 24, 0.08);
+  --skeleton-shine: rgba(20, 18, 24, 0.16);
 
-  --work-bg: #dcdbdf;
+  --work-bg: #c7c6cc;
+
+  /*
+    Light-mode-only contrast backdrop for the Hero portrait. A
+    light-colored outfit (e.g. a white barong) on this light
+    background has almost no edge contrast once the portrait's
+    fade mask kicks in, so it visually dissolves. This gives it
+    something slightly darker to fade against instead of flat
+    page color. Not needed in dark mode — see below.
+  */
+  --portrait-backdrop: radial-gradient(circle at 50% 42%,
+      rgba(20, 18, 24, 0.14),
+      transparent 62%);
 }
 
 /*
@@ -68,6 +80,8 @@
     --skeleton-shine: rgba(255, 255, 255, 0.16);
 
     --work-bg: #1e1d22;
+
+    --portrait-backdrop: none;
   }
 }
 
@@ -94,6 +108,8 @@
   --skeleton-shine: rgba(255, 255, 255, 0.16);
 
   --work-bg: #1e1d22;
+
+  --portrait-backdrop: none;
 }
 
 /* ========================================
@@ -224,9 +240,9 @@ html {
 
   background: radial-gradient(circle at 70% 15%,
       var(--accent-soft),
-      transparent 28%);
+      transparent 22%);
 
-  opacity: 0.45;
+  opacity: 0.22;
 }
 
 /* ========================================
