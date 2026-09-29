@@ -84,10 +84,10 @@ function ProjectCard({ project, index, className = "" }) {
         <button
           type="button"
           onClick={() => setIsActive(true)}
-          className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-black/55 px-3 py-2.5 text-left text-white backdrop-blur-md transition-colors duration-300 hover:bg-black/70"
+          className="flex w-full items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)]/85 px-3 py-2.5 text-left text-[var(--text)] backdrop-blur-lg transition-colors duration-300 hover:bg-[var(--surface)]"
         >
           <div className="min-w-0">
-            <p className="truncate text-[8px] tracking-[0.14em] text-purple-300">
+            <p className="truncate text-[8px] tracking-[0.14em] text-[var(--accent)]">
               {project.type}
             </p>
 
@@ -224,7 +224,7 @@ function Projects() {
   return (
     <section
       id="projects"
-      className="relative px-6 py-20 md:px-10 lg:px-16"
+      className="relative px-6 py-14 md:px-10 md:py-16 lg:px-16"
     >
       <div className="mx-auto max-w-[1100px]">
 

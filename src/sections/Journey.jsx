@@ -351,7 +351,7 @@ function Journey() {
   return (
     <section
       id="journey"
-      className="relative overflow-hidden px-6 py-20 md:px-10 lg:px-16"
+      className="relative overflow-hidden px-6 py-14 md:px-10 md:py-16 lg:px-16"
     >
       <div className="mx-auto max-w-[1200px]">
 

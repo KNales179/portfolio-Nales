@@ -278,7 +278,7 @@ function Skills() {
   return (
     <section
       id="skills"
-      className="relative overflow-hidden px-6 py-24 md:px-10 lg:px-16"
+      className="relative overflow-hidden px-6 py-16 md:px-10 md:py-20 lg:px-16"
     >
       <div className="mx-auto max-w-[1200px]">
 

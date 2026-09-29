@@ -68,7 +68,7 @@ function Insights() {
     ];
 
     return (
-        <section className="relative px-6 py-24 md:px-10 md:py-32 lg:px-16">
+        <section className="relative px-6 py-16 md:px-10 md:py-20 lg:px-16">
             <div className="mx-auto max-w-[1100px]">
 
                 <SectionTitle

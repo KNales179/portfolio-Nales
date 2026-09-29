@@ -3,26 +3,34 @@
 :root {
   color-scheme: light;
 
-  --bg: #f8f7fb;
-  --surface: #ffffff;
-  --surface-soft: #f1eef8;
-  --card: rgba(255, 255, 255, 0.82);
+  /*
+    True neutral base — background/surface/border/text no longer
+    carry a purple tint of their own. Purple is reserved for
+    --accent only (the 60-30-10 rule: neutrals are the 60/30,
+    accent is the 10), so it actually pops against the page
+    instead of blending into a same-hue wash. Kept dim (not
+    pure white) — a glare-y light mode was the earlier complaint.
+  */
+  --bg: #e6e5e9;
+  --surface: #f2f1f4;
+  --surface-soft: #dedde2;
+  --card: rgba(242, 241, 244, 0.85);
 
-  --border: rgba(88, 28, 135, 0.16);
+  --border: rgba(20, 18, 24, 0.14);
 
   --accent: #7c3aed;
   --accent-soft: rgba(124, 58, 237, 0.08);
 
-  --text: #17121f;
-  --muted: rgba(23, 18, 31, 0.68);
+  --text: #16151a;
+  --muted: rgba(22, 21, 26, 0.65);
 
-  --shadow: rgba(88, 28, 135, 0.08);
-  --grid-line: rgba(88, 28, 135, 0.055);
+  --shadow: rgba(20, 18, 24, 0.1);
+  --grid-line: rgba(20, 18, 24, 0.06);
 
-  --skeleton-base: rgba(124, 58, 237, 0.10);
-  --skeleton-shine: rgba(124, 58, 237, 0.22);
+  --skeleton-base: rgba(20, 18, 24, 0.07);
+  --skeleton-shine: rgba(20, 18, 24, 0.14);
 
-  --work-bg: #ece7f4;
+  --work-bg: #dcdbdf;
 }
 
 /*
@@ -40,52 +48,52 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #25212e;
-    --surface: #17131d;
-    --surface-soft: #1f1929;
-    --card: rgba(23, 19, 29, 0.82);
+    --bg: #19181c;
+    --surface: #111114;
+    --surface-soft: #1c1b1f;
+    --card: rgba(17, 17, 20, 0.82);
 
-    --border: rgba(216, 180, 254, 0.13);
+    --border: rgba(255, 255, 255, 0.1);
 
     --accent: #a855f7;
     --accent-soft: rgba(168, 85, 247, 0.09);
 
-    --text: #f8f7fb;
-    --muted: rgba(248, 247, 251, 0.66);
+    --text: #f7f7f8;
+    --muted: rgba(247, 247, 248, 0.66);
 
-    --shadow: rgba(0, 0, 0, 0.22);
+    --shadow: rgba(0, 0, 0, 0.35);
     --grid-line: rgba(255, 255, 255, 0.045);
 
-    --skeleton-base: rgba(216, 180, 254, 0.09);
-    --skeleton-shine: rgba(216, 180, 254, 0.20);
+    --skeleton-base: rgba(255, 255, 255, 0.08);
+    --skeleton-shine: rgba(255, 255, 255, 0.16);
 
-    --work-bg: #2c2637;
+    --work-bg: #1e1d22;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #25212e;
-  --surface: #17131d;
-  --surface-soft: #1f1929;
-  --card: rgba(23, 19, 29, 0.82);
+  --bg: #19181c;
+  --surface: #111114;
+  --surface-soft: #1c1b1f;
+  --card: rgba(17, 17, 20, 0.82);
 
-  --border: rgba(216, 180, 254, 0.13);
+  --border: rgba(255, 255, 255, 0.1);
 
   --accent: #a855f7;
   --accent-soft: rgba(168, 85, 247, 0.09);
 
-  --text: #f8f7fb;
-  --muted: rgba(248, 247, 251, 0.66);
+  --text: #f7f7f8;
+  --muted: rgba(247, 247, 248, 0.66);
 
-  --shadow: rgba(0, 0, 0, 0.22);
+  --shadow: rgba(0, 0, 0, 0.35);
   --grid-line: rgba(255, 255, 255, 0.045);
 
-  --skeleton-base: rgba(216, 180, 254, 0.09);
-  --skeleton-shine: rgba(216, 180, 254, 0.20);
+  --skeleton-base: rgba(255, 255, 255, 0.08);
+  --skeleton-shine: rgba(255, 255, 255, 0.16);
 
-  --work-bg: #2c2637;
+  --work-bg: #1e1d22;
 }
 
 /* ========================================
@@ -133,6 +141,41 @@ a {
 
 .heading-font {
   font-family: "Outfit", sans-serif;
+}
+
+/* ========================================
+   SCROLLBAR
+======================================== */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) var(--surface-soft);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 999px;
+  border: 2px solid var(--surface-soft);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 /* ========================================
