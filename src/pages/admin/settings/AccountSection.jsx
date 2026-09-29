@@ -5,6 +5,10 @@ import {
     ShieldCheck,
     Trash2,
     ChevronLeft,
+    Pencil,
+    Check,
+    X,
+    Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,12 +17,60 @@ import AdminSidebar from "../../../components/admin/AdminSidebar";
 
 import { useAuth } from "../../../context/AuthContext";
 import { useState } from "react";
+import { changeUsername } from "../../../services/adminService";
 
 function AccountSection() {
     const navigate = useNavigate();
-    const { admin } = useAuth();
+    const { admin, refreshAdmin } = useAuth();
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // ============================================================
+    // USERNAME
+    // ============================================================
+
+    const [editingUsername, setEditingUsername] = useState(false);
+    const [usernameValue, setUsernameValue] = useState("");
+    const [usernameSaving, setUsernameSaving] = useState(false);
+    const [usernameError, setUsernameError] = useState("");
+
+    const startEditUsername = () => {
+        setUsernameValue(admin?.username || "");
+        setUsernameError("");
+        setEditingUsername(true);
+    };
+
+    const cancelEditUsername = () => {
+        setEditingUsername(false);
+        setUsernameError("");
+    };
+
+    const saveUsername = async () => {
+        const trimmed = usernameValue.trim().toLowerCase();
+
+        if (trimmed.length < 3 || trimmed.length > 30) {
+            setUsernameError(
+                "Username must be 3-30 characters."
+            );
+            return;
+        }
+
+        setUsernameSaving(true);
+        setUsernameError("");
+
+        try {
+            await changeUsername(trimmed);
+            await refreshAdmin();
+            setEditingUsername(false);
+        } catch (error) {
+            setUsernameError(
+                error?.message ||
+                    "Failed to change username."
+            );
+        } finally {
+            setUsernameSaving(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[var(--surface)]">
@@ -160,9 +212,79 @@ function AccountSection() {
                                     Username
                                 </p>
 
-                                <p className="mt-2 text-sm font-medium">
-                                    {admin?.username || "Not available"}
-                                </p>
+                                {editingUsername ? (
+                                    <div className="mt-2">
+
+                                        <div className="flex items-center gap-2">
+
+                                            <input
+                                                type="text"
+                                                value={usernameValue}
+                                                onChange={(event) =>
+                                                    setUsernameValue(
+                                                        event.target.value
+                                                    )
+                                                }
+                                                disabled={usernameSaving}
+                                                autoFocus
+                                                maxLength={30}
+                                                className="h-9 flex-1 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm outline-none focus:border-purple-500/50"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={saveUsername}
+                                                disabled={usernameSaving}
+                                                aria-label="Save username"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center border border-green-500/30 text-green-400 transition hover:bg-green-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {usernameSaving ? (
+                                                    <Loader2
+                                                        size={15}
+                                                        className="animate-spin"
+                                                    />
+                                                ) : (
+                                                    <Check size={15} />
+                                                )}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={cancelEditUsername}
+                                                disabled={usernameSaving}
+                                                aria-label="Cancel"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--border)] text-[var(--muted)] transition hover:bg-[var(--surface-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <X size={15} />
+                                            </button>
+
+                                        </div>
+
+                                        {usernameError && (
+                                            <p className="mt-2 text-xs text-red-400">
+                                                {usernameError}
+                                            </p>
+                                        )}
+
+                                    </div>
+                                ) : (
+                                    <div className="mt-2 flex items-center gap-2">
+
+                                        <p className="text-sm font-medium">
+                                            {admin?.username || "Not available"}
+                                        </p>
+
+                                        <button
+                                            type="button"
+                                            onClick={startEditUsername}
+                                            aria-label="Edit username"
+                                            className="text-[var(--muted)] transition hover:text-purple-400"
+                                        >
+                                            <Pencil size={13} />
+                                        </button>
+
+                                    </div>
+                                )}
 
                             </div>
 

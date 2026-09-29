@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Send } from "lucide-react";
+import { Download, ExternalLink, Send } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import SectionTitle from "../components/SectionTitle";
 import { sendContactMessage } from "../services/contactApi";
@@ -26,16 +26,9 @@ function Contact() {
 
   const hasContacts = content.contactLinks.length > 0;
 
-  const contacts = [
-    ...(hasContacts ? content.contactLinks : FALLBACK_CONTACTS),
-    {
-      id: "resume",
-      label: "Résumé",
-      href: resumeHref(content),
-      icon: "Download",
-      download: true,
-    },
-  ];
+  const contacts = hasContacts
+    ? content.contactLinks
+    : FALLBACK_CONTACTS;
 
   const sortable = useSortable(
     (hasContacts ? content.contactLinks : []).map(
@@ -170,8 +163,7 @@ function Contact() {
               {/* Contact links */}
               <div className="mt-8 space-y-2">
                 {contacts.map((contact, index) => {
-                  const sortableItem =
-                    hasContacts && !contact.download;
+                  const sortableItem = hasContacts;
 
                   return (
                     <motion.a
@@ -181,21 +173,14 @@ function Contact() {
                         : {})}
                       href={contact.href}
                       onClick={(event) => {
-                        if (editing && !contact.download) {
+                        if (editing) {
                           event.preventDefault();
                           return;
                         }
-                        if (contact.download) {
-                          trackInteraction(
-                            "RESUME_DOWNLOAD",
-                            "home-contact"
-                          );
-                        } else {
-                          trackLink(
-                            contact.href,
-                            contact.label
-                          );
-                        }
+                        trackLink(
+                          contact.href,
+                          contact.label
+                        );
                       }}
                       target={
                         contact.external
@@ -205,11 +190,6 @@ function Contact() {
                       rel={
                         contact.external
                           ? "noreferrer"
-                          : undefined
-                      }
-                      download={
-                        contact.download
-                          ? true
                           : undefined
                       }
                       initial={{
@@ -271,23 +251,17 @@ function Contact() {
                           />
                         </div>
 
-                        {contact.download ? (
-                          <span className="text-sm font-medium">
-                            {contact.label}
-                          </span>
-                        ) : (
-                          <Editable
-                            value={contact.label}
-                            onSave={(v) =>
-                              updateItem(
-                                "contact-links",
-                                contact.id,
-                                { label: v }
-                              )
-                            }
-                            className="text-sm font-medium"
-                          />
-                        )}
+                        <Editable
+                          value={contact.label}
+                          onSave={(v) =>
+                            updateItem(
+                              "contact-links",
+                              contact.id,
+                              { label: v }
+                            )
+                          }
+                          className="text-sm font-medium"
+                        />
                       </div>
 
                       <ExternalLink
@@ -297,6 +271,33 @@ function Contact() {
                     </motion.a>
                   );
                 })}
+
+                {/* Résumé — a document download, not a contact
+                    channel, so it's set apart from the social/
+                    contact links above rather than listed among
+                    them. */}
+                <div className="flex items-center gap-3 pt-3">
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">
+                    Résumé
+                  </span>
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                </div>
+
+                <a
+                  href={resumeHref(content)}
+                  download
+                  onClick={() =>
+                    trackInteraction(
+                      "RESUME_DOWNLOAD",
+                      "home-contact"
+                    )
+                  }
+                  className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--accent)]/40 bg-[var(--accent-soft)] px-4 py-3 text-sm font-semibold text-[var(--accent)] transition-colors duration-300 hover:border-[var(--accent)]"
+                >
+                  <Download size={15} />
+                  Download Résumé
+                </a>
 
                 <ResumeUploadControl className="pt-1" />
               </div>
