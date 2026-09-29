@@ -106,11 +106,38 @@ export const flush = (useBeacon = false) => {
 
 
 // ============================================================
+// OWN TRAFFIC
+// ============================================================
+//
+// Skips tracking while an admin session token is present in
+// this browser — i.e. while the site owner is testing/editing
+// the live public pages logged in as admin. This is the
+// overwhelming majority of "visits" that are actually just the
+// owner, not a real visitor.
+// ============================================================
+
+const isAdminSession = () => {
+    try {
+        return Boolean(
+            window.localStorage.getItem("token") ||
+                window.sessionStorage.getItem("token")
+        );
+    } catch {
+        return false;
+    }
+};
+
+
+// ============================================================
 // TRACK
 // ============================================================
 
 export const track = (type, data = {}) => {
     if (typeof window === "undefined") {
+        return;
+    }
+
+    if (isAdminSession()) {
         return;
     }
 
