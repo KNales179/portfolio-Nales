@@ -327,7 +327,7 @@ function Hero() {
               <img
                 src={
                   hero.photoUrl ||
-                  `${import.meta.env.BASE_URL}beh.png`
+                  `${import.meta.env.BASE_URL}beh.webp`
                 }
                 alt="Ivhel, Mobile and Full Stack Developer"
                 className="relative z-10 mx-auto h-full w-full -translate-y-[10%] object-contain object-center drop-shadow-2xl md:-translate-y-[10%]"
